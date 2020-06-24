@@ -2,59 +2,38 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap the application services.
-     */
     public function boot()
     {
-        /*
-         * Optional methods to load your package assets
-         */
-        // $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'livewire-datatables');
-        // $this->loadViewsFrom(__DIR__.'/../resources/views', 'livewire-datatables');
-        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        // $this->loadRoutesFrom(__DIR__.'/routes.php');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatables');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views/icons', 'icons');
+
+        Blade::component('icons::arrow-left', 'icons.arrow-left');
+        Blade::component('icons::arrow-right', 'icons.arrow-right');
+        Blade::component('icons::chevron-up', 'icons.chevron-up');
+        Blade::component('icons::chevron-down', 'icons.chevron-down');
+        Blade::component('icons::cog', 'icons.cog');
+        Blade::component('icons::x-circle', 'icons.x-circle');
+        Blade::component('icons::check-circle', 'icons.check-circle');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/config.php' => config_path('livewire-datatables.php'),
+                __DIR__ . '/../config/config.php' => config_path('livewire-datatables.php'),
             ], 'config');
 
-            // Publishing the views.
-            /*$this->publishes([
-                __DIR__.'/../resources/views' => resource_path('views/vendor/livewire-datatables'),
-            ], 'views');*/
-
-            // Publishing assets.
-            /*$this->publishes([
-                __DIR__.'/../resources/assets' => public_path('vendor/livewire-datatables'),
-            ], 'assets');*/
-
-            // Publishing the translation files.
-            /*$this->publishes([
-                __DIR__.'/../resources/lang' => resource_path('lang/vendor/livewire-datatables'),
-            ], 'lang');*/
-
-            // Registering package commands.
-            // $this->commands([]);
+            $this->publishes([
+                __DIR__ . '/../resources/views' => resource_path('views/vendor/livewire-datatables'),
+                __DIR__ . '/../resources/views/icons' => resource_path('views/vendor/livewire-datatables/icons'),
+            ], 'views');
         }
     }
 
-    /**
-     * Register the application services.
-     */
     public function register()
     {
-        // Automatically apply the package configuration
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'livewire-datatables');
-
-        // Register the main class to use with the facade
-        $this->app->singleton('livewire-datatables', function () {
-            return new LivewireDatatables;
-        });
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'livewire-datatables');
     }
 }

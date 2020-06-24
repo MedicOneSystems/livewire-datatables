@@ -1,11 +1,11 @@
-# Very short description of the package
+# Livewire Datatables
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mediconesystems/livewire-datatables.svg?style=flat-square)](https://packagist.org/packages/mediconesystems/livewire-datatables)
 [![Build Status](https://img.shields.io/travis/mediconesystems/livewire-datatables/master.svg?style=flat-square)](https://travis-ci.org/mediconesystems/livewire-datatables)
 [![Quality Score](https://img.shields.io/scrutinizer/g/mediconesystems/livewire-datatables.svg?style=flat-square)](https://scrutinizer-ci.com/g/mediconesystems/livewire-datatables)
 [![Total Downloads](https://img.shields.io/packagist/dt/mediconesystems/livewire-datatables.svg?style=flat-square)](https://packagist.org/packages/mediconesystems/livewire-datatables)
 
-This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
+Advanced datatable with sorting, filtering, searching ...
 
 ## Installation
 
@@ -15,10 +15,26 @@ You can install the package via composer:
 composer require mediconesystems/livewire-datatables
 ```
 
-## Usage
+## Basic Usage
 
 ``` php
-// Usage description here
+<?php
+
+namespace App\Http\Livewire;
+
+use App\User;
+use Livewire\Component;
+use Mediconesystems\LivewireDatatables\Traits\LivewireDatatable;
+
+class UsersTable extends Component
+{
+    use LivewireDatatable;
+
+    public function model()
+    {
+        return User::class;
+    }
+}
 ```
 
 ### Testing

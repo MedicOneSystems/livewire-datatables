@@ -16,12 +16,12 @@
         }
     ],
     "require": {
-        "php": "^7.1",
-        "illuminate/support": "^6.0"
+        "php": "^7.2.5",
+        "illuminate/support": "^7.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^4.0",
-        "phpunit/phpunit": "^8.0"
+        "orchestra/testbench": "^4.0|5.0",
+        "phpunit/phpunit": "^8.0|9.0"
     },
     "autoload": {
         "psr-4": {
@@ -50,5 +50,7 @@
                 "LivewireDatatables": "Mediconesystems\\LivewireDatatables\\LivewireDatatablesFacade"
             }
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
