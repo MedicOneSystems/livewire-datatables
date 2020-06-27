@@ -2,13 +2,14 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Field
 {
     public $name;
     public $column;
+    public $sort;
+    public $defaultSort;
     public $callback;
     public $selectFilter;
     public $booleanFilter;
@@ -16,6 +17,7 @@ class Field
     public $dateFilter;
     public $timeFilter;
     public $hidden;
+    public $params = [];
 
 
     public static function fromColumn($column)
@@ -48,6 +50,18 @@ class Field
     public function name($name)
     {
         $this->name = $name;
+        return $this;
+    }
+
+    public function sortBy($column)
+    {
+        $this->sort = $column;
+        return $this;
+    }
+
+    public function defaultSort($direction = 'desc')
+    {
+        $this->defaultSort = $direction;
         return $this;
     }
 
@@ -100,35 +114,35 @@ class Field
         return $this;
     }
 
-    public function linkTo($model)
+    public function linkTo($model, $pad)
     {
         $this->callback = 'makeLink';
-        $this->params = $model;
+        $this->params = func_get_args();
         return $this;
     }
 
-    public function formatDate($format = 'd/m/Y')
+    public function formatDate($format = null)
     {
         $this->callback = 'formatDate';
-        $this->params = $format;
+        $this->params = func_get_args();
         return $this;
     }
 
-    public function formatTime($format = 'H:i')
+    public function formatTime($format = null)
     {
         $this->callback = 'formatTime';
-        $this->params = $format;
+        $this->params = func_get_args();
         return $this;
     }
 
     public function round($precision = 0)
     {
         $this->callback = 'round';
-        $this->params = $precision;
+        $this->params = func_get_args();
         return $this;
     }
 
-    public function callback($callback, $params = null)
+    public function callback($callback, $params = [])
     {
         $this->callback = $callback;
         $this->params = $params;

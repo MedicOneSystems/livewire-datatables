@@ -14,6 +14,7 @@ trait LivewireDatatable
 {
     use WithPagination;
 
+    public $model;
     public $fields;
     public $sort;
     public $direction;
@@ -25,10 +26,16 @@ trait LivewireDatatable
     public $times;
     public $perPage = 10;
 
-    public function mount()
+    public function mount($model = null)
     {
+        $this->model = $model;
         $this->fields = $this->fields()->map->toArray()->toArray();
         $this->initialiseSort();
+    }
+
+    public function model()
+    {
+        return $this->model;
     }
 
     public function builder()
@@ -41,17 +48,43 @@ trait LivewireDatatable
         return Fieldset::fromModel($this->model())->fields();
     }
 
-    private function initialiseSort()
+    public function fieldsetFromModel()
     {
-        $this->sort = $this->getColumns()->first();
+        return Fieldset::fromModel($this->model());
     }
 
-    public function sort($field)
+    public function initialiseSort()
     {
-        if ($this->sort === $field) {
+        $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleFields->keys()->first();
+        $this->direction = $this->defaultSort()['direction'] === 'asc';
+        // dd($this->sort, $this->direction);
+    }
+
+    public function defaultSort()
+    {
+        $fieldIndex = $this->fields()->search(function ($field) {
+            return is_string($field->defaultSort);
+        });
+
+        return $fieldIndex ? [
+            'key' => $fieldIndex,
+            'direction' => $this->fields()[$fieldIndex]->defaultSort
+        ] : null;
+    }
+
+    public function getSortString()
+    {
+        return $this->fields()[$this->sort]->sort
+            ? $this->fields()[$this->sort]->sort
+            : $this->fields()[$this->sort]->name;
+    }
+
+    public function sort($index)
+    {
+        if ($this->sort === (int) $index) {
             $this->direction = !$this->direction;
         } else {
-            $this->sort = $field;
+            $this->sort = (int) $index;
         }
     }
 
@@ -59,7 +92,7 @@ trait LivewireDatatable
     {
         $this->fields[$index]['hidden'] = !$this->fields[$index]['hidden'];
 
-        if ($this->sort === $this->fields[$index]['name']) {
+        if ($this->sort === $index) {
             $this->initialiseSort();
         }
     }
@@ -88,14 +121,6 @@ trait LivewireDatatable
         if (count($this->activeSelectFilters[$column]) < 1) {
             unset($this->activeSelectFilters[$column]);
         }
-    }
-
-    public function clearDateFilter()
-    {
-        $this->dates = [
-            'start' => null,
-            'end' => null,
-        ];
     }
 
     public function lastMonth()
@@ -134,13 +159,21 @@ trait LivewireDatatable
         $this->dates['end'] = now()->format('Y-m-d');
     }
 
+    public function clearDateFilter()
+    {
+        $this->dates = null;
+    }
+
     public function clearTimeFilter()
     {
-        $this->times = [
-            'field' => '',
-            'start' => '',
-            'end' => '',
-        ];
+        $this->times = null;
+    }
+
+    public function clearFilters()
+    {
+        $this->activeSelectFilters = [];
+        $this->activeBooleanFilters = [];
+        $this->activeTextFilters = [];
     }
 
     public function clearAllFilters()
@@ -162,19 +195,14 @@ trait LivewireDatatable
         unset($this->activeTextFilters[$column]);
     }
 
-    public function visibleFields()
+    public function getVisibleFieldsProperty()
     {
         return collect($this->fields)->reject->hidden;
     }
 
-    public function getColumns()
-    {
-        return $this->visibleFields()->map->name;
-    }
-
     public function getSelectStatements()
     {
-        return $this->visibleFields()->map(function ($field) {
+        return $this->visibleFields->map(function ($field) {
             return $field['column'] ? $field['column'] . ' AS ' . $field['name'] : null;
         })->filter();
     }
@@ -279,17 +307,22 @@ trait LivewireDatatable
         });
     }
 
-    public function getResults()
+    public function scopeFields()
+    {
+        return $this->visibleFields->filter(function ($field, $key) {
+            return isset($field['scope']);
+        });
+    }
+
+    public function buildDatabaseQuery()
     {
         return $this->builder()
-            ->when(true, function ($query) {
-                $this->visibleFields()->filter(function ($field, $key) {
-                    return isset($field['scope']);
-                })->each(function ($field) use ($query) {
+            ->select($this->getSelectStatements()->filter()->toArray())
+            ->when(count($this->scopeFields()), function ($query) {
+                $this->scopeFields()->each(function ($field) use ($query) {
                     $query->{$field['scope']}($field['name']);
                 });
             })
-            ->addSelect($this->getSelectStatements()->filter()->toArray())
             ->when(count($this->activeSelectFilters) > 0, function ($query) {
                 return $this->addSelectFilters($query);
             })
@@ -305,27 +338,23 @@ trait LivewireDatatable
             ->when(isset($this->times['field']) && $this->times['field'] !== '', function ($query) {
                 return $this->addTimeRangeFilter($query);
             })
-            // ->when(isset($this->queryString), function ($query) {
-            //     return $this->parseQueryIntoBuilder($query, $this->queryString, 'and');
-            // })
             ->when(isset($this->sort), function ($query) {
-                return $query->orderBy($this->sort, $this->direction ? 'asc' : 'desc');
+                return $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
             });
     }
 
-    public function mapCallbacks()
+    public function mapCallbacks($paginatedCollection)
     {
-        $results = $this->getResults()->paginate($this->perPage);
-        // dd($results->getCollection());
-        $results->getCollection()->map(function ($row, $i) {
-
+        $paginatedCollection->getCollection()->map(function ($row, $i) {
             foreach ($row->getAttributes() as $name => $value) {
-                $row->$name = $this->getFieldCallback($name)['callback'] ? $this->{$this->getFieldCallback($name)['callback']}($value, $this->getFieldCallback($name)['params'] ?? null) : $value;
+                $row->$name = $this->getFieldCallback($name)['callback']
+                    ? $this->{$this->getFieldCallback($name)['callback']}($value, ...$this->getFieldCallback($name)['params'] ?? null)
+                    : $value;
             }
             return $row;
         });
 
-        return $results;
+        return $paginatedCollection;
     }
 
     public function getFieldCallback($fieldName)
@@ -334,14 +363,14 @@ trait LivewireDatatable
             ? Arr::only(collect($this->fields)->firstWhere('name', $fieldName), ['callback', 'params']) : null;
     }
 
-    public function formatTime($time)
+    public function formatTime($time, $format = null)
     {
-        return $time ? Carbon::parse($time)->format('H:i') : null;
+        return $time ? Carbon::parse($time)->format($format ?? config('livewire-datatables.default_time_format')) : null;
     }
 
-    public function formatDate($date, $format)
+    public function formatDate($date, $format = null)
     {
-        return $date ? Carbon::parse($date)->format($format) : null;
+        return $date ? Carbon::parse($date)->format($format ?? config('livewire-datatables.default_date_format')) : null;
     }
 
     public function round($value, $precision = 0)
@@ -356,9 +385,9 @@ trait LivewireDatatable
             : 'x-circle';
     }
 
-    public function makeLink($value, $model)
+    public function makeLink($value, $model, $pad = null)
     {
-        return '<a href="/$model/' . $value . '" class="border-2 border-transparent hover:border-blue-500 hover:bg-blue-100 hover:shadow-lg text-blue-600 rounded-lg px-3 py-1">' . str_pad($value, 6, '0', STR_PAD_LEFT) . '</a>';
+        return '<a href="/' . $model . '/' . $value . '" class="border-2 border-transparent hover:border-blue-500 hover:bg-blue-100 hover:shadow-lg text-blue-600 rounded-lg px-3 py-1">' . ($pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value) . '</a>';
     }
 
     public function truncate($value)
@@ -369,12 +398,7 @@ trait LivewireDatatable
 
     public function getResultsProperty()
     {
-        return $this->mapCallbacks();
-    }
-
-    public function getColumnsProperty()
-    {
-        return $this->getColumns();
+        return $this->mapCallbacks($this->buildDatabaseQuery()->paginate($this->perPage));
     }
 
     public function getSelectFiltersProperty()
@@ -400,6 +424,15 @@ trait LivewireDatatable
     public function getTimeFiltersProperty()
     {
         return collect($this->fields)->filter->timeFilter;
+    }
+
+    public function getActiveFiltersProperty()
+    {
+        return isset($this->dates['field'])
+            || isset($this->times['field'])
+            || count($this->activeSelectFilters)
+            || count($this->activeBooleanFilters)
+            || count($this->activeTextFilters);
     }
 
     public function render()

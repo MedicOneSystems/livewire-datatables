@@ -9,19 +9,21 @@ class Fieldset
     public $table;
     public $fields;
 
+    public function __construct($table, $fields)
+    {
+        $this->table = $table;
+        $this->fields = $fields;
+    }
+
     public static function fromModel($model)
     {
-        $instance = $model::first();
-        $fieldset = new static;
-        $fieldset->table = $instance->getTable();
+        $instance = $model::firstOrFail();
 
-        $fieldset->fields = collect($instance->getAttributes())->keys()->reject(function ($name) use ($instance) {
+        return new static($instance->getTable(), collect($instance->getAttributes())->keys()->reject(function ($name) use ($instance) {
             return in_array($name, $instance->getHidden());
-        })->map(function ($attribute) use ($fieldset) {
-            return Field::fromColumn($fieldset->table . '.' . $attribute);
-        });
-
-        return $fieldset;
+        })->map(function ($attribute) use ($instance) {
+            return Field::fromColumn($instance->getTable() . '.' . $attribute);
+        }));
     }
 
     public function except($fields)
@@ -41,7 +43,7 @@ class Fieldset
         foreach ($columns as $column) {
             if ($field = $this->fields->firstWhere('column', $column)) {
                 $field->callback = 'formatDate';
-                $field->params = $format;
+                $field->params = [$format];
             }
         }
         return $this;
@@ -53,6 +55,15 @@ class Fieldset
             if ($field = $this->fields->firstWhere('column', $column)) {
                 $field->dateFilter = true;
             }
+        }
+        return $this;
+    }
+
+    public function uppercase($values)
+    {
+        foreach ($values as $column) {
+            $field = $this->fields->firstWhere('column', $column);
+            $field->name = strtoupper($field->name);
         }
         return $this;
     }

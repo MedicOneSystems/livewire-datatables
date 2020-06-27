@@ -7,6 +7,11 @@
 
 Advanced datatable with sorting, filtering, searching ...
 
+## Requirements
+- [Laravel 7.x](https://laravel.com/docs/7.x)
+- [Livewire 1.x](https://laravel-livewire.com/)
+
+
 ## Installation
 
 You can install the package via composer:
@@ -16,6 +21,9 @@ composer require mediconesystems/livewire-datatables
 ```
 
 ## Basic Usage
+
+- Create a new Livewire component for your table. ``` php artisan livewire:make UsersTable```
+- You can delete the blade view ```resources/view/livewire/users-table.blade.php```
 
 ``` php
 <?php
