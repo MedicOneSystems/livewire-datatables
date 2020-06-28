@@ -5,13 +5,14 @@ namespace Mediconesystems\LivewireDatatables;
 use Livewire\Livewire;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
-use Mediconesystems\LivewireDatatables\Http\Livewire\Datatable;
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        Livewire::component('datatable', Datatable::class);
+        Livewire::component('livewire-datatable', LivewireDatatable::class);
 
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatables');
         $this->loadViewsFrom(__DIR__ . '/../resources/views/icons', 'icons');

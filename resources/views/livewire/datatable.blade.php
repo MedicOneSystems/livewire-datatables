@@ -73,7 +73,6 @@
 
         </div>
     </div>
-    {{-- @dump($activeSelectFilters, $this->selectFilters) --}}
 
     @if($this->activeFilters)
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
@@ -85,14 +84,13 @@
             </button>
         </div>
         <div class="flex flex-wrap mt-2 -mx-2">
-            @if(isset($dates['field']) && $dates['field'] !== '' && ((isset($dates['start']) && $dates['start'] !== '') ||
-            (isset($dates['end']) && $dates['end'] !== '')))
+            @if(isset($dates['field']) && ((isset($dates['start']) || isset($dates['end']))))
             <button wire:click="clearDateFilter" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getFieldColumn($dates['field']) . ' between ' . Carbon\Carbon::parse($dates['start'] ?? '2000-01-01')->format('d/m/Y') . ' and ' . Carbon\Carbon::parse($dates['end'] ?? now())->format('d/m/Y') }}</span>
                 <x-icons.x-circle />
             </button>
             @endif
-            @if(isset($times['field']) && $times['field'] !== '')
+            @if(isset($times['field']) && ((isset($times['start']) || isset($times['end']))))
             <button wire:click="clearTimeFilter" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getFieldColumn($times['field'])  . ' between ' . ($times['start'] ?? '00:00') . ' and ' . ($times['end'] ?? '23:59') }}</span>
                 <x-icons.x-circle />
@@ -231,7 +229,7 @@
                     <span>{{ ucwords(str_replace('_', ' ', $filter['name'])) }}</span>
                 </label>
                 <div class="relative">
-                    <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:change="doTextFilter('{{ $i }}', $event.target.value)" />
+                    <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:input.debounce.1s="doTextFilter('{{ $i }}', $event.target.value)" />
                 </div>
             </div>
             @endforeach

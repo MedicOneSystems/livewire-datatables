@@ -1,16 +1,17 @@
 <?php
 
-namespace Mediconesystems\LivewireDatatables\Traits;
+namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 use Mediconesystems\LivewireDatatables\Field;
 use Mediconesystems\LivewireDatatables\Fieldset;
 
-trait LivewireDatatable
+class LivewireDatatable extends Component
 {
     use WithPagination;
 
@@ -332,10 +333,10 @@ trait LivewireDatatable
             ->when(count($this->activeTextFilters) > 0, function ($query) {
                 return $this->addTextFilters($query);
             })
-            ->when(isset($this->dates['field']) && ((isset($this->dates['start']) && $this->dates['start'] !== '') || (isset($this->dates['end']) && $this->dates['end'] !== '')), function ($query) {
+            ->when(isset($this->dates['field']) && (isset($this->dates['start']) || (isset($this->dates['end']))), function ($query) {
                 return $this->addDateRangeFilter($query);
             })
-            ->when(isset($this->times['field']) && $this->times['field'] !== '', function ($query) {
+            ->when(isset($this->times['field']) && (isset($this->times['start']) || (isset($this->times['end']))), function ($query) {
                 return $this->addTimeRangeFilter($query);
             })
             ->when(isset($this->sort), function ($query) {
@@ -418,12 +419,16 @@ trait LivewireDatatable
 
     public function getDateFiltersProperty()
     {
-        return collect($this->fields)->filter->dateFilter;
+        return tap(collect($this->fields)->filter->dateFilter, function ($fields) {
+            $this->dates['field'] = $fields->keys()->first();
+        });
     }
 
     public function getTimeFiltersProperty()
     {
-        return collect($this->fields)->filter->timeFilter;
+        return tap(collect($this->fields)->filter->timeFilter, function ($fields) {
+            $this->times['field'] = $fields->keys()->first();
+        });
     }
 
     public function getActiveFiltersProperty()
