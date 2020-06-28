@@ -3,11 +3,13 @@
 namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class Field
 {
     public $name;
     public $column;
+    public $raw;
     public $sort;
     public $defaultSort;
     public $callback;
@@ -25,6 +27,16 @@ class Field
         $field = new static;
         $field->column = $column;
         $field->name = (string) Str::of($column)->after('.')->ucfirst();
+
+        return $field;
+    }
+
+    public static function fromRaw($raw)
+    {
+        $field = new static;
+        $field->raw = $raw;
+        $field->name = (string) Str::of($raw)->afterLast(' AS ')->replace('`', '');
+        $field->sort = DB::raw((string) Str::of($raw)->beforeLast(' AS '));
 
         return $field;
     }

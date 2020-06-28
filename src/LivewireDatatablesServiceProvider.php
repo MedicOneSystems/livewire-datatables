@@ -14,7 +14,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
     {
         Livewire::component('livewire-datatable', LivewireDatatable::class);
 
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatables');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'livewire-datatables');
         $this->loadViewsFrom(__DIR__ . '/../resources/views/icons', 'icons');
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');
@@ -27,11 +27,12 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path('livewire-datatables.php'),
+                __DIR__ . '/../config/livewire-datatables.php' => config_path('livewire-datatables.php'),
             ], 'config');
 
             $this->publishes([
-                __DIR__ . '/../resources/views/livewire' => resource_path('views/livewire'),
+                __DIR__ . '/../resources/views' => resource_path('views/vendor/livewire-datatables'),
+                __DIR__ . '/../resources/views/livewire' => resource_path('views/vendor/livewire-datatables/livewire'),
                 __DIR__ . '/../resources/views/icons' => resource_path('views/vendor/livewire-datatables/icons'),
             ], 'views');
         }

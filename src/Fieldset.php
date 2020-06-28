@@ -30,11 +30,23 @@ class Fieldset
     {
         $fields = is_array($fields) ? $fields : explode(', ', $fields);
 
-        foreach ($fields as  $field) {
-            $this->fields = $this->fields->reject(function ($f) use ($field) {
-                return $f->column === $field;
-            });
+        $this->fields = $this->fields->reject(function ($f) use ($fields) {
+            return in_array($f->column, $fields);
+        });
+
+        return $this;
+    }
+
+    public function hidden($fields)
+    {
+        $fields = is_array($fields) ? $fields : explode(', ', $fields);
+
+        foreach ($fields as $field) {
+            if ($field = $this->fields->firstWhere('column', $field)) {
+                $field->hidden = true;
+            }
         }
+
         return $this;
     }
 
@@ -73,6 +85,16 @@ class Fieldset
         foreach ($values as $column => $newName) {
             $this->fields->firstWhere('column', $column)->name = $newName;
         }
+        return $this;
+    }
+
+    public function truncate($values)
+    {
+        foreach ($values as $column) {
+            $field = $this->fields->firstWhere('column', $column);
+            $field->callback = 'truncate';
+            $field->params = func_get_args();
+        };
         return $this;
     }
 

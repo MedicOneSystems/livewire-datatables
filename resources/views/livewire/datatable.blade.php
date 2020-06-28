@@ -1,14 +1,17 @@
 <div class="">
-    <div class="mb-4 grid grid-cols-4 md:grid-cols-8 lg:grid-cols-10 gap-2">
+    @if($this->showHide)
+    <div class="mb-4 grid grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
         @foreach($fields as $index => $field)
         <button wire:click.prefetch="toggle('{{ $index }}')" class="px-3 py-2 rounded text-white text-xs focus:outline-none {{ $field['hidden'] ? 'bg-blue-100 hover:bg-blue-300 text-blue-600' : 'bg-blue-500 hover:bg-blue-800' }}">
             {{ str_replace('_', ' ', $field['name']) }}
         </button>
         @endforeach
     </div>
+    @endif
     <div class="rounded-lg shadow bg-white">
-        <div class="rounded-lg rounded-b-none max-w-screen overflow-x-scroll bg-white">
+        <div class="rounded-lg @if($this->paginationControls) rounded-b-none @endif max-w-screen overflow-x-scroll bg-white">
             <div class="table align-middle min-w-full">
+                @if($this->header)
                 <div class="table-row divide-x-2 divide-gray-200">
                     @foreach($this->visibleFields as $index => $field)
                     <div class="table-cell h-12 overflow-hidden align-top">
@@ -27,6 +30,7 @@
                     </div>
                     @endforeach
                 </div>
+                @endif
                 @foreach($this->results as $result)
                 <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
                     @foreach($this->visibleFields as $field)
@@ -44,6 +48,7 @@
                 @endforeach
             </div>
         </div>
+        @if($this->paginationControls)
         <div class="rounded-lg rounded-t-none max-w-screen rounded-lg border-b border-gray-200 bg-white">
             <div class="p-2 flex items-center justify-between">
                 <div class="flex items-center">
@@ -58,11 +63,11 @@
 
                 <div>
                     <div class="flex lg:hidden justify-center">
-                        <span class="flex items-center space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
+                        <span class="flex items-center space-x-2">{{ $this->results->links('livewire-datatables::tailwind-simple-pagination') }}</span>
                     </div>
 
                     <div class="hidden lg:flex justify-center">
-                        <span>{{ $this->results->links('datatables::tailwind-pagination') }}</span>
+                        <span>{{ $this->results->links('livewire-datatables::tailwind-pagination') }}</span>
                     </div>
                 </div>
 
@@ -72,6 +77,7 @@
             </div>
 
         </div>
+        @endif
     </div>
 
     @if($this->activeFilters)
@@ -129,24 +135,25 @@
                 <x-icons.x-circle />
             </button>
         </div>
-        <div class="mt-2 grid grid-cols-3 gap-4">
-            <select name="dateField" wire:model="dates.field" class="w-full form-select">
-                <option></option>
-                @foreach($this->dateFilters as $index => $field)
-                <option value="{{ $index }}">{{ $field['name'] }}</option>
-                @endforeach
-            </select>
+        <div class="xl:grid grid-cols-2 gap-4">
+            <div class="mt-2 grid grid-cols-3 gap-4">
+                <select name="dateField" wire:model="dates.field" class="w-full form-select">
+                    <option></option>
+                    @foreach($this->dateFilters as $index => $field)
+                    <option value="{{ $index }}">{{ $field['name'] }}</option>
+                    @endforeach
+                </select>
 
-            <input type="date" name="start" wire:model="dates.start" class="w-full form-input" />
-            <input type="date" name='end' wire:model="dates.end" class="w-full form-input" />
-        </div>
-        <div class="mt-4 grid grid-cols-3 md:grid-cols-6 gap-2">
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="lastMonth">Last Month</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="lastQuarter">Last Quarter</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="lastYear">Last Year</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="monthToToday">Month to today</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="quarterToToday">Quarter to today</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="yearToToday">Year to today</button>
+                <input type="date" name="start" wire:model="dates.start" class="w-full form-input" />
+                <input type="date" name='end' wire:model="dates.end" class="w-full form-input" />
+            </div>
+            <div class="mt-4 xl:mt-2 grid grid-cols-3 md:grid-cols-6 gap-2">
+                @foreach(get_class_methods(Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters::class) as $preset)
+                <button class="px-3 py-2 rounded text-white text-xs uppercase tracking-wide focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="{{ $preset }}">
+                    {{ implode(' ', preg_split('/(?=[A-Z])/', $preset)) }}
+                </button>
+                @endforeach
+            </div>
         </div>
     </div>
     @endif
@@ -160,6 +167,7 @@
                 <x-icons.x-circle />
             </button>
         </div>
+        <div class="xl:grid grid-cols-2 gap-4">
         <div class="mt-2 grid grid-cols-3 gap-4">
             <select name="timeField" wire:model="times.field" class="w-full form-select">
                 <option></option>
@@ -169,6 +177,14 @@
             </select>
             <input type="time" name="start" wire:model="times.start" class="w-full form-input">
             <input type="time" name="end" wire:model="times.end" class="w-full form-input">
+        </div>
+        <div class="mt-4 xl:mt-2 grid grid-cols-3 md:grid-cols-6 gap-2">
+                @foreach(get_class_methods(Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters::class) as $preset)
+                <button class="px-3 py-2 rounded text-white text-xs uppercase tracking-wide focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="{{ $preset }}">
+                    {{ implode(' ', preg_split('/(?=[A-Z])/', $preset)) }}
+                </button>
+                @endforeach
+            </div>
         </div>
     </div>
     @endif

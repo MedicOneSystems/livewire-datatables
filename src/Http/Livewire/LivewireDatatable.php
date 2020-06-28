@@ -2,18 +2,20 @@
 
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Livewire\WithPagination;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use ReflectionMethod;
 use Livewire\Component;
-use Mediconesystems\LivewireDatatables\Field;
+use Illuminate\Support\Arr;
+use Livewire\WithPagination;
+use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\Fieldset;
+use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
+use Mediconesystems\LivewireDatatables\Traits\HandlesProperties;
+use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
+use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
 
 class LivewireDatatable extends Component
 {
-    use WithPagination;
+    use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters, HandlesProperties;
 
     public $model;
     public $fields;
@@ -22,15 +24,24 @@ class LivewireDatatable extends Component
     public $activeSelectFilters = [];
     public $activeBooleanFilters = [];
     public $activeTextFilters = [];
+    public $showHide = true;
+    public $header = true;
+    public $paginationControls = true;
 
     public $dates;
     public $times;
     public $perPage = 10;
 
-    public function mount($model = null)
+    public function mount($model = null, $except = [], $hidden = [], $uppercase = [], $truncate = [], $formatDates = [], $showHide = null, $header = null, $paginationControls = null, $dateFilters = [], $rename = [])
     {
-        $this->model = $model;
+        $this->model = $this->model ?? $model;
         $this->fields = $this->fields()->map->toArray()->toArray();
+        $this->processProperties(func_get_args());
+        $this->addUppercases($uppercase);
+        $this->addTruncates($truncate);
+        $this->addFormatDates($formatDates);
+        $this->addDateFilters($dateFilters);
+        $this->addRenames($rename);
         $this->initialiseSort();
     }
 
@@ -49,7 +60,7 @@ class LivewireDatatable extends Component
         return Fieldset::fromModel($this->model())->fields();
     }
 
-    public function fieldsetFromModel()
+    public function fieldset()
     {
         return Fieldset::fromModel($this->model());
     }
@@ -58,7 +69,6 @@ class LivewireDatatable extends Component
     {
         $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleFields->keys()->first();
         $this->direction = $this->defaultSort()['direction'] === 'asc';
-        // dd($this->sort, $this->direction);
     }
 
     public function defaultSort()
@@ -87,6 +97,7 @@ class LivewireDatatable extends Component
         } else {
             $this->sort = (int) $index;
         }
+        $this->page = 1;
     }
 
     public function toggle($index)
@@ -122,42 +133,6 @@ class LivewireDatatable extends Component
         if (count($this->activeSelectFilters[$column]) < 1) {
             unset($this->activeSelectFilters[$column]);
         }
-    }
-
-    public function lastMonth()
-    {
-        $this->dates['start'] = now()->subMonth()->startOfMonth()->format('Y-m-d');
-        $this->dates['end'] = now()->subMonth()->endOfMonth()->format('Y-m-d');
-    }
-
-    public function lastQuarter()
-    {
-        $this->dates['start'] = now()->subQuarter()->startOfQuarter()->format('Y-m-d');
-        $this->dates['end'] = now()->subQuarter()->endOfQuarter()->format('Y-m-d');
-    }
-
-    public function lastYear()
-    {
-        $this->dates['start'] = now()->subYear()->startOfYear()->format('Y-m-d');
-        $this->dates['end'] = now()->subYear()->endOfYear()->format('Y-m-d');
-    }
-
-    public function monthToToday()
-    {
-        $this->dates['start'] = now()->subMonth()->addDay()->format('Y-m-d');
-        $this->dates['end'] = now()->format('Y-m-d');
-    }
-
-    public function quarterToToday()
-    {
-        $this->dates['start'] = now()->subQuarter()->addDay()->format('Y-m-d');
-        $this->dates['end'] = now()->format('Y-m-d');
-    }
-
-    public function yearToToday()
-    {
-        $this->dates['start'] = now()->subYear()->addDay()->format('Y-m-d');
-        $this->dates['end'] = now()->format('Y-m-d');
     }
 
     public function clearDateFilter()
@@ -320,91 +295,25 @@ class LivewireDatatable extends Component
         });
     }
 
-    public function buildDatabaseQuery()
-    {
-        return $this->builder()
-            ->select($this->getSelectStatements()->toArray())
-            ->when(count($this->getRawStatements()), function ($query) {
-                $this->getRawStatements()->each(function ($statement) use ($query) {
-                    $query->selectRaw($statement);
-                });
-            })
-            ->when(count($this->scopeFields()), function ($query) {
-                $this->scopeFields()->each(function ($field) use ($query) {
-                    $query->{$field['scope']}($field['name']);
-                });
-            })
-            ->when(count($this->activeSelectFilters) > 0, function ($query) {
-                return $this->addSelectFilters($query);
-            })
-            ->when(count($this->activeBooleanFilters) > 0, function ($query) {
-                return $this->addBooleanFilters($query);
-            })
-            ->when(count($this->activeTextFilters) > 0, function ($query) {
-                return $this->addTextFilters($query);
-            })
-            ->when(isset($this->dates['field']) && (isset($this->dates['start']) || (isset($this->dates['end']))), function ($query) {
-                return $this->addDateRangeFilter($query);
-            })
-            ->when(isset($this->times['field']) && (isset($this->times['start']) || (isset($this->times['end']))), function ($query) {
-                return $this->addTimeRangeFilter($query);
-            })
-            ->when(isset($this->sort), function ($query) {
-                return $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
-            });
-    }
-
-    public function mapCallbacks($paginatedCollection)
-    {
-        $paginatedCollection->getCollection()->map(function ($row, $i) {
-            foreach ($row->getAttributes() as $name => $value) {
-                $row->$name = $this->getFieldCallback($name)['callback']
-                    ? $this->{$this->getFieldCallback($name)['callback']}($value, ...$this->getFieldCallback($name)['params'] ?? null)
-                    : $value;
-            }
-            return $row;
-        });
-
-        return $paginatedCollection;
-    }
-
     public function getFieldCallback($fieldName)
     {
         return collect($this->fields)->firstWhere('name', $fieldName)
             ? Arr::only(collect($this->fields)->firstWhere('name', $fieldName), ['callback', 'params']) : null;
     }
 
-    public function formatTime($time, $format = null)
+    public function getHeaderProperty()
     {
-        return $time ? Carbon::parse($time)->format($format ?? config('livewire-datatables.default_time_format')) : null;
+        return method_exists(static::class, 'header'); // ? $this->header() : $this->header;
     }
 
-    public function formatDate($date, $format = null)
+    public function getShowHideProperty()
     {
-        return $date ? Carbon::parse($date)->format($format ?? config('livewire-datatables.default_date_format')) : null;
+        return $this->showHide() ?? $this->showHide;
     }
 
-    public function round($value, $precision = 0)
+    public function getPaginationControlsProperty()
     {
-        return $value ? round($value, $precision) : null;
-    }
-
-    public function boolean($value)
-    {
-        return $value
-            ? 'check-circle'
-            : 'x-circle';
-    }
-
-    public function makeLink($value, $model, $pad = null)
-    {
-        return '<a href="/' . $model . '/' . $value . '" class="border-2 border-transparent hover:border-blue-500 hover:bg-blue-100 hover:shadow-lg text-blue-600 rounded-lg px-3 py-1">' . ($pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value) . '</a>';
-    }
-
-    public function truncate($value)
-    {
-        return '<span class="group cursor-pointer">
-            <span class="inline-block flex items-center">' . Str::limit($value, 16) . '</span><span class="z-10 w-full -ml-1/2 sm:w-4/5 sm:max-w-6xl sm:-ml-2/5 mt-2 px-1 text-xs whitespace-pre-wrap rounded-lg bg-gray-100 border border-gray-300 shadow-xl text-gray-700 text-left whitespace-normal absolute hidden group-hover:block">' . $value . '</span></span>';
+        return $this->paginationControls() ?? $this->paginationControls;
     }
 
     public function getResultsProperty()
@@ -450,8 +359,58 @@ class LivewireDatatable extends Component
             || count($this->activeTextFilters);
     }
 
+    public function buildDatabaseQuery()
+    {
+        return $this->builder()
+            ->select('*')
+            ->addSelect($this->getSelectStatements()->toArray())
+            ->when(count($this->getRawStatements()), function ($query) {
+                $this->getRawStatements()->each(function ($statement) use ($query) {
+                    $query->selectRaw($statement);
+                });
+            })
+            ->when(count($this->scopeFields()), function ($query) {
+                $this->scopeFields()->each(function ($field) use ($query) {
+                    $query->{$field['scope']}($field['name']);
+                });
+            })
+            ->when(count($this->activeSelectFilters) > 0, function ($query) {
+                return $this->addSelectFilters($query);
+            })
+            ->when(count($this->activeBooleanFilters) > 0, function ($query) {
+                return $this->addBooleanFilters($query);
+            })
+            ->when(count($this->activeTextFilters) > 0, function ($query) {
+                return $this->addTextFilters($query);
+            })
+            ->when(isset($this->dates['field']) && (isset($this->dates['start']) || (isset($this->dates['end']))), function ($query) {
+                return $this->addDateRangeFilter($query);
+            })
+            ->when(isset($this->times['field']) && (isset($this->times['start']) || (isset($this->times['end']))), function ($query) {
+                return $this->addTimeRangeFilter($query);
+            })
+            ->when(isset($this->sort), function ($query) {
+                return $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
+            });
+    }
+
+    public function mapCallbacks($paginatedCollection)
+    {
+        $paginatedCollection->getCollection()->map(function ($row, $i) {
+            foreach ($row->getAttributes() as $name => $value) {
+                $row->$name = $this->getFieldCallback($name)['callback']
+                    ? $this->{$this->getFieldCallback($name)['callback']}($value, $row, ...$this->getFieldCallback($name)['params'] ?? null)
+                    : $value;
+            }
+            return $row;
+        });
+
+        return $paginatedCollection;
+    }
+
     public function render()
     {
-        return view('datatables::livewire.datatable');
+        // dd($this->dateFilters);
+        return view('livewire-datatables::livewire.datatable');
     }
 }
