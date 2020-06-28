@@ -76,8 +76,8 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         return $this->fields()[$this->sort]->sort
-            ? $this->fields()[$this->sort]->sort
-            : $this->fields()[$this->sort]->name;
+            ?? $this->fields()[$this->sort]->column
+            ?? $this->fields()[$this->sort]->raw;
     }
 
     public function sort($index)
@@ -208,6 +208,11 @@ class LivewireDatatable extends Component
         })->filter();
     }
 
+    public function getRawStatements()
+    {
+        return $this->visibleFields->map->raw->filter();
+    }
+
     public function getFieldColumn($index)
     {
         return $this->fields[$index]['column'];
@@ -318,7 +323,12 @@ class LivewireDatatable extends Component
     public function buildDatabaseQuery()
     {
         return $this->builder()
-            ->select($this->getSelectStatements()->filter()->toArray())
+            ->select($this->getSelectStatements()->toArray())
+            ->when(count($this->getRawStatements()), function ($query) {
+                $this->getRawStatements()->each(function ($statement) use ($query) {
+                    $query->selectRaw($statement);
+                });
+            })
             ->when(count($this->scopeFields()), function ($query) {
                 $this->scopeFields()->each(function ($field) use ($query) {
                     $query->{$field['scope']}($field['name']);
