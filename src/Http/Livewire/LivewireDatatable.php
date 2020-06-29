@@ -2,7 +2,6 @@
 
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
-use ReflectionMethod;
 use Livewire\Component;
 use Illuminate\Support\Arr;
 use Livewire\WithPagination;
@@ -32,7 +31,7 @@ class LivewireDatatable extends Component
     public $times;
     public $perPage = 10;
 
-    public function mount($model = null, $except = [], $hidden = [], $uppercase = [], $truncate = [], $formatDates = [], $showHide = null, $header = null, $paginationControls = null, $dateFilters = [], $rename = [])
+    public function mount($model = null, $except = [], $hidden = [], $uppercase = [], $truncate = [], $formatDates = [], $formatTimes = [], $showHide = null, $header = null, $paginationControls = null, $dateFilters = [], $timeFilters = [], $renames = [], $defaultSort = null)
     {
         $this->model = $this->model ?? $model;
         $this->fields = $this->fields()->map->toArray()->toArray();
@@ -40,8 +39,10 @@ class LivewireDatatable extends Component
         $this->addUppercases($uppercase);
         $this->addTruncates($truncate);
         $this->addFormatDates($formatDates);
+        $this->addFormatTimes($formatTimes);
         $this->addDateFilters($dateFilters);
-        $this->addRenames($rename);
+        $this->addTimeFilters($timeFilters);
+        $this->addRenames($renames);
         $this->initialiseSort();
     }
 
@@ -60,11 +61,6 @@ class LivewireDatatable extends Component
         return Fieldset::fromModel($this->model())->fields();
     }
 
-    public function fieldset()
-    {
-        return Fieldset::fromModel($this->model());
-    }
-
     public function initialiseSort()
     {
         $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleFields->keys()->first();
@@ -73,13 +69,13 @@ class LivewireDatatable extends Component
 
     public function defaultSort()
     {
-        $fieldIndex = $this->fields()->search(function ($field) {
-            return is_string($field->defaultSort);
+        $fieldIndex = collect($this->fields)->search(function ($field) {
+            return is_string($field['defaultSort']);
         });
 
         return $fieldIndex ? [
             'key' => $fieldIndex,
-            'direction' => $this->fields()[$fieldIndex]->defaultSort
+            'direction' => $this->fields[$fieldIndex]['defaultSort']
         ] : null;
     }
 
@@ -121,9 +117,9 @@ class LivewireDatatable extends Component
         $this->page = 1;
     }
 
-    public function doTextFilter($field, $value)
+    public function doTextFilter($index, $value)
     {
-        $this->activeTextFilters[$field] = $value;
+        $this->activeTextFilters[$index] = $value;
         $this->page = 1;
     }
 
@@ -257,7 +253,7 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) {
             foreach ($this->activeTextFilters as $index => $value) {
-                $query->orWhere($this->getFieldColumn($index), 'like', "%$value%");
+                $query->orWhereRaw("LOWER(" . $this->getFieldColumn($index) . ") like ?", [strtolower("%$value%")]);
             }
         });
     }

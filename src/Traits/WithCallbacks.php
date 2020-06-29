@@ -37,8 +37,8 @@ trait WithCallbacks
         ]);
     }
 
-    public function truncate($value)
+    public function truncate($value, $row, $length = 16)
     {
-        return view('livewire-datatables::tooltip', ['slot' => $value]);
+        return view('livewire-datatables::tooltip', ['slot' => $value, 'length' => $length]);
     }
 }

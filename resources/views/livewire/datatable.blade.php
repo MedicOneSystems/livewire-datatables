@@ -245,7 +245,7 @@
                     <span>{{ ucwords(str_replace('_', ' ', $filter['name'])) }}</span>
                 </label>
                 <div class="relative">
-                    <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:input.debounce.1s="doTextFilter('{{ $i }}', $event.target.value)" />
+                    <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:input.lazy="doTextFilter('{{ $i }}', $event.target.value)" />
                 </div>
             </div>
             @endforeach

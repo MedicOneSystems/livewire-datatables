@@ -5,6 +5,7 @@ namespace Mediconesystems\LivewireDatatables;
 use Livewire\Livewire;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 

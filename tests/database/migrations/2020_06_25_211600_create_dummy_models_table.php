@@ -12,6 +12,7 @@ class CreateDummyModelsTable extends Migration
             $table->id();
             $table->unsignedInteger('relation_id')->index();
             $table->string('subject', 64);
+            $table->string('category', 16);
             $table->text('body');
             $table->boolean('flag')->nullable();
             $table->timestamp('expires_at')->nullable();

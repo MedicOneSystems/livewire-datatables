@@ -3,7 +3,6 @@
 namespace Mediconesystems\LivewireDatatables\Traits;
 
 use ReflectionMethod;
-use ReflectionFunction;
 
 trait HandlesProperties
 {
@@ -21,6 +20,13 @@ trait HandlesProperties
             } else if (in_array($name, ['hidden']) && $value) {
                 $this->fields = collect($this->fields)->map(function ($field) use ($value) {
                     $field['hidden'] = in_array($field['column'], $value);
+                    return $field;
+                })->toArray();
+            } else if (in_array($name, ['defaultSort']) && $value) {;
+                $this->fields = collect($this->fields)->map(function ($field) use ($value) {
+                    if ($field['column'] === key($value)) {
+                        $field['defaultSort'] = reset($value);
+                    }
                     return $field;
                 })->toArray();
             }
@@ -79,6 +85,20 @@ trait HandlesProperties
         })->toArray();
     }
 
+    public function addFormatTimes($fields)
+    {
+        if (!count($fields)) {
+            return;
+        }
+
+        $this->fields = collect($this->fields)->map(function ($field) use ($fields) {
+            if (in_array($field['column'], $fields)) {
+                $field['callback'] = 'formatTime';
+            }
+            return $field;
+        })->toArray();
+    }
+
     public function addDateFilters($fields)
     {
         if (!count($fields)) {
@@ -88,6 +108,20 @@ trait HandlesProperties
         $this->fields = collect($this->fields)->map(function ($field) use ($fields) {
             if (in_array($field['column'], $fields)) {
                 $field['dateFilter'] = true;
+            }
+            return $field;
+        })->toArray();
+    }
+
+    public function addTimeFilters($fields)
+    {
+        if (!count($fields)) {
+            return;
+        }
+
+        $this->fields = collect($this->fields)->map(function ($field) use ($fields) {
+            if (in_array($field['column'], $fields)) {
+                $field['timeFilter'] = true;
             }
             return $field;
         })->toArray();

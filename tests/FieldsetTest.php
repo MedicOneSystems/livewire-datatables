@@ -16,8 +16,7 @@ class FieldsetTest extends TestCase
 
         $subject = Fieldset::fromModel(DummyModel::class);
 
-        $this->assertCount(8, $subject->fields());
-        $this->assertEquals('dummy_models', $subject->table);
+        $this->assertCount(9, $subject->fields());
 
         $subject->fields()->each(function ($field) {
             $this->assertIsObject($field, Field::class);
@@ -51,11 +50,12 @@ class FieldsetTest extends TestCase
             ['Id', 0, 'dummy_models.id'],
             ['Relation_id', 1, 'dummy_models.relation_id'],
             ['Subject', 2, 'dummy_models.subject'],
-            ['Body', 3, 'dummy_models.body'],
-            ['Flag', 4, 'dummy_models.flag'],
-            ['Expires_at', 5, 'dummy_models.expires_at'],
-            ['Created_at', 6, 'dummy_models.created_at'],
-            ['Updated_at', 7, 'dummy_models.updated_at'],
+            ['Category', 3, 'dummy_models.category'],
+            ['Body', 4, 'dummy_models.body'],
+            ['Flag', 5, 'dummy_models.flag'],
+            ['Expires_at', 6, 'dummy_models.expires_at'],
+            ['Created_at', 7, 'dummy_models.created_at'],
+            ['Updated_at', 8, 'dummy_models.updated_at'],
         ];
     }
 
@@ -68,10 +68,10 @@ class FieldsetTest extends TestCase
             ->except(['dummy_models.id', 'dummy_models.body'])
             ->fields();
 
-        $this->assertCount(6, $subject);
+        $this->assertCount(7, $subject);
 
         $this->assertArrayNotHasKey(0, $subject);
-        $this->assertArrayNotHasKey(3, $subject);
+        $this->assertArrayNotHasKey(4, $subject);
     }
 
     /** @test */

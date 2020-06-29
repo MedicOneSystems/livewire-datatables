@@ -6,12 +6,10 @@ use Mediconesystems\LivewireDatatables\Field;
 
 class Fieldset
 {
-    public $table;
     public $fields;
 
-    public function __construct($table, $fields)
+    public function __construct($fields)
     {
-        $this->table = $table;
         $this->fields = $fields;
     }
 
@@ -19,7 +17,7 @@ class Fieldset
     {
         $instance = $model::firstOrFail();
 
-        return new static($instance->getTable(), collect($instance->getAttributes())->keys()->reject(function ($name) use ($instance) {
+        return new static(collect($instance->getAttributes())->keys()->reject(function ($name) use ($instance) {
             return in_array($name, $instance->getHidden());
         })->map(function ($attribute) use ($instance) {
             return Field::fromColumn($instance->getTable() . '.' . $attribute);

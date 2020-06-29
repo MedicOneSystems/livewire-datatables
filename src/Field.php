@@ -133,6 +133,13 @@ class Field
         return $this;
     }
 
+    public function truncate($length = 16)
+    {
+        $this->callback = 'truncate';
+        $this->params = [$length];
+        return $this;
+    }
+
     public function formatDate($format = null)
     {
         $this->callback = 'formatDate';

@@ -2,6 +2,8 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\View;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider;
@@ -20,6 +22,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
+            LivewireServiceProvider::class,
             LivewireDatatablesServiceProvider::class
         ];
     }
@@ -33,5 +36,22 @@ class TestCase extends Orchestra
             'database' => ':memory:',
             'prefix' => '',
         ]);
+    }
+
+    protected function renderBladeString(string $bladeContent): string
+    {
+        $temporaryDirectory = sys_get_temp_dir();
+
+        if (!in_array($temporaryDirectory, View::getFinder()->getPaths())) {
+            View::addLocation(sys_get_temp_dir());
+        }
+
+        $tempFilePath = tempnam($temporaryDirectory, 'tests') . '.blade.php';
+
+        file_put_contents($tempFilePath, $bladeContent);
+
+        $bladeViewName = Str::before(pathinfo($tempFilePath, PATHINFO_BASENAME), '.blade.php');
+
+        return view($bladeViewName)->render();
     }
 }
