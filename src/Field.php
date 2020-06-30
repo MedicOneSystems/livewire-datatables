@@ -180,6 +180,11 @@ class Field
         return $this;
     }
 
+    public function toggleHidden()
+    {
+        $this->hidden = !$this->hidden();
+    }
+
     public function toArray()
     {
         return get_object_vars($this);
