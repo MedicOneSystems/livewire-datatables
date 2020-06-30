@@ -35,6 +35,7 @@ You don't need to, but if you like you can publish the config file and blade tem
 php artisan vendor:publish
 ```
 This will enable you to modify the blade views and apply your own styling. The config file contains the default time and date formats used throughout
+> - This can be useful if you're using Purge CSS on your project, to make sure all the livewire-datatables classes get included
 
 ## Basic Usage
 
