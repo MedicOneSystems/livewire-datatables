@@ -13,7 +13,7 @@
 - Show / hide columns
 
 
-![screenshot](https://github.com/mediconesystems/livewire-datatables/raw/master/resources/images/screenshot.png "Screenshot")
+![screenshot](https://raw.githubusercontent.com/mediconesystems/livewire-datatables/master/resources/images/screenshot.png "Screenshot")
 
 ## Requirements
 - [Laravel 7](https://laravel.com/docs/7.x)
