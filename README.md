@@ -12,6 +12,7 @@
 - Filter using booleans, times, dates, selects or free text
 - Show / hide columns
 
+## [Demo App](https://laravel.com/docs/7.x)
 
 ![screenshot](resources/images/screenshot.png "Screenshot")
 
