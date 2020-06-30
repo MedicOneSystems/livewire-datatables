@@ -411,10 +411,12 @@ class LivewireDatatable extends Component
             ->select('*')
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
-                $this->globallySearched()->each(function ($field, $i) use ($query) {
-                    $this->fields[$i]['callback'] = 'highlight';
-                    $this->fields[$i]['params'] = [$this->search];
-                    $query->orWhere($field['column'], 'like', "%$this->search%");
+                $query->where(function ($query) {
+                    $this->globallySearched()->each(function ($field, $i) use ($query) {
+                        $this->fields[$i]['callback'] = 'highlight';
+                        $this->fields[$i]['params'] = [$this->search];
+                        $query->orWhere($field['column'], 'like', "%$this->search%");
+                    });
                 });
             })
             ->when(count($this->getRawStatements()), function ($query) {
