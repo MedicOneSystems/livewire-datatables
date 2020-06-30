@@ -120,11 +120,28 @@ class Fieldset
 
     public function rename($names)
     {
+        $names = is_array($names) ? $names : explode(', ', $names);
+
         foreach ($names as $name) {
             $this->fields->first(function ($field) use ($name) {
                 return Str::after($field->column, '.') === Str::before($name, '|');
             })->name = Str::after($name, '|');
         }
+        return $this;
+    }
+
+    public function search($search)
+    {
+        if (!$search) {
+            return $this;
+        }
+
+        $search = is_array($search) ? $search : explode(', ', $search);
+
+        $this->fields->each(function ($field) use ($search) {
+            $field->globalSearch = in_array(Str::after($field->column, '.'), $search);
+        });
+
         return $this;
     }
 

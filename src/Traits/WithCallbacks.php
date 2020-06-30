@@ -45,6 +45,6 @@ trait WithCallbacks
     {
         $output = substr($value, stripos($value, $string), strlen($string));
 
-        return str_ireplace($string, view('livewire::datatables.highlight', ['slot' => $output]), $value);
+        return str_ireplace($string, view('livewire-datatables::highlight', ['slot' => $output]), $value);
     }
 }
