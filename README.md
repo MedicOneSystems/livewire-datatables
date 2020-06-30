@@ -55,33 +55,6 @@ composer require mediconesystems/livewire-datatables
     :rename="['users.created_at' => 'Created']"
 />
 ```
-| Property | Accepts | Result |
-|----|----|----|
-|**hide-show**|*Boolean* default: *false*|Panel of buttons to show/hide columns in table is removed if this is ```true```|
-|**except**|*Array* of column definitions|columns are excluded from table|
-|**uppercase**|*Array* of column definitions|field names are capitalised. Useful for ID fields or abbreviations|
-|**truncate**|*Array* of column definitions|field values are truncated, the whole text can be seen in tooltip on hover|
-|**formatDates**|*Array* of column definitions|field values are formatted as per the default date format|
-|**dateFilters**|*Array* of column definitions|Date filters are made available on the table for these fields|
-|**rename**|*Associative Array* of column definitions and desired name|Applies custom field names|
-
-
-
-
-
-
-
-
-
-
-- To get more control over the table, create a new livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
-
-    (if you use the ```livewire:make``` artisan command you can delete the blade view file)
-
-- The new compnent must have a
-
-
-
 
 ### Props
 | Property | Arguments | Result | Example |
