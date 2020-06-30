@@ -8,6 +8,18 @@
         @endforeach
     </div>
     @endif
+    @if($this->globallySearched()->count())
+    <div class="mt-1 mb-2 flex rounded-md shadow-sm">
+    <div class="relative flex-grow focus-within:z-10">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <input wire:model.debounce.500ms="search" class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5" placeholder="search in {{ $this->globallySearched()->map->name->join(', ') }}" />
+    </div>
+  </div>
+    @endif
     <div class="rounded-lg shadow bg-white">
         <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif max-w-screen overflow-x-scroll bg-white">
             <div class="table align-middle min-w-full">

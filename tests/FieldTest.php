@@ -99,6 +99,7 @@ class FieldTest extends TestCase
             'raw' => null,
             'sort' => null,
             'defaultSort' => null,
+            'globalSearch' => null,
             'params' => ['model', 8],
         ], $subject);
     }
@@ -126,6 +127,7 @@ class FieldTest extends TestCase
             'raw' => 'SELECT column FROM table AS table_column',
             'sort' => DB::raw('SELECT column FROM table'),
             'defaultSort' => 'asc',
+            'globalSearch' => null,
             'params' => ['yyy-mm-dd'],
         ], $subject);
     }

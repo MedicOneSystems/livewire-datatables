@@ -2,6 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables\Traits;
 
+use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 
@@ -38,5 +39,12 @@ trait WithCallbacks
     public function truncate($value, $row, $length = 16)
     {
         return view('livewire-datatables::tooltip', ['slot' => $value, 'length' => $length]);
+    }
+
+    public function highlight($value, $row, $string)
+    {
+        $output = substr($value, stripos($value, $string), strlen($string));
+
+        return str_ireplace($string, '<span class="bg-yellow-200 py-1">' . $output . '</span>', $value);
     }
 }

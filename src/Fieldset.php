@@ -73,6 +73,10 @@ class Fieldset
 
     public function hidden($hidden)
     {
+        if (!$hidden) {
+            return $this;
+        }
+
         $hidden = is_array($hidden) ? $hidden : explode(', ', $hidden);
 
         $this->fields->each(function ($field) use ($hidden) {

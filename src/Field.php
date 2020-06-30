@@ -10,6 +10,7 @@ class Field
     public $name;
     public $column;
     public $raw;
+    public $globalSearch;
     public $sort;
     public $defaultSort;
     public $callback;
@@ -75,6 +76,12 @@ class Field
     public function defaultSort($direction = 'desc')
     {
         $this->defaultSort = $direction;
+        return $this;
+    }
+
+    public function globalSearch()
+    {
+        $this->globalSearch = true;
         return $this;
     }
 

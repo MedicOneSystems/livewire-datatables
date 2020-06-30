@@ -18,6 +18,7 @@ class LivewireDatatable extends Component
 
     public $model;
     public $fields;
+    public $search;
     public $sort;
     public $direction;
     public $activeSelectFilters = [];
@@ -36,7 +37,7 @@ class LivewireDatatable extends Component
         $model = null,
         $include = [],
         $exclude = [],
-        $hide = [],
+        $hidden = [],
         $dates = [],
         $times = [],
         $renames = [],
@@ -55,7 +56,7 @@ class LivewireDatatable extends Component
         $this->fields = $this->fieldset()
             ->include($include)
             ->exclude($exclude)
-            ->hidden($hide)
+            ->hidden($hidden)
             ->formatDates($dates)
             ->formatTimes($times)
             ->rename($renames)
@@ -321,6 +322,13 @@ class LivewireDatatable extends Component
         });
     }
 
+    public function globallySearched()
+    {
+        return $this->visibleFields->filter(function ($field, $key) {
+            return isset($field['globalSearch']);
+        });
+    }
+
     public function scopeFields()
     {
         return $this->visibleFields->filter(function ($field, $key) {
@@ -402,6 +410,13 @@ class LivewireDatatable extends Component
         return $this->builder()
             ->select('*')
             ->addSelect($this->getSelectStatements()->toArray())
+            ->when($this->search, function ($query) {
+                $this->globallySearched()->each(function ($field, $i) use ($query) {
+                    $this->fields[$i]['callback'] = 'highlight';
+                    $this->fields[$i]['params'] = [$this->search];
+                    $query->orWhere($field['column'], 'like', "%$this->search%");
+                });
+            })
             ->when(count($this->getRawStatements()), function ($query) {
                 $this->getRawStatements()->each(function ($statement) use ($query) {
                     $query->selectRaw($statement);
