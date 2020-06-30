@@ -2,18 +2,12 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
+use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\Field;
-use Orchestra\Testbench\TestCase;
-use Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider;
+use Mediconesystems\LivewireDatatables\Tests\TestCase;
 
 class FieldTest extends TestCase
 {
-
-    protected function getPackageProviders($app)
-    {
-        return [LivewireDatatablesServiceProvider::class];
-    }
-
     /** @test */
     public function it_can_generate_a_field_from_a_table_column()
     {
@@ -38,9 +32,9 @@ class FieldTest extends TestCase
      */
     public function it_sets_properties_and_parameters($method, $value, $attribute)
     {
-        $subject = Field::fromColumn('table.column')
-            ->$method($value);
+        $subject = Field::fromColumn('table.column')->$method($value);
 
+        // dd($value, $subject->$attribute);
         $this->assertEquals($value, $subject->$attribute);
     }
 
@@ -55,21 +49,40 @@ class FieldTest extends TestCase
             ['withDateFilter', true, 'dateFilter'],
             ['withTimeFilter', true, 'timeFilter'],
             ['formatBoolean', 'boolean', 'callback'],
-            ['linkTo', 'model', 'params'],
-            ['formatDate', 'd/m/Y', 'params'],
-            ['formatTime', 'H:i', 'params'],
-            ['round', 2, 'params'],
             ['hidden', true, 'hidden'],
         ];
     }
 
+    /**
+     * @test
+     * @dataProvider presetCallbacksDataProvider
+     */
+    public function it_sets_preset_callbacks($method, $value, $attribute)
+    {
+        $subject = Field::fromColumn('table.column')->$method(...$value);
+
+        $this->assertEquals($value, $subject->$attribute);
+    }
+
+    public function presetCallbacksDataProvider()
+    {
+        return [
+            ['linkTo', ['model', 'pad'], 'params'],
+            ['formatDate', ['d/m/Y'], 'params'],
+            ['formatTime', ['H:i'], 'params'],
+            ['round', [2], 'params'],
+            ['truncate', [2], 'params'],
+        ];
+    }
+
     /** @test */
-    public function it_returns_an_array()
+    public function it_returns_an_array_from_column()
     {
         $subject = Field::fromColumn('table.column')
             ->name('Column')
             ->withSelectFilter(['A', 'B', 'C'])
             ->hidden()
+            ->linkTo('model', 8)
             ->toArray();
 
         $this->assertEquals([
@@ -77,11 +90,45 @@ class FieldTest extends TestCase
             'name' => 'Column',
             'selectFilter' => ['A', 'B', 'C'],
             'hidden' => true,
-            'callback' => null,
+            'callback' => 'makeLink',
             'booleanFilter' => null,
             'textFilter' => null,
+            'numberFilter' => null,
             'dateFilter' => null,
-            'timeFilter' => null
+            'timeFilter' => null,
+            'raw' => null,
+            'sort' => null,
+            'defaultSort' => null,
+            'globalSearch' => null,
+            'params' => ['model', 8],
+        ], $subject);
+    }
+
+    /** @test */
+    public function it_returns_an_array_from_raw()
+    {
+        $subject = Field::fromRaw('SELECT column FROM table AS table_column')
+            ->withBooleanFilter()
+            ->defaultSort('asc')
+            ->formatDate('yyy-mm-dd')
+            ->toArray();
+
+        $this->assertEquals([
+            'column' => null,
+            'name' => 'table_column',
+            'selectFilter' => null,
+            'hidden' => null,
+            'callback' => 'formatDate',
+            'booleanFilter' => true,
+            'textFilter' => null,
+            'numberFilter' => null,
+            'dateFilter' => null,
+            'timeFilter' => null,
+            'raw' => 'SELECT column FROM table AS table_column',
+            'sort' => DB::raw('SELECT column FROM table'),
+            'defaultSort' => 'asc',
+            'globalSearch' => null,
+            'params' => ['yyy-mm-dd'],
         ], $subject);
     }
 }

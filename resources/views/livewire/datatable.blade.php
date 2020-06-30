@@ -1,22 +1,36 @@
-<div class="p-8">
-    <div class="mb-4 grid grid-cols-4 md:grid-cols-8 lg:grid-cols-10 gap-2">
+<div class="">
+    @unless($this->hideToggles)
+    <div class="mb-4 grid grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
         @foreach($fields as $index => $field)
         <button wire:click.prefetch="toggle('{{ $index }}')" class="px-3 py-2 rounded text-white text-xs focus:outline-none {{ $field['hidden'] ? 'bg-blue-100 hover:bg-blue-300 text-blue-600' : 'bg-blue-500 hover:bg-blue-800' }}">
             {{ str_replace('_', ' ', $field['name']) }}
         </button>
         @endforeach
     </div>
-
+    @endif
+    @if($this->globallySearched()->count())
+    <div class="mt-1 mb-2 flex rounded-md shadow-sm">
+    <div class="relative flex-grow focus-within:z-10">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <input wire:model.debounce.500ms="search" class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5" placeholder="search in {{ $this->globallySearched()->map->name->join(', ') }}" />
+    </div>
+  </div>
+    @endif
     <div class="rounded-lg shadow bg-white">
-        <div class="rounded-lg rounded-b-none max-w-screen overflow-x-scroll bg-white">
+        <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif max-w-screen overflow-x-scroll bg-white">
             <div class="table align-middle min-w-full">
+                @unless($this->hideHeader)
                 <div class="table-row divide-x-2 divide-gray-200">
-                    @foreach ($this->columns as $key)
+                    @foreach($this->visibleFields as $index => $field)
                     <div class="table-cell h-12 overflow-hidden align-top">
-                        <button wire:click.prefetch="sort('{{ $key }}')" class="w-full h-full px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex justify-between items-center focus:outline-none">
-                            <span class="inline ">{{ str_replace('_', ' ', $key) }}</span>
+                        <button wire:click.prefetch="sort('{{ $index }}')" class="w-full h-full px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex justify-between items-center focus:outline-none">
+                            <span class="inline ">{{ str_replace('_', ' ', $field['name']) }}</span>
                             <span class="inline text-xs text-blue-400">
-                                @if($sort === $key)
+                                @if($sort === $index)
                                 @if($direction)
                                 <x-icons.chevron-up class="h-6 w-6 text-green-600 stroke-current" />
                                 @else
@@ -28,23 +42,19 @@
                     </div>
                     @endforeach
                 </div>
+                @endif
                 @foreach($this->results as $result)
                 <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
-                    @foreach($this->columns as $key)
+                    @foreach($this->visibleFields as $field)
                     <div class="table-cell px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900">
-                        @if($result->$key === 'check-circle')
-                        <x-icons.check-circle class="text-green-600 mx-auto" />
-                        @elseif($result->$key === 'x-circle')
-                        <x-icons.x-circle class="text-red-300 mx-auto" />
-                        @else
-                        {!! $result->$key !!}
-                        @endif
+                        {!! $result->{$field['name']} !!}
                     </div>
                     @endforeach
                 </div>
                 @endforeach
             </div>
         </div>
+        @unless($this->hidePagination)
         <div class="rounded-lg rounded-t-none max-w-screen rounded-lg border-b border-gray-200 bg-white">
             <div class="p-2 flex items-center justify-between">
                 <div class="flex items-center">
@@ -59,11 +69,11 @@
 
                 <div>
                     <div class="flex lg:hidden justify-center">
-                        <span class="flex items-center space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
+                        <span class="flex items-center space-x-2">{{ $this->results->links('livewire-datatables::tailwind-simple-pagination') }}</span>
                     </div>
 
                     <div class="hidden lg:flex justify-center">
-                        <span>{{ $this->results->links('datatables::tailwind-pagination') }}</span>
+                        <span>{{ $this->results->links('livewire-datatables::tailwind-pagination') }}</span>
                     </div>
                 </div>
 
@@ -73,80 +83,83 @@
             </div>
 
         </div>
+        @endif
     </div>
 
+    @if($this->activeFilters)
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
         <div class="h-6 flex justify-between items-center">
             <label class="uppercase tracking-wide text-blue-600 text-lg">Active Filters</label>
-            <button wire:click="clearAllFilters" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-red-600 text-red-600 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click="clearAllFilters" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span>CLEAR ALL</span>
                 <x-icons.x-circle />
             </button>
         </div>
-        <div class="flex flex-wrap">
-            @if(isset($dates['field']) && $dates['field'] !== '' && ((isset($dates['start']) && $dates['start'] !== '') ||
-            (isset($dates['end']) && $dates['end'] !== '')))
-            <button wire:click="clearDateFilter" class="mt-2 mr-2 px-2 py-1 flex items-center uppercase tracking-wide border-2 border-orange-400 text-orange-600 rounded-full focus:outline-none text-xs space-x-2">
+        <div class="flex flex-wrap mt-2 -mx-2">
+            @if(isset($dates['field']) && ((isset($dates['start']) || isset($dates['end']))))
+            <button wire:click="clearDateFilter" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getFieldColumn($dates['field']) . ' between ' . Carbon\Carbon::parse($dates['start'] ?? '2000-01-01')->format('d/m/Y') . ' and ' . Carbon\Carbon::parse($dates['end'] ?? now())->format('d/m/Y') }}</span>
                 <x-icons.x-circle />
             </button>
             @endif
-            @if(isset($times['field']) && $times['field'] !== '')
-            <button wire:click="clearTimeFilter" class="mt-2 mr-2 px-2 py-1 flex items-center uppercase tracking-wide border-2 border-orange-400 text-orange-600 rounded-full focus:outline-none text-xs space-x-2">
+            @if(isset($times['field']) && ((isset($times['start']) || isset($times['end']))))
+            <button wire:click="clearTimeFilter" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getFieldColumn($times['field'])  . ' between ' . ($times['start'] ?? '00:00') . ' and ' . ($times['end'] ?? '23:59') }}</span>
                 <x-icons.x-circle />
             </button>
             @endif
             @foreach($activeSelectFilters as $index => $activeSelectFilter)
             @foreach($activeSelectFilter as $key => $value)
-            <button wire:click="removeSelectFilter('{{ $index }}', '{{ $key }}')" class="mt-2 mr-2 px-2 py-1 flex items-center uppercase tracking-wide border-2 border-orange-400 text-orange-600 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click="removeSelectFilter('{{ $index }}', '{{ $key }}')" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span>{{ $this->getFieldName($index) . ": " . $this->getDisplayValue($index, $value) }}</span>
                 <x-icons.x-circle />
             </button>
             @endforeach
             @endforeach
             @foreach($activeBooleanFilters as $index => $activeBooleanFilter)
-            <button wire:click=" removeBooleanFilter('{{ $index }}')" class="mt-2 mr-2 px-2 py-1 flex items-center uppercase tracking-wide border-2 border-orange-400 text-orange-600 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click=" removeBooleanFilter('{{ $index }}')" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getFieldName($index) . ": " . ($activeBooleanFilter == 1 ? 'Yes' : 'No') }}</span>
                 <x-icons.x-circle />
             </button>
             @endforeach
             @foreach($activeTextFilters as $index => $activeTextFilter)
-            <button wire:click="removeTextFilter('{{ $index }}')" class="mt-2 mr-2 px-2 py-1 flex items-center uppercase tracking-wide border-2 border-orange-400 text-orange-600 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click="removeTextFilter('{{ $index }}')" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getFieldName($index) . ": " . $activeTextFilter }}</span>
                 <x-icons.x-circle />
             </button>
             @endforeach
         </div>
     </div>
+    @endif
 
     @if(count($this->dateFilters))
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
         <div class="h-6 flex justify-between items-center">
             <label class="uppercase tracking-wide text-blue-600 text-lg">Date Range</label>
-            <button wire:click="clearDateFilter" class="@if(!isset($dates['field']) || $dates['field'] === '') hidden @endif px-2 py-1 flex items-center uppercase trackingborder-2 -wide orderg-red-600 text-6ed-100 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click="clearDateFilter" class="@if(!isset($dates['field']) || $dates['field'] === '') hidden @endif px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span>CLEAR</span>
                 <x-icons.x-circle />
             </button>
         </div>
-        <div class="mt-2 grid grid-cols-3 gap-4">
-            <select name="dateField" wire:model="dates.field" class="w-full form-select">
-                <option></option>
-                @foreach($this->dateFilters as $index => $field)
-                <option value="{{ $index }}">{{ $field['name'] }}</option>
-                @endforeach
-            </select>
+        <div class="xl:grid grid-cols-2 gap-4">
+            <div class="mt-2 grid grid-cols-3 gap-4">
+                <select name="dateField" wire:model="dates.field" class="w-full form-select">
+                    <option></option>
+                    @foreach($this->dateFilters as $index => $field)
+                    <option value="{{ $index }}">{{ $field['name'] }}</option>
+                    @endforeach
+                </select>
 
-            <input type="date" name="start" wire:model="dates.start" class="w-full form-input" />
-            <input type="date" name='end' wire:model="dates.end" class="w-full form-input" />
-        </div>
-        <div class="mt-4 grid grid-cols-3 md:grid-cols-6 gap-2">
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="lastMonth">Last Month</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="lastQuarter">Last Quarter</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="lastYear">Last Year</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="monthToToday">Month to today</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="quarterToToday">Quarter to today</button>
-            <button class="px-3 py-2 rounded text-white text-xs focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="yearToToday">Year to today</button>
+                <input type="date" name="start" wire:model="dates.start" class="w-full form-input" />
+                <input type="date" name='end' wire:model="dates.end" class="w-full form-input" />
+            </div>
+            <div class="mt-4 xl:mt-2 grid grid-cols-3 md:grid-cols-6 gap-2">
+                @foreach(get_class_methods(Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters::class) as $preset)
+                <button class="px-3 py-2 rounded text-white text-xs uppercase tracking-wide focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="{{ $preset }}">
+                    {{ implode(' ', preg_split('/(?=[A-Z])/', $preset)) }}
+                </button>
+                @endforeach
+            </div>
         </div>
     </div>
     @endif
@@ -155,11 +168,12 @@
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
         <div class="h-6 flex justify-between items-center">
             <label class="uppercase tracking-wide text-blue-600 text-lg">Time Range</label>
-            <button wire:click="clearTimeFilter" class="@if(!isset($times['field']) || $times['field'] === '') hidden @endif px-2 py-1 flex items-center uppercase trackingborder-2 -wide orderg-red-600 text-6ed-100 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click="clearTimeFilter" class="@if(!isset($times['field']) || $times['field'] === '') hidden @endif px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span>CLEAR</span>
                 <x-icons.x-circle />
             </button>
         </div>
+        <div class="xl:grid grid-cols-2 gap-4">
         <div class="mt-2 grid grid-cols-3 gap-4">
             <select name="timeField" wire:model="times.field" class="w-full form-select">
                 <option></option>
@@ -170,14 +184,22 @@
             <input type="time" name="start" wire:model="times.start" class="w-full form-input">
             <input type="time" name="end" wire:model="times.end" class="w-full form-input">
         </div>
+        <div class="mt-4 xl:mt-2 grid grid-cols-3 md:grid-cols-6 gap-2">
+                @foreach(get_class_methods(Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters::class) as $preset)
+                <button class="px-3 py-2 rounded text-white text-xs uppercase tracking-wide focus:outline-none bg-blue-500 hover:bg-blue-800" wire:click="{{ $preset }}">
+                    {{ implode(' ', preg_split('/(?=[A-Z])/', $preset)) }}
+                </button>
+                @endforeach
+            </div>
+        </div>
     </div>
     @endif
 
-    @if(count($this->selectFilters) || count($this->booleanFilters) || count($this->textFilters))
+    @if(count($this->selectFilters) || count($this->booleanFilters) || count($this->textFilters) || count($this->numberFilters))
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
         <div class="h-6 flex justify-between items-center">
             <label class="uppercase tracking-wide text-blue-600 text-lg">Filters</label>
-            <button wire:click="clearDateFilter" class="@if(!isset($dates['field']) || $dates['field'] === '') hidden @endif px-2 py-1 flex items-center uppercase trackingborder-2 -wide orderg-red-600 text-6ed-100 rounded-full focus:outline-none text-xs space-x-2">
+            <button wire:click="clearFilter" class="@unless(count($this->activeSelectFilters) || count($this->activeBooleanFilters) || count($this->activeTextFilters)) hidden @endif px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span>CLEAR</span>
                 <x-icons.x-circle />
             </button>
@@ -229,14 +251,14 @@
                     <span>{{ ucwords(str_replace('_', ' ', $filter['name'])) }}</span>
                 </label>
                 <div class="relative">
-                    <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:change="doTextFilter('{{ $i }}', $event.target.value)" />
+                    <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:input.lazy="doTextFilter('{{ $i }}', $event.target.value)" />
                 </div>
             </div>
             @endforeach
+
         </div>
     </div>
     @endif
-
 
     <div wire:loading>
         <div class="fixed z-50 bottom-0 inset-x-0 px-4 pb-4 sm:inset-0 sm:flex sm:items-center sm:justify-center">

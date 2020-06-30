@@ -2,14 +2,20 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Livewire\Livewire;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'datatables');
+        Livewire::component('livewire-datatable', LivewireDatatable::class);
+
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'livewire-datatables');
         $this->loadViewsFrom(__DIR__ . '/../resources/views/icons', 'icons');
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');
@@ -22,11 +28,12 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path('livewire-datatables.php'),
+                __DIR__ . '/../config/livewire-datatables.php' => config_path('livewire-datatables.php'),
             ], 'config');
 
             $this->publishes([
                 __DIR__ . '/../resources/views' => resource_path('views/vendor/livewire-datatables'),
+                __DIR__ . '/../resources/views/livewire' => resource_path('views/vendor/livewire-datatables/livewire'),
                 __DIR__ . '/../resources/views/icons' => resource_path('views/vendor/livewire-datatables/icons'),
             ], 'views');
         }
@@ -34,6 +41,6 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'livewire-datatables');
+        $this->mergeConfigFrom(__DIR__ . '/../config/livewire-datatables.php', 'livewire-datatables');
     }
 }
