@@ -29,6 +29,12 @@ You can install the package via composer:
 ```bash
 composer require mediconesystems/livewire-datatables
 ```
+### Optional
+You don't need to, but if you like you can publish the config file and blade template assets:
+```bash
+php artisan vendor:publish
+```
+This will enable you to modify the blade views and apply your own styling. The config file contains the default time and date formats used throughout
 
 ## Basic Usage
 
