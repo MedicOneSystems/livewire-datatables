@@ -90,6 +90,7 @@ To get full control over your datatable:
 - create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
 - Provide a datasource by declaring public property ```$model``` **OR**** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
 - Declare a public method ```fields``` that returns a ```Mediconesystems\LivewireDatatables\Fieldset``` containing one or more ```Mediconesystems\LivewireDatatables\Field```
+- Fields can be built using any of the static methods below, and then their attributes assigned using fluent method chains
 
 ```php
 class ComplexDemoTable extends LivewireDatatable
