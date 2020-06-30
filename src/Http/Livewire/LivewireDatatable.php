@@ -41,6 +41,7 @@ class LivewireDatatable extends Component
         $dates = [],
         $times = [],
         $renames = [],
+        $search = [],
         $sort = null,
         $hideToggles = null,
         $hideHeader = null,
@@ -60,6 +61,7 @@ class LivewireDatatable extends Component
             ->formatDates($dates)
             ->formatTimes($times)
             ->rename($renames)
+            ->search($search)
             ->sort($sort)
             ->fieldsArray();
 

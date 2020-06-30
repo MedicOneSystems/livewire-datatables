@@ -52,15 +52,6 @@ class Field
         return $field;
     }
 
-    public static function fromDynamicScope($scope)
-    {
-        $field = new static;
-        $field->dynamicScope = $scope;
-        $field->name = 'mmmmmm';
-
-        return $field;
-    }
-
     public function name($name)
     {
         $this->name = $name;
