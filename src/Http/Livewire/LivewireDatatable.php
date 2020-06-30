@@ -23,26 +23,45 @@ class LivewireDatatable extends Component
     public $activeSelectFilters = [];
     public $activeBooleanFilters = [];
     public $activeTextFilters = [];
-    public $showHide = true;
-    public $header = true;
-    public $paginationControls = true;
+    public $activeNumberFilters = [];
+    public $hideToggles;
+    public $hideHeader;
+    public $hidePagination;
 
     public $dates;
     public $times;
-    public $perPage = 10;
+    public $perPage;
 
-    public function mount($model = null, $except = [], $hidden = [], $uppercase = [], $truncate = [], $formatDates = [], $formatTimes = [], $showHide = null, $header = null, $paginationControls = null, $dateFilters = [], $timeFilters = [], $renames = [], $defaultSort = null)
-    {
+    public function mount(
+        $model = null,
+        $include = [],
+        $exclude = [],
+        $hide = [],
+        $dates = [],
+        $times = [],
+        $renames = [],
+        $sort = null,
+        $hideToggles = null,
+        $hideHeader = null,
+        $hidePagination = null,
+        $perPage = 10
+    ) {
         $this->model = $this->model ?? $model;
-        $this->fields = $this->fields()->map->toArray()->toArray();
-        $this->processProperties(func_get_args());
-        $this->addUppercases($uppercase);
-        $this->addTruncates($truncate);
-        $this->addFormatDates($formatDates);
-        $this->addFormatTimes($formatTimes);
-        $this->addDateFilters($dateFilters);
-        $this->addTimeFilters($timeFilters);
-        $this->addRenames($renames);
+        $this->hideToggles = $hideToggles;
+        $this->hideHeader = $hideHeader;
+        $this->hidePagination = $hidePagination;
+        $this->perPage = $perPage;
+
+        $this->fields = $this->fieldset()
+            ->include($include)
+            ->exclude($exclude)
+            ->hidden($hide)
+            ->formatDates($dates)
+            ->formatTimes($times)
+            ->rename($renames)
+            ->sort($sort)
+            ->fieldsArray();
+
         $this->initialiseSort();
     }
 
@@ -56,9 +75,9 @@ class LivewireDatatable extends Component
         return $this->model()::query();
     }
 
-    public function fields()
+    public function fieldset()
     {
-        return Fieldset::fromModel($this->model())->fields();
+        return Fieldset::fromModel($this->model());
     }
 
     public function initialiseSort()
@@ -81,9 +100,9 @@ class LivewireDatatable extends Component
 
     public function getSortString()
     {
-        return $this->fields()[$this->sort]->sort
-            ?? $this->fields()[$this->sort]->column
-            ?? $this->fields()[$this->sort]->raw;
+        return $this->fieldset()->fields()[$this->sort]->sort
+            ?? $this->fieldset()->fields()[$this->sort]->column
+            ?? $this->fieldset()->fields()[$this->sort]->raw;
     }
 
     public function sort($index)
@@ -123,6 +142,12 @@ class LivewireDatatable extends Component
         $this->page = 1;
     }
 
+    public function doNumberFilter($index, $low = 0, $high = 1000000)
+    {
+        $this->activeNumberFilters[$index] = [$low, $high];
+        $this->page = 1;
+    }
+
     public function removeSelectFilter($column, $key = null)
     {
         unset($this->activeSelectFilters[$column][$key]);
@@ -146,6 +171,7 @@ class LivewireDatatable extends Component
         $this->activeSelectFilters = [];
         $this->activeBooleanFilters = [];
         $this->activeTextFilters = [];
+        $this->activeNumberFilters = [];
     }
 
     public function clearAllFilters()
@@ -155,6 +181,7 @@ class LivewireDatatable extends Component
         $this->activeSelectFilters = [];
         $this->activeBooleanFilters = [];
         $this->activeTextFilters = [];
+        $this->activeNumberFilters = [];
     }
 
     public function removeBooleanFilter($column)
@@ -163,6 +190,11 @@ class LivewireDatatable extends Component
     }
 
     public function removeTextFilter($column)
+    {
+        unset($this->activeTextFilters[$column]);
+    }
+
+    public function removeNumberFilter($column)
     {
         unset($this->activeTextFilters[$column]);
     }
@@ -258,6 +290,11 @@ class LivewireDatatable extends Component
         });
     }
 
+    public function addNumberFilters($builder)
+    {
+        return $builder->whereBetween($this->getFieldColumn(key($this->activeNumberFilters)), reset($this->activeNumberFilters));
+    }
+
     public function addDateRangeFilter($builder)
     {
         return $builder->when(isset($this->dates['start']), function ($query) {
@@ -332,6 +369,11 @@ class LivewireDatatable extends Component
         return collect($this->fields)->filter->textFilter;
     }
 
+    public function getNumberFiltersProperty()
+    {
+        return collect($this->fields)->filter->numberFilter;
+    }
+
     public function getDateFiltersProperty()
     {
         return tap(collect($this->fields)->filter->dateFilter, function ($fields) {
@@ -379,6 +421,9 @@ class LivewireDatatable extends Component
             ->when(count($this->activeTextFilters) > 0, function ($query) {
                 return $this->addTextFilters($query);
             })
+            ->when(count($this->activeNumberFilters) > 0, function ($query) {
+                return $this->addNumberFilters($query);
+            })
             ->when(isset($this->dates['field']) && (isset($this->dates['start']) || (isset($this->dates['end']))), function ($query) {
                 return $this->addDateRangeFilter($query);
             })
@@ -406,7 +451,6 @@ class LivewireDatatable extends Component
 
     public function render()
     {
-        // dd($this->dateFilters);
         return view('livewire-datatables::livewire.datatable');
     }
 }

@@ -24,9 +24,7 @@ trait WithCallbacks
 
     public function boolean($value)
     {
-        return $value
-            ? 'check-circle'
-            : 'x-circle';
+        return view('livewire-datatables::boolean', ['value' => $value]);
     }
 
     public function makeLink($value, $row, $model, $pad = null)

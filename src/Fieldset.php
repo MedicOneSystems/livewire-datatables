@@ -2,13 +2,15 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 use Mediconesystems\LivewireDatatables\Field;
 
 class Fieldset
 {
     public $fields;
 
-    public function __construct($fields)
+    public function __construct(Collection $fields)
     {
         $this->fields = $fields;
     }
@@ -24,80 +26,121 @@ class Fieldset
         }));
     }
 
-    public function except($fields)
+    public static function fromArray($fields)
     {
-        $fields = is_array($fields) ? $fields : explode(', ', $fields);
+        return new static(collect($fields));
+    }
 
-        $this->fields = $this->fields->reject(function ($f) use ($fields) {
-            return in_array($f->column, $fields);
+    // public function except($fields)
+    // {
+    //     $fields = is_array($fields) ? $fields : explode(', ', $fields);
+
+    //     $this->fields = $this->fields->reject(function ($f) use ($fields) {
+    //         return in_array($f->column, $fields);
+    //     });
+
+    //     return $this;
+    // }
+
+    public function include($include)
+    {
+        if (!$include) {
+            return $this;
+        }
+        $include = is_array($include) ? $include : explode(', ', $include);
+
+        $this->fields = $this->fields->filter(function ($field) use ($include) {
+            return in_array(Str::after($field->column, '.'), $include);
         });
 
         return $this;
     }
 
-    public function hidden($fields)
+    public function exclude($exclude)
     {
-        $fields = is_array($fields) ? $fields : explode(', ', $fields);
-
-        foreach ($fields as $field) {
-            if ($field = $this->fields->firstWhere('column', $field)) {
-                $field->hidden = true;
-            }
+        if (!$exclude) {
+            return $this;
         }
+
+        $exclude = is_array($exclude) ? $exclude : explode(', ', $exclude);
+
+        $this->fields = $this->fields->reject(function ($field) use ($exclude) {
+            return in_array(Str::after($field->column, '.'), $exclude);
+        });
 
         return $this;
     }
 
-    public function formatDates($columns, $format = 'd/m/Y')
+    public function hidden($hidden)
     {
-        foreach ($columns as $column) {
-            if ($field = $this->fields->firstWhere('column', $column)) {
+        $hidden = is_array($hidden) ? $hidden : explode(', ', $hidden);
+
+        $this->fields->each(function ($field) use ($hidden) {
+            $field->hidden = in_array(Str::after($field->column, '.'), $hidden);
+        });
+
+        return $this;
+    }
+
+    public function formatDates($dates)
+    {
+        $dates = is_array($dates) ? $dates : explode(', ', $dates);
+
+        foreach ($dates as $date) {
+
+            if ($field = $this->fields->first(function ($field) use ($date) {
+                return Str::after($field->column, '.') === Str::before($date, '|');
+            })) {
                 $field->callback = 'formatDate';
-                $field->params = [$format];
+                $field->params = Str::of($date)->contains('|') ? [Str::after($date, '|')] : [];
             }
         }
         return $this;
     }
 
-    public function dateFilters($columns)
+    public function formatTimes($times)
     {
-        foreach ($columns as $column) {
-            if ($field = $this->fields->firstWhere('column', $column)) {
-                $field->dateFilter = true;
+        $times = is_array($times) ? $times : explode(', ', $times);
+
+        foreach ($times as $time) {
+
+            if ($field = $this->fields->first(function ($field) use ($time) {
+                return Str::after($field->column, '.') === Str::before($time, '|');
+            })) {
+                $field->callback = 'formatTime';
+                $field->params = Str::of($time)->contains('|') ? [Str::after($time, '|')] : [];
             }
         }
         return $this;
     }
 
-    public function uppercase($values)
+    public function rename($names)
     {
-        foreach ($values as $column) {
-            $field = $this->fields->firstWhere('column', $column);
-            $field->name = strtoupper($field->name);
+        foreach ($names as $name) {
+            $this->fields->first(function ($field) use ($name) {
+                return Str::after($field->column, '.') === Str::before($name, '|');
+            })->name = Str::after($name, '|');
         }
         return $this;
     }
 
-    public function rename($values)
+    public function sort($sort)
     {
-        foreach ($values as $column => $newName) {
-            $this->fields->firstWhere('column', $column)->name = $newName;
+        if ($sort) {
+            $this->fields->first(function ($field) use ($sort) {
+                return Str::after($field->column, '.') === Str::before($sort, '|');
+            })->defaultSort = Str::after($sort, '|');
         }
-        return $this;
-    }
-
-    public function truncate($values)
-    {
-        foreach ($values as $column) {
-            $field = $this->fields->firstWhere('column', $column);
-            $field->callback = 'truncate';
-            $field->params = func_get_args();
-        };
         return $this;
     }
 
     public function fields()
     {
         return collect($this->fields);
+    }
+
+    public function fieldsArray()
+    {
+        return $this->fields()->map->toArray()->toArray();
     }
 }

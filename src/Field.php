@@ -16,6 +16,7 @@ class Field
     public $selectFilter;
     public $booleanFilter;
     public $textFilter;
+    public $numberFilter;
     public $dateFilter;
     public $timeFilter;
     public $hidden;
@@ -108,6 +109,12 @@ class Field
         return $this;
     }
 
+    public function withNumberFilter($range)
+    {
+        $this->numberFilter = $range;
+        return $this;
+    }
+
     public function withDateFilter()
     {
         $this->dateFilter = true;
@@ -173,6 +180,11 @@ class Field
     {
         $this->hidden = true;
         return $this;
+    }
+
+    public function toggleHidden()
+    {
+        $this->hidden = !$this->hidden();
     }
 
     public function toArray()

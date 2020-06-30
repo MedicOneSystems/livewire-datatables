@@ -3,6 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Tests\Classes;
 
 use Mediconesystems\LivewireDatatables\Field;
+use Mediconesystems\LivewireDatatables\Fieldset;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
@@ -13,9 +14,9 @@ class DummyTable extends LivewireDatatable
         return DummyModel::query();
     }
 
-    public function fields()
+    public function fieldset()
     {
-        return collect([
+        return Fieldset::fromArray([
             Field::fromColumn('dummy_models.id')
                 ->name('ID')
                 ->linkTo('dummy_model', 6),

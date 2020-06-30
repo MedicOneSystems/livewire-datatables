@@ -65,7 +65,7 @@ class FieldsetTest extends TestCase
         factory(DummyModel::class)->create();
 
         $subject = Fieldset::fromModel(DummyModel::class)
-            ->except(['dummy_models.id', 'dummy_models.body'])
+            ->exclude(['id', 'body'])
             ->fields();
 
         $this->assertCount(7, $subject);
@@ -80,10 +80,9 @@ class FieldsetTest extends TestCase
         factory(DummyModel::class)->create();
 
         $subject = Fieldset::fromModel(DummyModel::class)
-            ->rename(['dummy_models.id' => 'ID'])
+            ->rename(['id|ID'])
             ->fields();
 
         $this->assertEquals('ID', $subject[0]->name);
-        $this->assertEquals('dummy_models.id', $subject[0]->column);
     }
 }
