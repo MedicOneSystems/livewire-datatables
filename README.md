@@ -12,7 +12,7 @@
 - Filter using booleans, times, dates, selects or free text
 - Show / hide columns
 
-## [Demo App](https://laravel.com/docs/7.x)
+## [Demo App](https://github.com/MedicOneSystems/demo-livewire-datatables)
 
 ![screenshot](resources/images/screenshot.png "Screenshot")
 
