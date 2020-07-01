@@ -183,7 +183,7 @@ class Field
         return $this;
     }
 
-    public function withAdditionalSelects($selects)
+    public function additionalSelects($selects)
     {
         $this->additionalSelects = $selects;
 

@@ -49,7 +49,7 @@ class FieldTest extends TestCase
             ['withTimeFilter', true, 'timeFilter'],
             ['formatBoolean', 'boolean', 'callback'],
             ['hidden', true, 'hidden'],
-            ['withAdditionalSelects', ['hello world'], 'additionalSelects'],
+            ['additionalSelects', ['hello world'], 'additionalSelects'],
         ];
     }
 
