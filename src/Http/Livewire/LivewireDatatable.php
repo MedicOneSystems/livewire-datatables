@@ -7,7 +7,6 @@ use Illuminate\Support\Arr;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\Fieldset;
-use Mediconesystems\LivewireDatatables\Traits\EditsFields;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Traits\HandlesProperties;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
@@ -15,7 +14,7 @@ use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
 
 class LivewireDatatable extends Component
 {
-    use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters, HandlesProperties, EditsFields;
+    use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters, HandlesProperties;
 
     public $model;
     public $fields;
@@ -417,7 +416,6 @@ class LivewireDatatable extends Component
 
     public function buildDatabaseQuery()
     {
-        // dd($this->additionalSelects);
         return $this->builder()
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
