@@ -34,7 +34,6 @@ class FieldTest extends TestCase
     {
         $subject = Field::fromColumn('table.column')->$method($value);
 
-        // dd($value, $subject->$attribute);
         $this->assertEquals($value, $subject->$attribute);
     }
 
@@ -50,6 +49,7 @@ class FieldTest extends TestCase
             ['withTimeFilter', true, 'timeFilter'],
             ['formatBoolean', 'boolean', 'callback'],
             ['hidden', true, 'hidden'],
+            ['withAdditionalSelects', ['hello world'], 'additionalSelects'],
         ];
     }
 
@@ -101,6 +101,7 @@ class FieldTest extends TestCase
             'defaultSort' => null,
             'globalSearch' => null,
             'params' => ['model', 8],
+            'additionalSelects' => [],
         ], $subject);
     }
 
@@ -129,6 +130,7 @@ class FieldTest extends TestCase
             'defaultSort' => 'asc',
             'globalSearch' => null,
             'params' => ['yyy-mm-dd'],
+            'additionalSelects' => [],
         ], $subject);
     }
 }

@@ -191,3 +191,30 @@ class CallbackDemoTable extends LivewireDatatable
     }
 }
 ```
+
+### Views
+You can specify that a field's output is piped directly into a separate blade view template.
+- Template is specified using ususal laravel view helper syntax
+- Views will receive the field's value as ```$value```, and the whole query row as ```$row```
+```php
+class CallbackDemoTable extends LivewireDatatable
+{
+    public model = User::class
+
+    public function fieldset()
+    {
+        return Fieldset::fromArray([
+            Field::fromColumn('users.id'),
+
+            Field::fromColumn('users.dob')->view('tables.dateview'),
+
+            Field::fromColumn('users.signup_date')->formatDate(),
+        ]);
+    }
+```
+```html
+'tables/dateview.blade.php'
+<span class="mx-4 my-2 bg-pink-500">
+    <x-date-thing :value="$value" />
+</span>
+```

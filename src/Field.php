@@ -22,6 +22,7 @@ class Field
     public $timeFilter;
     public $hidden;
     public $params = [];
+    public $additionalSelects = [];
 
 
     public static function fromColumn($column)
@@ -171,6 +172,32 @@ class Field
         $this->callback = $callback;
         $this->params = $params;
 
+        return $this;
+    }
+
+    public function view($view)
+    {
+        $this->callback = 'view';
+        $this->params = func_get_args();
+
+        return $this;
+    }
+
+    public function withAdditionalSelects($selects)
+    {
+        $this->additionalSelects = $selects;
+
+        return $this;
+    }
+
+    public function editable()
+    {
+        if ($this->column) {
+            [$table, $column] = explode('.', $this->column);
+            $this->additionalSelects[] = $table . '.id AS ' . $table . '.id';
+            $this->callback = 'edit';
+            $this->params = [$table, $column];
+        }
         return $this;
     }
 
