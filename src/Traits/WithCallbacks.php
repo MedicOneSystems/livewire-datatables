@@ -5,6 +5,7 @@ namespace Mediconesystems\LivewireDatatables\Traits;
 use Exception;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 trait WithCallbacks
 {
@@ -46,5 +47,24 @@ trait WithCallbacks
         $output = substr($value, stripos($value, $string), strlen($string));
 
         return str_ireplace($string, view('livewire-datatables::highlight', ['slot' => $output]), $value);
+    }
+
+    public function view($value, $row, $view)
+    {
+        return view($view, ['value' => $value, 'row' => $row]);
+    }
+
+    public function edit($value, $row, $table, $column)
+    {
+        return view('livewire-datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row["$table.id"]]);
+    }
+
+    public function edited($value, $table, $column, $row)
+    {
+        DB::table($table)
+            ->where('id', $row)
+            ->update([$column => $value]);
+
+        $this->emit('fieldEdited', $row);
     }
 }

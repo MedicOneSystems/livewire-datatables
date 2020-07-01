@@ -211,6 +211,13 @@ class LivewireDatatable extends Component
     {
         return $this->visibleFields->map(function ($field) {
             return $field['column'] ? $field['column'] . ' AS ' . $field['name'] : null;
+        })->filter()->merge($this->getAdditionalSelectStatements());
+    }
+
+    public function getAdditionalSelectStatements()
+    {
+        return collect($this->fields)->flatMap(function ($field) {
+            return $field['additionalSelects'];
         })->filter();
     }
 
@@ -410,7 +417,6 @@ class LivewireDatatable extends Component
     public function buildDatabaseQuery()
     {
         return $this->builder()
-            ->select('*')
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {

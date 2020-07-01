@@ -159,6 +159,9 @@ class ComplexDemoTable extends LivewireDatatable
 |**withDateFilter**| |Adds a date filter on the field.|```Field::fromColumn('users.dob')->witDateFilter()```|
 |**withTimeFilter**| |Adds a time filter on the field.|```Field::fromColumn('users.bedtime)->withTimeFilter()```|
 |**callback**|*String* $callback [, *Array* $params (default: [])]| Passes the field value, whole row of values, and any additional parameters to a callback to allow custom mutations| _(see below)_|
+|**additionalSelects**|*String\|Array* $selectStatements| Queries additional data required for callbacks, views or editable fields| _(see below)_|
+|**view**|*String* $viewName| Passes the field value, whole row of values, and any additional parameters to a view template | _(see below)_|
+|**editable**| | Marks the field as editable | _(see below)_|
 
 
 ### Callbacks
@@ -191,3 +194,86 @@ class CallbackDemoTable extends LivewireDatatable
     }
 }
 ```
+
+> If you are using a callback that depends on data that has not been queried from the database, you can use ```additionalSelects``` to append them to the query
+
+```php
+class CallbackDemoTable extends LivewireDatatable
+{
+    public model = User::class
+
+    public function fieldset()
+    {
+        return Fieldset::fromArray([
+            Field::fromColumn('users.id'),
+
+            Field::fromColumn('users.signup_date')
+                ->additionalSelects('users.dob')
+                ->callback('ageAtSignup', 10, 'red'),
+        ]);
+    }
+
+    public function ageAtSignup($value, $row, $threshold, $colour)
+    {
+        $age = $value->diffInYears($row->dob);
+        return age > $threshold
+            ? '<span class="text-red-500">' .$age . '</span>'
+            : $age;
+    }
+}
+```
+
+### Views
+You can specify that a field's output is piped directly into a separate blade view template.
+- Template is specified using ususal laravel view helper syntax
+- Views will receive the field's value as ```$value```, and the whole query row as ```$row```
+```php
+class CallbackDemoTable extends LivewireDatatable
+{
+    public model = User::class
+
+    public function fieldset()
+    {
+        return Fieldset::fromArray([
+            Field::fromColumn('users.id'),
+
+            Field::fromColumn('users.dob')->view('tables.dateview'),
+
+            Field::fromColumn('users.signup_date')->formatDate(),
+        ]);
+    }
+```
+```html
+'tables/dateview.blade.php'
+<span class="mx-4 my-2 bg-pink-500">
+    <x-date-thing :value="$value" />
+</span>
+```
+
+### Editable Fields
+You can mark a field as editable using ```editable```
+This uses the ```view()``` method above to pass the data into an Alpine/Livewire compnent that can directly update the underlying database data. Requires the field to have ```column``` defined using standard Laravel naming. This is included as an example. Much more comprehensive custom editable fields with validation etc can be built using the callback or view methods above.
+
+```php
+class EditableTable extends LivewireDatatable
+{
+
+    public function builder()
+    {
+        return User::query()
+            ->leftJoin('planets', 'planets.id', 'users.planet_id');
+    }
+
+    public function fieldset()
+    {
+        return Fieldset::fromArray([
+            Field::fromColumn('users.id')
+                ->name('ID')
+                ->linkTo('job', 6),
+
+            Field::fromColumn('users.email')
+                ->editable()
+        ]);
+    }
+}
+````
