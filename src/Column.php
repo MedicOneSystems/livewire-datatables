@@ -7,19 +7,15 @@ use Illuminate\Support\Facades\DB;
 
 class Column
 {
+    public $type = 'string';
     public $label;
     public $field;
     public $raw;
     public $searchable;
+    public $filterable;
     public $sort;
     public $defaultSort;
     public $callback;
-    public $selectFilter;
-    public $booleanFilter;
-    public $textFilter;
-    public $numberFilter;
-    public $dateFilter;
-    public $timeFilter;
     public $hidden;
     public $params = [];
     public $additionalSelects = [];
@@ -33,7 +29,7 @@ class Column
         return $column;
     }
 
-    public static function fromRaw($raw)
+    public static function raw($raw)
     {
         $column = new static;
         $column->raw = $raw;
@@ -48,6 +44,7 @@ class Column
         $column = new static;
         $column->scope = $scope;
         $column->label = $alias;
+        $column->sortBy($alias);
 
         return $column;
     }
@@ -76,9 +73,9 @@ class Column
         return $this;
     }
 
-    public function withSelectFilter($selectFilter)
+    public function filterable($options = null)
     {
-        $this->selectFilter = $selectFilter;
+        $this->filterable = $options ?? true;
         return $this;
     }
 
@@ -89,45 +86,9 @@ class Column
         return $this;
     }
 
-    public function withBooleanFilter()
-    {
-        $this->booleanFilter = true;
-        return $this;
-    }
-
     public function withScopeBooleanFilter($filterScope)
     {
         $this->filterScope = $filterScope;
-        return $this;
-    }
-
-    public function withTextFilter()
-    {
-        $this->textFilter = true;
-        return $this;
-    }
-
-    public function withNumberFilter()
-    {
-        $this->numberFilter = true;
-        return $this;
-    }
-
-    public function withDateFilter()
-    {
-        $this->dateFilter = true;
-        return $this;
-    }
-
-    public function withTimeFilter()
-    {
-        $this->timeFilter = true;
-        return $this;
-    }
-
-    public function formatBoolean()
-    {
-        $this->callback = 'boolean';
         return $this;
     }
 
@@ -142,20 +103,6 @@ class Column
     {
         $this->callback = 'truncate';
         $this->params = [$length];
-        return $this;
-    }
-
-    public function formatDate($format = null)
-    {
-        $this->callback = 'formatDate';
-        $this->params = func_get_args();
-        return $this;
-    }
-
-    public function formatTime($format = null)
-    {
-        $this->callback = 'formatTime';
-        $this->params = func_get_args();
         return $this;
     }
 
@@ -191,8 +138,8 @@ class Column
 
     public function editable()
     {
-        if ($this->column) {
-            [$table, $column] = explode('.', $this->column);
+        if ($this->field) {
+            [$table, $column] = explode('.', $this->field);
             $this->additionalSelects[] = $table . '.id AS ' . $table . '.id';
             $this->callback = 'edit';
             $this->params = [$table, $column];
@@ -200,7 +147,7 @@ class Column
         return $this;
     }
 
-    public function hidden()
+    public function hide()
     {
         $this->hidden = true;
         return $this;
@@ -208,7 +155,7 @@ class Column
 
     public function toggleHidden()
     {
-        $this->hidden = !$this->hidden();
+        $this->hidden = !$this->hidden;
     }
 
     public function toArray()

@@ -14,7 +14,7 @@ class DummyTable extends LivewireDatatable
         return DummyModel::query();
     }
 
-    public function ColumnSet()
+    public function columns()
     {
         return ColumnSet::fromArray([
             Column::field('dummy_models.id')
@@ -38,7 +38,7 @@ class DummyTable extends LivewireDatatable
             Column::field('dummy_models.expires_at')
                 ->label('Expiry')
                 ->formatDate('jS F Y')
-                ->hidden(),
+                ->hide(),
         ]);
     }
 }

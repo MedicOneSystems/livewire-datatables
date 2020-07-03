@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 trait WithCallbacks
 {
-    public function formatTime($time, $row, $format = null)
+    public function format($value, $row, $format)
     {
-        return $time ? Carbon::parse($time)->format($format ?? config('livewire-datatables.default_time_format')) : null;
+        return $value ? Carbon::parse($value)->format($format) : null;
     }
 
     public function formatDate($date, $row, $format = null)

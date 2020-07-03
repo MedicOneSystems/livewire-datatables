@@ -42,6 +42,24 @@
                     </div>
                     @endforeach
                 </div>
+
+                <div class="table-row divide-x-2 divide-gray-200">
+                    @foreach($this->visibleColumns as $index => $column)
+                    <div class="table-cell h-12 overflow-hidden align-top">
+                        @if(isset($column['filterable']))
+                            @if( is_iterable($column['filterable']) )
+                                <div wire:key="{{ $index }}">
+                                    @include('livewire-datatables::filters.select', ['index' => $index, 'name' => $column['label'], 'options' => $column['filterable']])
+                                </div>
+                            @else
+                                <div wire:key="{{ $index }}">
+                                    @include('livewire-datatables::filters.' . $column['type'], ['index' => $index, 'name' => $column['label']])
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
                 @endif
                 @foreach($this->results as $result)
                 <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
@@ -86,6 +104,7 @@
         @endif
     </div>
 
+            {{--
     @if($this->activeFilters)
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
         <div class="h-6 flex justify-between items-center">
@@ -102,6 +121,7 @@
                 <x-icons.x-circle />
             </button>
             @endif
+
             @if(isset($times['column']) && ((isset($times['start']) || isset($times['end']))))
             <button wire:click="clearTimeFilter" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span class="">{{ $this->getColumnColumn($times['column'])  . ' between ' . ($times['start'] ?? '00:00') . ' and ' . ($times['end'] ?? '23:59') }}</span>
@@ -130,7 +150,7 @@
             @endforeach
             @foreach($activeNumberFilters as $index => $activeNumberFilter)
             <button wire:click="removeNumberFilter('{{ $index }}')" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
-                <span class="">{{ $this->getColumnLabel($index) . ": between " . ($activeNumberFilter['start'] ?? 'Z') . " and " . ($activeNumberFilter['end'] ?? 'max') }}</span>
+                <span class="">{{ $this->getColumnLabel($index) . ": between " . ($activeNumberFilter['start'] ?? '0') . " and " . ($activeNumberFilter['end'] ?? 'max') }}</span>
                 <x-icons.x-circle />
             </button>
             @endforeach
@@ -142,7 +162,7 @@
     <div class="mt-4 p-4 rounded overflow-hidden align-middle min-w-full shadow sm:rounded-lg border-b border-gray-200 bg-white">
         <div class="h-6 flex justify-between items-center">
             <label class="uppercase tracking-wide text-blue-600 text-lg">Date Range</label>
-            <button wire:click="clearDateFilter" class="@if(!isset($dates['column']) || $dates['column'] === '') hidden @endif px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
+ class="@if(!isset($dates['column']) || $dates['column'] === '') hidden @endif px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
                 <span>CLEAR</span>
                 <x-icons.x-circle />
             </button>
@@ -218,26 +238,14 @@
                     {{ ucwords(str_replace('_', ' ', str_replace('_id', '', $filter['label']))) }}
                 </label>
                 <div class="">
-                    <select name="{{ $filter['label'] }}" class="w-full form-select" wire:input="doSelectFilter('{{ $i }}', $event.target.value)">
-                        <option value=""></option>
-                        @foreach($filter['selectFilter'] as $value => $label)
-                        @if(is_object($label))
-                        <option value="{{ $label->id }}">{{ $label->name }}</option>
-                        @elseif(is_array($label))
-                        <option value="{{ $label['id'] }}">{{ $label['label'] }}</option>
-                        @elseif(is_numeric($value))
-                        <option value="{{ $label }}">{{ $label }}</option>
-                        @else
-                        <option value="{{ $value }}">{{ $label }}</option>
-                        @endif
-                        @endforeach
-                    </select>
+
                 </div>
             </div>
             @endforeach
 
+
             @foreach($this->booleanFilters as $i => $filter)
-            <div class="w-full relative">
+             <div class="w-full relative">
                 <label class="uppercase tracking-wide text-gray-600 text-xs py-1 rounded flex justify-between" for="{{ $filter['label'] }}">
                     {{ ucwords(str_replace('_', ' ', str_replace('_id', '', $filter['label']))) }}
                 </label>
@@ -267,42 +275,14 @@
                 <label class="uppercase tracking-wide text-gray-600 text-xs py-1 rounded flex justify-between" for="{{ $filter['label'] }}">
                     <span>{{ ucwords(str_replace('_', ' ', $filter['label'])) }}</span>
                 </label>
-                <div class="flex space-x-2">
 
-                    <div x-data class="w-full relative rounded-md shadow-sm">
-                        <input
-                            x-ref="input"
-                            wire:change="doNumberFilterStart('{{ $i }}', $event.target.value)"
-                            class="form-input block w-full pr-10 sm:text-sm sm:leading-5"
-                            placeholder="MIN"
-                        />
-                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-                            <button x-on:click="$refs.input.value=''" wire:click="doNumberFilterStart('{{ $i }}', '')" class="inline-flex text-gray-400 hover:text-red-600 focus:outline-none">
-                                <x-icons.x-circle class="h-3 w-3 stroke-current" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div x-data class="w-full relative rounded-md shadow-sm">
-                        <input
-                            x-ref="input"
-                            wire:change="doNumberFilterEnd('{{ $i }}', $event.target.value)"
-                            class="form-input block w-full pr-10 sm:text-sm sm:leading-5"
-                            placeholder="MAX"
-                        />
-                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
-                            <button x-on:click="$refs.input.value=''" wire:click="doNumberFilterEnd('{{ $i }}', '')" class="inline-flex text-gray-400 hover:text-red-600 focus:outline-none">
-                                <x-icons.x-circle class="h-3 w-3 stroke-current" />
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
             @endforeach
 
         </div>
     </div>
     @endif
+            --}}
 
     <div wire:loading>
         <div class="fixed z-50 bottom-0 inset-x-0 px-4 pb-4 sm:inset-0 sm:flex sm:items-center sm:justify-center">

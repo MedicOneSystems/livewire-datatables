@@ -49,7 +49,7 @@ class ColumnTest extends TestCase
             ['withDateFilter', true, 'dateFilter'],
             ['withTimeFilter', true, 'timeFilter'],
             ['formatBoolean', 'boolean', 'callback'],
-            ['hidden', true, 'hidden'],
+            ['hide', true, 'hidden'],
             ['additionalSelects', ['hello world'], 'additionalSelects'],
         ];
     }
@@ -82,7 +82,7 @@ class ColumnTest extends TestCase
         $subject = Column::field('table.column')
             ->label('Column')
             ->withSelectFilter(['A', 'B', 'C'])
-            ->hidden()
+            ->hide()
             ->linkTo('model', 8)
             ->toArray();
 

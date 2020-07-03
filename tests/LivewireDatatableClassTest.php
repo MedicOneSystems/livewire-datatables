@@ -41,7 +41,6 @@ class LivewireDatatableClassTest extends TestCase
             'model' => DummyModel::class,
         ]);
 
-        $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
         $this->assertIsArray($subject->columns);
 
         $this->assertEquals(0, $subject->sort);

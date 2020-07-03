@@ -128,7 +128,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'hidden' => ['subject']
+            'hide' => ['subject']
         ])->assertDontSee('HIDE-THIS');
 
         $this->assertIsArray($subject->columns);

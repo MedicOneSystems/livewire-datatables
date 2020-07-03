@@ -4,7 +4,6 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use Mediconesystems\LivewireDatatables\Field;
 use Mediconesystems\LivewireDatatables\Column;
 
 class ColumnSet
@@ -61,14 +60,13 @@ class ColumnSet
         return $this;
     }
 
-    public function hidden($hidden)
+    public function hide($hidden)
     {
         if (!$hidden) {
             return $this;
         }
 
         $hidden = is_array($hidden) ? $hidden : explode(', ', $hidden);
-
         $this->columns->each(function ($column) use ($hidden) {
             $column->hidden = in_array(Str::after($column->field, '.'), $hidden);
         });
