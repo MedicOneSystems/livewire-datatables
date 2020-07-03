@@ -145,9 +145,16 @@ class LivewireDatatable extends Component
         $this->page = 1;
     }
 
-    public function doNumberFilter($index, $low = 0, $high = 1000000)
+    public function doNumberFilterStart($index, $start)
     {
-        $this->activeNumberFilters[$index] = [$low, $high];
+        // dump((int) $start);
+        $this->activeNumberFilters[$index]['start'] = (int) $start;
+        $this->page = 1;
+    }
+
+    public function doNumberFilterEnd($index, $end)
+    {
+        $this->activeNumberFilters[$index]['end'] = (int) $end;
         $this->page = 1;
     }
 
@@ -199,7 +206,7 @@ class LivewireDatatable extends Component
 
     public function removeNumberFilter($column)
     {
-        unset($this->activeTextFilters[$column]);
+        unset($this->activeNumberFilters[$column]);
     }
 
     public function getVisibleFieldsProperty()
@@ -302,7 +309,14 @@ class LivewireDatatable extends Component
 
     public function addNumberFilters($builder)
     {
-        return $builder->whereBetween($this->getFieldColumn(key($this->activeNumberFilters)), reset($this->activeNumberFilters));
+        return $builder->where(function ($query) {
+            foreach ($this->activeNumberFilters as $index => $filter) {
+                return $query->whereBetween($this->getFieldColumn($index), [
+                    isset($filter['start']) ? $filter['start'] : 0,
+                    isset($filter['end']) ? $filter['end'] : 9999999
+                ]);
+            }
+        });
     }
 
     public function addDateRangeFilter($builder)
@@ -411,7 +425,8 @@ class LivewireDatatable extends Component
             || isset($this->times['field'])
             || count($this->activeSelectFilters)
             || count($this->activeBooleanFilters)
-            || count($this->activeTextFilters);
+            || count($this->activeTextFilters)
+            || count($this->activeNumberFilters);
     }
 
     public function buildDatabaseQuery()

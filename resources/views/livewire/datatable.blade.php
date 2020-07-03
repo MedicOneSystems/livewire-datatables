@@ -128,6 +128,12 @@
                 <x-icons.x-circle />
             </button>
             @endforeach
+            @foreach($activeNumberFilters as $index => $activeNumberFilter)
+            <button wire:click="removeNumberFilter('{{ $index }}')" class="px-2 py-1 flex items-center uppercase tracking-wide border-2 border-transparent hover:bg-red-400 text-gray-600 hover:text-white rounded-full focus:outline-none text-xs space-x-1">
+                <span class="">{{ $this->getFieldName($index) . ": between " . ($activeNumberFilter['start'] ?? 'Z') . " and " . ($activeNumberFilter['end'] ?? 'max') }}</span>
+                <x-icons.x-circle />
+            </button>
+            @endforeach
         </div>
     </div>
     @endif
@@ -252,6 +258,44 @@
                 </label>
                 <div class="relative">
                     <input name="{{ $filter['name'] }}" type="text" class="w-full form-input" wire:input.lazy="doTextFilter('{{ $i }}', $event.target.value)" />
+                </div>
+            </div>
+            @endforeach
+
+            @foreach($this->numberFilters as $i => $filter)
+            <div class="w-full relative">
+                <label class="uppercase tracking-wide text-gray-600 text-xs py-1 rounded flex justify-between" for="{{ $filter['name'] }}">
+                    <span>{{ ucwords(str_replace('_', ' ', $filter['name'])) }}</span>
+                </label>
+                <div class="flex space-x-2">
+
+                    <div x-data class="w-full relative rounded-md shadow-sm">
+                        <input
+                            x-ref="input"
+                            wire:change="doNumberFilterStart('{{ $i }}', $event.target.value)"
+                            class="form-input block w-full pr-10 sm:text-sm sm:leading-5"
+                            placeholder="MIN"
+                        />
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                            <button x-on:click="$refs.input.value=''" wire:click="doNumberFilterStart('{{ $i }}', '')" class="inline-flex text-gray-400 hover:text-red-600 focus:outline-none">
+                                <x-icons.x-circle class="h-3 w-3 stroke-current" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div x-data class="w-full relative rounded-md shadow-sm">
+                        <input
+                            x-ref="input"
+                            wire:change="doNumberFilterEnd('{{ $i }}', $event.target.value)"
+                            class="form-input block w-full pr-10 sm:text-sm sm:leading-5"
+                            placeholder="MAX"
+                        />
+                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                            <button x-on:click="$refs.input.value=''" wire:click="doNumberFilterEnd('{{ $i }}', '')" class="inline-flex text-gray-400 hover:text-red-600 focus:outline-none">
+                                <x-icons.x-circle class="h-3 w-3 stroke-current" />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             @endforeach

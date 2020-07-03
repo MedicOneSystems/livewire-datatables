@@ -156,6 +156,7 @@ class ComplexDemoTable extends LivewireDatatable
 |**withBooleanFilter**| |Adds a yes/no filter that the field|```Field::fromColumn('users.email_verified_at')->withBooleanFilter()```|
 |**withScopeBooleanFilter**| |Adds a yes/no filter that applies the true/false value to the given scope|```Field::fromScope('withLoginLastMonth', 'Recent Login')->withScopeBooleanFilter('filterLoginLastMonth')```|
 |**withTextFilter**| |Adds an input-based free text filter on the field. Will be loosely matched using ```...LIKE "%$value%"```|```Field::fromColumn('users.email')->withTextFilter(['Rebellion', 'Empire'])```|
+|**withNumberFilter**|[*Integer* $min, *Integer* $max]|Adds an input-based numeric filter on the field. Optional arguments set the default min/max values|```Field::fromColumn('users.id')->withNumberFilter(['Rebellion', 'Empire'])```|
 |**withDateFilter**| |Adds a date filter on the field.|```Field::fromColumn('users.dob')->witDateFilter()```|
 |**withTimeFilter**| |Adds a time filter on the field.|```Field::fromColumn('users.bedtime)->withTimeFilter()```|
 |**callback**|*String* $callback [, *Array* $params (default: [])]| Passes the field value, whole row of values, and any additional parameters to a callback to allow custom mutations| _(see below)_|

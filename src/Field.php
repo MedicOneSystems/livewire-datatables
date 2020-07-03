@@ -108,9 +108,9 @@ class Field
         return $this;
     }
 
-    public function withNumberFilter($range)
+    public function withNumberFilter()
     {
-        $this->numberFilter = $range;
+        $this->numberFilter = true;
         return $this;
     }
 
