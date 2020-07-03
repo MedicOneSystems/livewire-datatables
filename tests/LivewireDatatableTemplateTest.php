@@ -18,7 +18,7 @@ class LivewireDatatableTemplateTest extends TestCase
         $subject = Livewire::test(LivewireDatatable::class, ['model' => DummyModel::class]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'Id',
             1 => 'Relation_id',
@@ -29,7 +29,7 @@ class LivewireDatatableTemplateTest extends TestCase
             6 => 'Expires_at',
             7 => 'Created_at',
             8 => 'Updated_at'
-        ], collect($subject->fields)->map->name->toArray());
+        ], collect($subject->columns)->map->label->toArray());
     }
 
     /** @test */
@@ -77,7 +77,7 @@ class LivewireDatatableTemplateTest extends TestCase
     }
 
     /** @test */
-    public function it_can_include_fields_from_a_property()
+    public function it_can_include_columns_from_a_property()
     {
         factory(DummyModel::class)->create();
 
@@ -90,16 +90,16 @@ class LivewireDatatableTemplateTest extends TestCase
             ]
         ]);
 
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'Id',
             2 => 'Subject',
             4 => 'Body',
-        ], collect($subject->fields)->map->name->toArray());
+        ], collect($subject->columns)->map->label->toArray());
     }
 
     /** @test */
-    public function it_can_exclude_fields_from_a_property()
+    public function it_can_exclude_columns_from_a_property()
     {
         factory(DummyModel::class)->create();
 
@@ -108,7 +108,7 @@ class LivewireDatatableTemplateTest extends TestCase
             'exclude' => ['relation_id']
         ]);
 
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'Id',
             2 => 'Subject',
@@ -118,11 +118,11 @@ class LivewireDatatableTemplateTest extends TestCase
             6 => 'Expires_at',
             7 => 'Created_at',
             8 => 'Updated_at'
-        ], collect($subject->fields)->map->name->toArray());
+        ], collect($subject->columns)->map->label->toArray());
     }
 
     /** @test */
-    public function it_can_hide_fields_from_a_property()
+    public function it_can_hide_columns_from_a_property()
     {
         factory(DummyModel::class)->create(['subject' => 'HIDE-THIS']);
 
@@ -131,12 +131,12 @@ class LivewireDatatableTemplateTest extends TestCase
             'hidden' => ['subject']
         ])->assertDontSee('HIDE-THIS');
 
-        $this->assertIsArray($subject->fields);
-        $this->assertCount(9, $subject->fields);
+        $this->assertIsArray($subject->columns);
+        $this->assertCount(9, $subject->columns);
     }
 
     /** @test */
-    public function it_can_mark_fields_for_date_format_from_a_property()
+    public function it_can_mark_columns_for_date_format_from_a_property()
     {
         factory(DummyModel::class)->create([
             'expires_at' => '2020-12-31',
@@ -151,7 +151,7 @@ class LivewireDatatableTemplateTest extends TestCase
     }
 
     /** @test */
-    public function it_can_mark_fields_for_time_format_from_a_property()
+    public function it_can_mark_columns_for_time_format_from_a_property()
     {
         factory(DummyModel::class)->create([
             'expires_at' => '2020-12-31 2:34 PM',
@@ -167,7 +167,7 @@ class LivewireDatatableTemplateTest extends TestCase
     }
 
     /** @test */
-    public function it_can_rename_fields_from_a_property()
+    public function it_can_rename_columns_from_a_property()
     {
         factory(DummyModel::class)->create();
 
@@ -176,9 +176,9 @@ class LivewireDatatableTemplateTest extends TestCase
             'renames' => ['id|ID']
         ]);
 
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
 
-        $this->assertEquals('ID', $subject->fields[0]['name']);
+        $this->assertEquals('ID', $subject->columns[0]['label']);
     }
 
     /** @test */
@@ -192,7 +192,7 @@ class LivewireDatatableTemplateTest extends TestCase
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
 
         $this->assertEquals(2, $subject->sort);
         $this->assertTrue($subject->direction);

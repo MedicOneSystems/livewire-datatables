@@ -21,7 +21,7 @@ class LivewireDatatableClassTest extends TestCase
         $subject = Livewire::test(DummyTable::class)
             ->assertSee('How to sell paper in Scranton PA');
 
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'ID',
             1 => 'Subject',
@@ -29,7 +29,7 @@ class LivewireDatatableClassTest extends TestCase
             3 => 'Body',
             4 => 'Flag',
             5 => 'Expiry',
-        ], collect($subject->fields)->map->name->toArray());
+        ], collect($subject->columns)->map->label->toArray());
     }
 
     /** @test */
@@ -42,7 +42,7 @@ class LivewireDatatableClassTest extends TestCase
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
-        $this->assertIsArray($subject->fields);
+        $this->assertIsArray($subject->columns);
 
         $this->assertEquals(0, $subject->sort);
         $this->assertFalse($subject->direction);
@@ -128,8 +128,8 @@ class LivewireDatatableClassTest extends TestCase
         factory(DummyModel::class)->create(['id' => 5]);
 
         $subject = Livewire::test(DummyTable::class)
-            ->set('fields.0.numberFilter.0.min', 0)
-            ->set('fields.0.numberFilter.0.max', 1000000)
+            ->set('columns.0.numberFilter.0.min', 0)
+            ->set('columns.0.numberFilter.0.max', 1000000)
             ->assertSee('Results 1 - 5 of 5')
             ->call('doNumberFilterStart', 0, 2)
             ->assertSee('Results 1 - 4 of 4')

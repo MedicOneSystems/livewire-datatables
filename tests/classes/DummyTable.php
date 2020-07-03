@@ -2,8 +2,8 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests\Classes;
 
-use Mediconesystems\LivewireDatatables\Field;
-use Mediconesystems\LivewireDatatables\Fieldset;
+use Mediconesystems\LivewireDatatables\Column;
+use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
@@ -14,29 +14,29 @@ class DummyTable extends LivewireDatatable
         return DummyModel::query();
     }
 
-    public function fieldset()
+    public function ColumnSet()
     {
-        return Fieldset::fromArray([
-            Field::fromColumn('dummy_models.id')
-                ->name('ID')
+        return ColumnSet::fromArray([
+            Column::field('dummy_models.id')
+                ->label('ID')
                 ->linkTo('dummy_model', 6),
 
-            Field::fromColumn('dummy_models.subject')
+            Column::field('dummy_models.subject')
                 ->withTextFilter(),
 
-            Field::fromColumn('dummy_models.category')
+            Column::field('dummy_models.category')
                 ->withSelectFilter(['A', 'B', 'C']),
 
-            Field::fromColumn('dummy_models.body')
+            Column::field('dummy_models.body')
                 ->truncate()
                 ->withTextFilter(),
 
-            Field::fromColumn('dummy_models.flag')
+            Column::field('dummy_models.flag')
                 ->withBooleanFilter()
                 ->formatBoolean(),
 
-            Field::fromColumn('dummy_models.expires_at')
-                ->name('Expiry')
+            Column::field('dummy_models.expires_at')
+                ->label('Expiry')
                 ->formatDate('jS F Y')
                 ->hidden(),
         ]);

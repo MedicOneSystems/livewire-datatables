@@ -5,12 +5,12 @@ namespace Mediconesystems\LivewireDatatables;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
-class Field
+class Column
 {
-    public $name;
-    public $column;
+    public $label;
+    public $field;
     public $raw;
-    public $globalSearch;
+    public $searchable;
     public $sort;
     public $defaultSort;
     public $callback;
@@ -24,38 +24,37 @@ class Field
     public $params = [];
     public $additionalSelects = [];
 
-
-    public static function fromColumn($column)
+    public static function field($field)
     {
-        $field = new static;
-        $field->column = $column;
-        $field->name = (string) Str::of($column)->after('.')->ucfirst();
+        $column = new static;
+        $column->field = $field;
+        $column->label = (string) Str::of($field)->after('.')->ucfirst();
 
-        return $field;
+        return $column;
     }
 
     public static function fromRaw($raw)
     {
-        $field = new static;
-        $field->raw = $raw;
-        $field->name = (string) Str::of($raw)->afterLast(' AS ')->replace('`', '');
-        $field->sort = DB::raw((string) Str::of($raw)->beforeLast(' AS '));
+        $column = new static;
+        $column->raw = $raw;
+        $column->label = (string) Str::of($raw)->afterLast(' AS ')->replace('`', '');
+        $column->sort = DB::raw((string) Str::of($raw)->beforeLast(' AS '));
 
-        return $field;
+        return $column;
     }
 
-    public static function fromScope($scope, $alias)
+    public static function scope($scope, $alias)
     {
-        $field = new static;
-        $field->scope = $scope;
-        $field->name = $alias;
+        $column = new static;
+        $column->scope = $scope;
+        $column->label = $alias;
 
-        return $field;
+        return $column;
     }
 
-    public function name($name)
+    public function label($label)
     {
-        $this->name = $name;
+        $this->label = $label;
         return $this;
     }
 
@@ -71,9 +70,9 @@ class Field
         return $this;
     }
 
-    public function globalSearch()
+    public function searchable()
     {
-        $this->globalSearch = true;
+        $this->searchable = true;
         return $this;
     }
 

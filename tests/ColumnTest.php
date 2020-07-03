@@ -3,27 +3,27 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Illuminate\Support\Facades\DB;
-use Mediconesystems\LivewireDatatables\Field;
+use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\Tests\TestCase;
 
-class FieldTest extends TestCase
+class ColumnTest extends TestCase
 {
     /** @test */
-    public function it_can_generate_a_field_from_a_table_column()
+    public function it_can_generate_a_column_from_a_table_column()
     {
-        $subject = Field::fromColumn('table.column');
+        $subject = Column::field('table.column');
 
-        $this->assertEquals('table.column', $subject->column);
-        $this->assertEquals('Column', $subject->name);
+        $this->assertEquals('table.column', $subject->field);
+        $this->assertEquals('Column', $subject->label);
     }
 
     /** @test */
-    public function it_can_generate_a_field_from_a_scope()
+    public function it_can_generate_a_column_from_a_scope()
     {
-        $subject = Field::fromScope('fakeScope', 'Alias');
+        $subject = Column::scope('fakeScope', 'Alias');
 
         $this->assertEquals('fakeScope', $subject->scope);
-        $this->assertEquals('Alias', $subject->name);
+        $this->assertEquals('Alias', $subject->label);
     }
 
     /**
@@ -32,7 +32,7 @@ class FieldTest extends TestCase
      */
     public function it_sets_properties_and_parameters($method, $value, $attribute)
     {
-        $subject = Field::fromColumn('table.column')->$method($value);
+        $subject = Column::field('table.column')->$method($value);
 
         $this->assertEquals($value, $subject->$attribute);
     }
@@ -40,7 +40,8 @@ class FieldTest extends TestCase
     public function settersDataProvider()
     {
         return [
-            ['name', 'Bob Vance', 'name'],
+            ['label', 'Bob Vance', 'label'],
+            ['searchable', true, 'searchable'],
             ['withSelectFilter', ['Michael Scott', 'Dwight Shrute'], 'selectFilter'],
             ['withBooleanFilter', true, 'booleanFilter'],
             ['withScopeBooleanFilter', 'scope', 'filterScope'],
@@ -59,7 +60,7 @@ class FieldTest extends TestCase
      */
     public function it_sets_preset_callbacks($method, $value, $attribute)
     {
-        $subject = Field::fromColumn('table.column')->$method(...$value);
+        $subject = Column::field('table.column')->$method(...$value);
 
         $this->assertEquals($value, $subject->$attribute);
     }
@@ -78,16 +79,16 @@ class FieldTest extends TestCase
     /** @test */
     public function it_returns_an_array_from_column()
     {
-        $subject = Field::fromColumn('table.column')
-            ->name('Column')
+        $subject = Column::field('table.column')
+            ->label('Column')
             ->withSelectFilter(['A', 'B', 'C'])
             ->hidden()
             ->linkTo('model', 8)
             ->toArray();
 
         $this->assertEquals([
-            'column' => 'table.column',
-            'name' => 'Column',
+            'field' => 'table.column',
+            'label' => 'Column',
             'selectFilter' => ['A', 'B', 'C'],
             'hidden' => true,
             'callback' => 'makeLink',
@@ -99,7 +100,7 @@ class FieldTest extends TestCase
             'raw' => null,
             'sort' => null,
             'defaultSort' => null,
-            'globalSearch' => null,
+            'searchable' => null,
             'params' => ['model', 8],
             'additionalSelects' => [],
         ], $subject);
@@ -108,15 +109,15 @@ class FieldTest extends TestCase
     /** @test */
     public function it_returns_an_array_from_raw()
     {
-        $subject = Field::fromRaw('SELECT column FROM table AS table_column')
+        $subject = Column::fromRaw('SELECT column FROM table AS table_column')
             ->withBooleanFilter()
             ->defaultSort('asc')
             ->formatDate('yyy-mm-dd')
             ->toArray();
 
         $this->assertEquals([
-            'column' => null,
-            'name' => 'table_column',
+            'field' => null,
+            'label' => 'table_column',
             'selectFilter' => null,
             'hidden' => null,
             'callback' => 'formatDate',
@@ -128,7 +129,7 @@ class FieldTest extends TestCase
             'raw' => 'SELECT column FROM table AS table_column',
             'sort' => DB::raw('SELECT column FROM table'),
             'defaultSort' => 'asc',
-            'globalSearch' => null,
+            'searchable' => null,
             'params' => ['yyy-mm-dd'],
             'additionalSelects' => [],
         ], $subject);
