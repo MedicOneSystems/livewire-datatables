@@ -1,5 +1,4 @@
 <div class="">
-
     @if($this->searchableColumns()->count())
     <div class="w-full sm:w-2/3 md:w-2/5 mt-1 mb-2 flex rounded-lg shadow-sm">
         <div class="relative flex-grow focus-within:z-10">

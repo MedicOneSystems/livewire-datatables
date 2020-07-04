@@ -17,6 +17,8 @@ class Column
     public $defaultSort;
     public $callback;
     public $hidden;
+    public $scope;
+    public $scopeFilter;
     public $params = [];
     public $additionalSelects = [];
 
@@ -73,22 +75,23 @@ class Column
         return $this;
     }
 
-    public function filterable($options = null)
+    public function filterable($options = null, $scopeFilter = null)
     {
         $this->filterable = $options ?? true;
+        $this->scopeFilter = $scopeFilter;
         return $this;
     }
 
-    public function withScopeSelectFilter($filterScope, $options)
-    {
-        $this->filterScope = $filterScope;
-        $this->selectFilter = $options;
-        return $this;
-    }
+    // public function withScopeSelectFilter($scopeFilter, $options)
+    // {
+    //     $this->scopeFilter = $scopeFilter;
+    //     $this->selectFilter = $options;
+    //     return $this;
+    // }
 
-    public function withScopeBooleanFilter($filterScope)
+    public function withScopeBooleanFilter($scopeFilter)
     {
-        $this->filterScope = $filterScope;
+        $this->scopeFilter = $scopeFilter;
         return $this;
     }
 

@@ -3,7 +3,6 @@
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
 use Livewire\Component;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
@@ -277,7 +276,7 @@ class LivewireDatatable extends Component
     public function getDisplayValue($index, $value)
     {
         return is_array($this->columns[$index]['filterable']) && is_numeric($value)
-            ? collect($this->selectFilters[$index]['selectFilter'])->firstWhere('id', '=', $value)['label'] ?? $value
+            ? collect($this->columns[$index]['filterable'])->firstWhere('id', '=', $value)['name'] ?? $value
             : $value;
     }
 
@@ -287,9 +286,8 @@ class LivewireDatatable extends Component
             foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
                 $query->where(function ($query) use ($index, $activeSelectFilter) {
                     foreach ($activeSelectFilter as $value) {
-                        /* $this->addScopeSelectFilter($query, $index, $value)
-                            ??  */
-                        $query->orWhere($this->getColumnField($index), $value);
+                        $this->addScopeSelectFilter($query, $index, $value)
+                            ?? $query->orWhere($this->getColumnField($index), $value);
                     }
                 });
             }
@@ -298,11 +296,11 @@ class LivewireDatatable extends Component
 
     public function addScopeSelectFilter($query, $index, $value)
     {
-        if (!isset($this->columns[$index]['filterScope'])) {
+        if (!isset($this->columns[$index]['scopeFilter'])) {
             return;
         }
 
-        return $query->{$this->columns[$index]['filterScope']}($value);
+        return $query->{$this->columns[$index]['scopeFilter']}($value);
     }
 
     public function addBooleanFilters($builder)

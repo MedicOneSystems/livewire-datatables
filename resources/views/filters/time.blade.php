@@ -8,17 +8,3 @@
             wire:change="doTimeFilterEnd('{{ $index }}', $event.target.value)" style="padding-bottom: 5px" />
     </div>
 </div>
-
-
-
-
-
-
-
-if ($times['start'] < $times['end']) { $query->whereBetween($times['field'], [$times['start'], $times['end']]);
-    } else {
-    $query->where(function ($subQuery) use ($times) {
-    $subQuery->whereBetween($times['field'], [$times['start'], '23:59'])
-    ->orWhereBetween($times['field'], ['00:00', $times['end']]);
-    });
-    }

@@ -98,7 +98,7 @@ class ColumnSet
             if ($column = $this->columns->first(function ($column) use ($time) {
                 return Str::after($column->field, '.') === Str::before($time, '|');
             })) {
-                $column->callback = 'formatTime';
+                $column->callback = 'format';
                 $column->params = Str::of($time)->contains('|') ? [Str::after($time, '|')] : [];
             }
         }
