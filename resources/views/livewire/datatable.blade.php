@@ -28,9 +28,19 @@
                     {{-- @foreach($this->visibleColumns as $index => $column) --}}
                     @foreach($columns as $index => $column)
                     @if($column['hidden'])
-                    <div class="relative table-cell h-12 w-5 bg-blue-100 overflow-none align-top">
-                        <button wire:click.prefetch="toggle('{{ $index }}')"
-                            class="-ml-14 absolute font-medium leading-4 rotate-90 text-xs text-left text-gray-400 hover:text-blue-400 top-16 tracking-wider transform uppercase w-32 focus:outline-none">{{ str_replace('_', ' ', $column['label']) }}</button>
+                    <div wire:click.prefetch="toggle('{{ $index }}')"
+                        class="relative table-cell h-12 w-3 bg-blue-100 hover:bg-blue-300 overflow-none align-top group"
+                        style="min-width:12px max:width:12px">
+                        <button class="relative h-12 w-3 focus:outline-none">
+                            <span
+                                class="w-32 hidden group-hover:inline-block absolute z-10 top-0 left-0 ml-3 bg-blue-300 font-medium leading-4 text-xs text-left text-blue-700 tracking-wider transform uppercase focus:outline-none">
+                                {{ str_replace('_', ' ', $column['label']) }}
+                            </span>
+                        </button>
+                        <svg class="absolute text-blue-100 fill-current w-full inset-x-0 bottom-0"
+                            viewBox="0 0 314.16 207.25">
+                            <path stroke-miterlimit="10" d="M313.66 206.75H.5V1.49l157.65 204.9L313.66 1.49v205.26z" />
+                        </svg>
                     </div>
                     @else
                     <div class="relative table-cell h-12 overflow-hidden align-top">
