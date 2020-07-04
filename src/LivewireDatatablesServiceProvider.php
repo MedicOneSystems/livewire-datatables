@@ -20,6 +20,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');
         Blade::component('icons::arrow-right', 'icons.arrow-right');
+        Blade::component('icons::arrow-circle-left', 'icons.arrow-circle-left');
         Blade::component('icons::chevron-up', 'icons.chevron-up');
         Blade::component('icons::chevron-down', 'icons.chevron-down');
         Blade::component('icons::cog', 'icons.cog');

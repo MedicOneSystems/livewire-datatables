@@ -23,6 +23,7 @@ class LivewireDatatable extends Component
     public $sort;
     public $direction;
     public $activeDateFilters = [];
+    public $activeTimeFilters = [];
     public $activeSelectFilters = [];
     public $activeBooleanFilters = [];
     public $activeTextFilters = [];
@@ -30,9 +31,8 @@ class LivewireDatatable extends Component
     public $hideToggles;
     public $hideHeader;
     public $hidePagination;
-
-    public $times;
     public $perPage;
+
 
     public function mount(
         $model = null,
@@ -157,6 +157,18 @@ class LivewireDatatable extends Component
     public function doDateFilterEnd($index, $end)
     {
         $this->activeDateFilters[$index]['end'] = $end;
+        $this->page = 1;
+    }
+
+    public function doTimeFilterStart($index, $start)
+    {
+        $this->activeTimeFilters[$index]['start'] = $start;
+        $this->page = 1;
+    }
+
+    public function doTimeFilterEnd($index, $end)
+    {
+        $this->activeTimeFilters[$index]['end'] = $end;
         $this->page = 1;
     }
 
@@ -342,58 +354,48 @@ class LivewireDatatable extends Component
                 ]);
             }
         });
-
-        // return $builder->where(function ($query) {
-        //     foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
-        //         $query->where(function ($query) use ($index, $activeSelectFilter) {
-        //             foreach ($activeSelectFilter as $value) {
-        //                 /* $this->addScopeSelectFilter($query, $index, $value)
-        //                     ??  */
-        //                 $query->orWhere($this->getColumnField($index), $value);
-        //             }
-        //         });
-        //     }
-        // });
     }
 
     public function addDateRangeFilter($builder)
     {
         return $builder->where(function ($query) {
             foreach ($this->activeDateFilters as $index => $filter) {
-                return $query->whereBetween($this->getColumnField($index), [
+                $query->whereBetween($this->getColumnField($index), [
                     isset($filter['start']) ? $filter['start'] : '0000-00-00',
                     isset($filter['end']) ? $filter['end'] : now()->format('Y-m-d')
                 ]);
             }
         });
-        // return $builder->when(isset($this->dates['start']), function ($query) {
-        //     return $query->whereDate($this->getColumnField($this->dates['field']), '>', $this->dates['start']);
-        // })->when(isset($this->dates['end']), function ($query) {
-        //     return $query->whereDate($this->getColumnField($this->dates['field']), '<', $this->dates['end']);
-        // });
     }
 
     public function addTimeRangeFilter($builder)
     {
-        $times['start'] = $this->times['start'] ?? '00:00';
-        $times['end'] = $this->times['end'] ?? '23:59';
-
-        return $builder->where(function ($query) use ($times) {
-            if ($times['start'] < $times['end']) {
-                return $query->whereBetween($this->getColumnField($this->times['field']), [$times['start'], $times['end']]);
+        return $builder->where(function ($query) {
+            foreach ($this->activeTimeFilters as $index => $filter) {
+                if (($filter['start'] ?? 0) < ($filter['end'] ?? 0)) {
+                    $query->whereBetween($this->getColumnField($index), [
+                        isset($filter['start']) ? $filter['start'] : '00:00:00',
+                        isset($filter['end']) ? $filter['end'] : '23:59:59'
+                    ]);
+                } else {
+                    $query->where(function ($subQuery) use ($filter, $index) {
+                        $subQuery->whereBetween($this->getColumnField($index), [
+                            isset($filter['start']) ? $filter['start'] : '00:00:00',
+                            '23:59'
+                        ])->orWhereBetween($this->getColumnField($index), [
+                            '00:00',
+                            isset($filter['end']) ? $filter['end'] : '23:59:59'
+                        ]);
+                    });
+                }
             }
-
-            return $query->where(function ($subQuery) use ($times) {
-                $subQuery->whereBetween($this->getColumnField($this->times['field']), [$times['start'], '23:59'])
-                    ->orWhereBetween($this->getColumnField($this->times['field']), ['00:00', $times['end']]);
-            });
         });
     }
 
-    public function globallySearched()
+    public function searchableColumns()
     {
-        return $this->visibleColumns->filter(function ($column, $key) {
-            return isset($column['globalSearch']);
+        return collect($this->columns)->filter(function ($column, $key) {
+            return isset($column['searchable']);
         });
     }
 
@@ -449,25 +451,13 @@ class LivewireDatatable extends Component
         return collect($this->columns)->filter->numberFilter;
     }
 
-    public function getDateFiltersProperty()
-    {
-        // return tap(collect($this->columns)->filter->dateFilter, function ($columns) {
-        //     $this->dates['field'] = $columns->keys()->first();
-        // });
-    }
-
-    public function getTimeFiltersProperty()
-    {
-        return tap(collect($this->columns)->filter->timeFilter, function ($columns) {
-            $this->times['field'] = $columns->keys()->first();
-        });
-    }
-
     public function getActiveFiltersProperty()
     {
         return /* isset($this->dates['field'])
-            ||  */ isset($this->times['field'])
-            || count($this->activeSelectFilters)
+            ||  isset($this->times['field'])
+            ||
+            */
+            count($this->activeSelectFilters)
             || count($this->activeBooleanFilters)
             || count($this->activeTextFilters)
             || count($this->activeNumberFilters);
@@ -475,16 +465,19 @@ class LivewireDatatable extends Component
 
     public function buildDatabaseQuery()
     {
-        // dd($this->getSelectStatements());
         return $this->builder()
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {
-                    $this->globallySearched()->each(function ($column, $i) use ($query) {
-                        $this->columns[$i]['callback'] = 'highlight';
-                        $this->columns[$i]['params'] = [$this->search];
-                        $query->orWhere($column['field'], 'like', "%$this->search%");
-                    });
+                    foreach (explode(' ', $this->search) as $search) {
+                        $query->where(function ($query) use ($search) {
+                            $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
+                                $this->columns[$i]['callback'] = 'highlight';
+                                $this->columns[$i]['params'] = [$search];
+                                $query->orWhereRaw("LOWER(" . $column['field'] . ") like ?", "%$search%");
+                            });
+                        });
+                    }
                 });
             })
             ->when(count($this->getRawStatements()), function ($query) {
@@ -512,11 +505,11 @@ class LivewireDatatable extends Component
             ->when(count($this->activeDateFilters) > 0, function ($query) {
                 return $this->addDateRangeFilter($query);
             })
-            ->when(isset($this->times['field']) && (isset($this->times['start']) || (isset($this->times['end']))), function ($query) {
+            ->when(count($this->activeTimeFilters) > 0, function ($query) {
                 return $this->addTimeRangeFilter($query);
             })
             ->when(isset($this->sort), function ($query) {
-                return $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
+                $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
             });
     }
 
