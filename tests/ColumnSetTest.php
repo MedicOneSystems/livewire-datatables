@@ -2,24 +2,24 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Mediconesystems\LivewireDatatables\Field;
-use Mediconesystems\LivewireDatatables\Fieldset;
+use Mediconesystems\LivewireDatatables\Column;
+use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Tests\TestCase;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
-class FieldsetTest extends TestCase
+class ColumnSetTest extends TestCase
 {
     /** @test */
-    public function it_can_generate_an_array_of_fields_from_a_model()
+    public function it_can_generate_an_array_of_columns_from_a_model()
     {
         factory(DummyModel::class)->create();
 
-        $subject = Fieldset::fromModel(DummyModel::class);
+        $subject = ColumnSet::fromModel(DummyModel::class);
 
-        $this->assertCount(9, $subject->fields());
+        $this->assertCount(9, $subject->columns());
 
-        $subject->fields()->each(function ($field) {
-            $this->assertIsObject($field, Field::class);
+        $subject->columns()->each(function ($column) {
+            $this->assertIsObject($column, Column::class);
         });
     }
 
@@ -27,20 +27,18 @@ class FieldsetTest extends TestCase
      * @test
      * @dataProvider fieldDataProvider
      */
-    public function it_can_correctly_populate_the_fields_from_the_model($name, $index, $column)
+    public function it_can_correctly_populate_the_columns_from_the_model($name, $index, $column)
     {
         factory(DummyModel::class)->create();
 
-        $subject = Fieldset::fromModel(DummyModel::class)->fields();
+        $subject = ColumnSet::fromModel(DummyModel::class)->columns();
 
-        $this->assertEquals($name, $subject[$index]->name);
-        $this->assertEquals($column, $subject[$index]->column);
+        $this->assertEquals($name, $subject[$index]->label);
+        $this->assertEquals($column, $subject[$index]->field);
         $this->assertNull($subject[$index]->callback);
-        $this->assertNull($subject[$index]->selectFilter);
-        $this->assertNull($subject[$index]->booleanFilter);
-        $this->assertNull($subject[$index]->textFilter);
-        $this->assertNull($subject[$index]->dateFilter);
-        $this->assertNull($subject[$index]->timeFilter);
+        $this->assertNull($subject[$index]->filterable);
+        $this->assertNull($subject[$index]->scope);
+        $this->assertNull($subject[$index]->scopeFilter);
         $this->assertNull($subject[$index]->hidden);
     }
 
@@ -60,13 +58,13 @@ class FieldsetTest extends TestCase
     }
 
     /** @test */
-    public function it_can_exclude_fields()
+    public function it_can_exclude_columns()
     {
         factory(DummyModel::class)->create();
 
-        $subject = Fieldset::fromModel(DummyModel::class)
+        $subject = ColumnSet::fromModel(DummyModel::class)
             ->exclude(['id', 'body'])
-            ->fields();
+            ->columns();
 
         $this->assertCount(7, $subject);
 
@@ -75,14 +73,14 @@ class FieldsetTest extends TestCase
     }
 
     /** @test */
-    public function it_can_rename_fields_from_the_model()
+    public function it_can_rename_columns_from_the_model()
     {
         factory(DummyModel::class)->create();
 
-        $subject = Fieldset::fromModel(DummyModel::class)
+        $subject = ColumnSet::fromModel(DummyModel::class)
             ->rename(['id|ID'])
-            ->fields();
+            ->columns();
 
-        $this->assertEquals('ID', $subject[0]->name);
+        $this->assertEquals('ID', $subject[0]->label);
     }
 }
