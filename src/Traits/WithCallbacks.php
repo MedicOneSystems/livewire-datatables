@@ -26,12 +26,12 @@ trait WithCallbacks
 
     public function boolean($value)
     {
-        return view('livewire-datatables::boolean', ['value' => $value]);
+        return view('datatables::boolean', ['value' => $value]);
     }
 
     public function makeLink($value, $row, $model, $pad = null)
     {
-        return view('livewire-datatables::link', [
+        return view('datatables::link', [
             'href' => "/$model/$value",
             'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value
         ]);
@@ -39,14 +39,14 @@ trait WithCallbacks
 
     public function truncate($value, $row, $length = 16)
     {
-        return view('livewire-datatables::tooltip', ['slot' => $value, 'length' => $length]);
+        return view('datatables::tooltip', ['slot' => $value, 'length' => $length]);
     }
 
     public function highlight($value, $row, $string)
     {
         $output = substr($value, stripos($value, $string), strlen($string));
 
-        return str_ireplace($string, view('livewire-datatables::highlight', ['slot' => $output]), $value);
+        return str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value);
     }
 
     public function view($value, $row, $view)
@@ -56,7 +56,7 @@ trait WithCallbacks
 
     public function edit($value, $row, $table, $column)
     {
-        return view('livewire-datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row["$table.id"]]);
+        return view('datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row["$table.id"]]);
     }
 
     public function edited($value, $table, $column, $row)

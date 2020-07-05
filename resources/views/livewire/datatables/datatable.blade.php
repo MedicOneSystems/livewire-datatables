@@ -76,12 +76,12 @@
                         @isset($column['filterable'])
                         @if( is_iterable($column['filterable']) )
                         <div wire:key="{{ $index }}">
-                            @include('livewire-datatables::filters.select', ['index' => $index, 'name' =>
+                            @include('datatables::filters.select', ['index' => $index, 'name' =>
                             $column['label'], 'options' => $column['filterable']])
                         </div>
                         @else
                         <div wire:key="{{ $index }}">
-                            @include('livewire-datatables::filters.' . $column['type'], ['index' => $index, 'name' =>
+                            @include('datatables::filters.' . $column['type'], ['index' => $index, 'name' =>
                             $column['label']])
                         </div>
                         @endif
@@ -125,11 +125,11 @@
                 <div>
                     <div class="flex lg:hidden justify-center">
                         <span
-                            class="flex items-center space-x-2">{{ $this->results->links('livewire-datatables::tailwind-simple-pagination') }}</span>
+                            class="flex items-center space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
                     </div>
 
                     <div class="hidden lg:flex justify-center">
-                        <span>{{ $this->results->links('livewire-datatables::tailwind-pagination') }}</span>
+                        <span>{{ $this->results->links('datatables::tailwind-pagination') }}</span>
                     </div>
                 </div>
 

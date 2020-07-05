@@ -527,6 +527,6 @@ class LivewireDatatable extends Component
 
     public function render()
     {
-        return view('livewire-datatables::livewire.datatable');
+        return view('datatables::datatable');
     }
 }

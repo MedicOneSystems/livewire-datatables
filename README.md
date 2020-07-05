@@ -43,7 +43,7 @@ This will enable you to modify the blade views and apply your own styling. The c
 ```html
 ...
 
-<livewire:livewire-datatables model="App\User" />
+<livewire:datatables model="App\User" />
 
 ...
 ```
@@ -51,7 +51,7 @@ This will enable you to modify the blade views and apply your own styling. The c
 ## Template Syntax
 - There are many ways to modify the table by passing additional properties into the component:
 ```html
-<livewire:livewire-datatable
+<livewire:datatable
     model="App\User"
     :hide-show="true"
     :except="['users.updated_at', 'users.email_verified_at']"
