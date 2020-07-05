@@ -36,11 +36,9 @@ class ColumnSetTest extends TestCase
         $this->assertEquals($name, $subject[$index]->label);
         $this->assertEquals($column, $subject[$index]->field);
         $this->assertNull($subject[$index]->callback);
-        $this->assertNull($subject[$index]->selectFilter);
-        $this->assertNull($subject[$index]->booleanFilter);
-        $this->assertNull($subject[$index]->textFilter);
-        $this->assertNull($subject[$index]->dateFilter);
-        $this->assertNull($subject[$index]->timeFilter);
+        $this->assertNull($subject[$index]->filterable);
+        $this->assertNull($subject[$index]->scope);
+        $this->assertNull($subject[$index]->scopeFilter);
         $this->assertNull($subject[$index]->hidden);
     }
 

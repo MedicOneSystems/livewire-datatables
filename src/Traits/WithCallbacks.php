@@ -14,11 +14,6 @@ trait WithCallbacks
         return $value ? Carbon::parse($value)->format($format) : null;
     }
 
-    public function formatDate($date, $row, $format = null)
-    {
-        return $date ? Carbon::parse($date)->format($format ?? config('livewire-datatables.default_date_format')) : null;
-    }
-
     public function round($value, $row, $precision = 0)
     {
         return $value ? round($value, $precision) : null;

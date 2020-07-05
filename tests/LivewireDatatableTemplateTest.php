@@ -33,17 +33,6 @@ class LivewireDatatableTemplateTest extends TestCase
     }
 
     /** @test */
-    public function the_show_hide_buttons_can_be_hidden_with_a_property()
-    {
-        factory(DummyModel::class)->create();
-
-        $subject = Livewire::test(LivewireDatatable::class, [
-            'model' => DummyModel::class,
-            'hideToggles' => true
-        ])->assertDontSeeHtml('wire:click.prefetch="toggle');
-    }
-
-    /** @test */
     public function the_header_can_be_hidden_with_a_property()
     {
         factory(DummyModel::class)->create();
@@ -73,7 +62,7 @@ class LivewireDatatableTemplateTest extends TestCase
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
             'perPage' => 20
-        ])->assertSee('Results 1 - 20 of 20');
+        ])->assertSee('Results 1 - 20');
     }
 
     /** @test */

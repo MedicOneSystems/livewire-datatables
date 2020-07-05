@@ -4,6 +4,7 @@ namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\Column;
+use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Tests\TestCase;
 
 class ColumnTest extends TestCase
@@ -42,13 +43,7 @@ class ColumnTest extends TestCase
         return [
             ['label', 'Bob Vance', 'label'],
             ['searchable', true, 'searchable'],
-            ['withSelectFilter', ['Michael Scott', 'Dwight Shrute'], 'selectFilter'],
-            ['withBooleanFilter', true, 'booleanFilter'],
-            ['withScopeBooleanFilter', 'scope', 'filterScope'],
-            ['withTextFilter', true, 'textFilter'],
-            ['withDateFilter', true, 'dateFilter'],
-            ['withTimeFilter', true, 'timeFilter'],
-            ['formatBoolean', 'boolean', 'callback'],
+            ['filterable', ['Michael Scott', 'Dwight Shrute'], 'filterable'],
             ['hide', true, 'hidden'],
             ['additionalSelects', ['hello world'], 'additionalSelects'],
         ];
@@ -60,7 +55,7 @@ class ColumnTest extends TestCase
      */
     public function it_sets_preset_callbacks($method, $value, $attribute)
     {
-        $subject = Column::field('table.column')->$method(...$value);
+        $subject = DateColumn::field('table.column')->$method(...$value);
 
         $this->assertEquals($value, $subject->$attribute);
     }
@@ -69,8 +64,7 @@ class ColumnTest extends TestCase
     {
         return [
             ['linkTo', ['model', 'pad'], 'params'],
-            ['formatDate', ['d/m/Y'], 'params'],
-            ['formatTime', ['H:i'], 'params'],
+            ['format', ['d/m/Y'], 'params'],
             ['round', [2], 'params'],
             ['truncate', [2], 'params'],
         ];
@@ -81,57 +75,53 @@ class ColumnTest extends TestCase
     {
         $subject = Column::field('table.column')
             ->label('Column')
-            ->withSelectFilter(['A', 'B', 'C'])
+            ->filterable(['A', 'B', 'C'])
             ->hide()
             ->linkTo('model', 8)
             ->toArray();
 
         $this->assertEquals([
+            'type' => 'string',
             'field' => 'table.column',
             'label' => 'Column',
-            'selectFilter' => ['A', 'B', 'C'],
+            'filterable' => ['A', 'B', 'C'],
             'hidden' => true,
             'callback' => 'makeLink',
-            'booleanFilter' => null,
-            'textFilter' => null,
-            'numberFilter' => null,
-            'dateFilter' => null,
-            'timeFilter' => null,
             'raw' => null,
             'sort' => null,
             'defaultSort' => null,
             'searchable' => null,
             'params' => ['model', 8],
             'additionalSelects' => [],
+            'scope' => null,
+            'scopeFilter' => null
         ], $subject);
     }
 
     /** @test */
     public function it_returns_an_array_from_raw()
     {
-        $subject = Column::fromRaw('SELECT column FROM table AS table_column')
-            ->withBooleanFilter()
+        $subject = DateColumn::raw('SELECT column FROM table AS table_column')
+            ->filterable()
             ->defaultSort('asc')
-            ->formatDate('yyy-mm-dd')
+            ->format('yyy-mm-dd')
             ->toArray();
 
         $this->assertEquals([
+            'type' => 'date',
             'field' => null,
             'label' => 'table_column',
-            'selectFilter' => null,
+            'filterable' => true,
             'hidden' => null,
-            'callback' => 'formatDate',
-            'booleanFilter' => true,
-            'textFilter' => null,
-            'numberFilter' => null,
-            'dateFilter' => null,
-            'timeFilter' => null,
+            'callback' => 'format',
             'raw' => 'SELECT column FROM table AS table_column',
             'sort' => DB::raw('SELECT column FROM table'),
             'defaultSort' => 'asc',
             'searchable' => null,
             'params' => ['yyy-mm-dd'],
             'additionalSelects' => [],
+            'scope' => null,
+            'scopeFilter' => null
         ], $subject);
     }
 }

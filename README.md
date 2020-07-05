@@ -91,7 +91,16 @@ To get full control over your datatable:
 - create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
 - Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
 - Declare a public method ```columns``` that returns a ```Mediconesystems\LivewireDatatables\Columnset``` containing one or more ```Mediconesystems\LivewireDatatables\Column```
-- Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains
+- Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
+There are different types of Column, using the correct one for your datatype will enable type-specific formatting and filtering:
+
+| Class | Description |
+|---|---|
+|Column|Generic string-based column|
+|NumericColumn| Number-based column. Filters will be a numeric range|
+|BooleanColumn| Values will be automatically formatted to a yes/no icon, filters will be yes/no|
+|DateColumn| Values will be automatically formatted to the default date format. Filters will be a date range|
+|TimeColumn| Values will be automatically formatted to the default time format. Filters will be a time range|
 
 ```php
 class ComplexDemoTable extends LivewireDatatable
@@ -125,10 +134,9 @@ class ComplexDemoTable extends LivewireDatatable
                 ->searchable()
                 ->filterable($this->planets),
 
-            Column::field('users.dob')
+            DateColumn::field('users.dob')
                 ->label('DOB')
                 ->filterable()
-                ->format()
                 ->hide()
         ]);
     }
@@ -142,14 +150,14 @@ class ComplexDemoTable extends LivewireDatatable
 |_static_ **raw**| *String* $rawSqlStatement|Builds a column from raw SQL statement. Must include "... AS _alias_"|```Column::raw("CONCAT(ROUND(DATEDIFF(NOW(), users.dob) / planets.orbital_period, 1) AS `Native Age`")```|
 |_static_ **scope**|*String* $scope, *String* $alias|Builds a column from a scope on the parent model|```Column::scope('selectLastLogin', 'Last Login')```|
 |**label**|*String* $name|Changes the display name of a column|```Column::field('users.id')->label('ID)```|
-|**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument, booleans will display icons |```Column::field('users.email_verified_at')->filterable(),```|
+|**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::field('users.email_verified_at')->filterable(),```|
 |**hide**| |Marks column to start as hidden|```Column::field('users.id')->hidden()```|
 |**sort**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::field('users.dob')->sortBy(DB::raw('DATE_FORMAT(users.dob, "%m%d%Y")')),```|
 |**truncate**|[*Integer* $length (default: 16)]Truncates column to $length and provides full-txt in a tooltip. Uses ```view('livewire-datatables::tooltip)```|```Column::field('users.biography)->truncate(30)```|
 |**linkTo**|*String* $model, [*Integer* $pad]|Replaces the value with a link to ```"/$model/$value"```. Useful for ID columns. Optional zero-padding. Uses ```view('livewire-datatables::link)```|```Column::field('users.id')->linkTo('user')```|
 |**round**|[*Integer* $precision (default: 0)]|Rounds value to given precision|```Column::field('patients.age')->round()```|
 |**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::field('users.name')->defaultSort('asc')```|
-|**searchable**| |Includes the column in global searches|```Column::field('users.name')->searchable()```|
+|**searchable**| |Includes the column in the global search|```Column::field('users.name')->searchable()```|
 |**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::field('users.allegiance')->filterable(['Rebellion', 'Empire'])```|
 |**callback**|*String* $callback [, *Array* $params (default: [])]| Passes the column value, whole row of values, and any additional parameters to a callback to allow custom mutations| _(see below)_|
 |**additionalSelects**|*String\|Array* $selectStatements| Queries additional data required for callbacks, views or editable columns| _(see below)_|

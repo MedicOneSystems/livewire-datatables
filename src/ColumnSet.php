@@ -82,8 +82,8 @@ class ColumnSet
             if ($column = $this->columns->first(function ($column) use ($date) {
                 return Str::after($column->field, '.') === Str::before($date, '|');
             })) {
-                $column->callback = 'formatDate';
-                $column->params = Str::of($date)->contains('|') ? [Str::after($date, '|')] : [];
+                $column->callback = 'format';
+                $column->params = Str::of($date)->contains('|') ? [Str::after($date, '|')] : [config('livewire-datatables.default_date_format')];
             }
         }
         return $this;
@@ -99,7 +99,7 @@ class ColumnSet
                 return Str::after($column->field, '.') === Str::before($time, '|');
             })) {
                 $column->callback = 'format';
-                $column->params = Str::of($time)->contains('|') ? [Str::after($time, '|')] : [];
+                $column->params = Str::of($time)->contains('|') ? [Str::after($time, '|')] : [config('livewire-datatables.default_time_format')];
             }
         }
         return $this;
