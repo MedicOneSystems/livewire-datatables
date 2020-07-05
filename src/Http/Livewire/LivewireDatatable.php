@@ -27,7 +27,6 @@ class LivewireDatatable extends Component
     public $activeBooleanFilters = [];
     public $activeTextFilters = [];
     public $activeNumberFilters = [];
-    public $hideToggles;
     public $hideHeader;
     public $hidePagination;
     public $perPage;
@@ -43,13 +42,11 @@ class LivewireDatatable extends Component
         $renames = [],
         $search = [],
         $sort = null,
-        $hideToggles = null,
         $hideHeader = null,
         $hidePagination = null,
         $perPage = 10
     ) {
         $this->model = $this->model ?? $model;
-        $this->hideToggles = $hideToggles;
         $this->hideHeader = $hideHeader;
         $this->hidePagination = $hidePagination;
         $this->perPage = $perPage;

@@ -82,20 +82,7 @@ class Column
         return $this;
     }
 
-    // public function withScopeSelectFilter($scopeFilter, $options)
-    // {
-    //     $this->scopeFilter = $scopeFilter;
-    //     $this->selectFilter = $options;
-    //     return $this;
-    // }
-
-    public function withScopeBooleanFilter($scopeFilter)
-    {
-        $this->scopeFilter = $scopeFilter;
-        return $this;
-    }
-
-    public function linkTo($model, $pad)
+    public function linkTo($model, $pad = 6)
     {
         $this->callback = 'makeLink';
         $this->params = func_get_args();
