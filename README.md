@@ -89,7 +89,12 @@ This will enable you to modify the blade views and apply your own styling, the d
 To get full control over your datatable:
 
 - create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
+> ```php artisan livewire:datatable foo``` --> 'app/Http/Livewire/Foo.php'
+
+> ```php artisan livewire:datatable tables.bar``` --> 'app/Http/Livewire/Tables/Bar.php'
+
 - Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
+> ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
 - Declare a public method ```columns``` that returns a ```Mediconesystems\LivewireDatatables\Columnset``` containing one or more ```Mediconesystems\LivewireDatatables\Column```
 - Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
 There are different types of Column, using the correct one for your datatype will enable type-specific formatting and filtering:

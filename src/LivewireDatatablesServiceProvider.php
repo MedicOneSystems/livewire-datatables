@@ -6,6 +6,7 @@ use Livewire\Livewire;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
+use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 
@@ -36,7 +37,11 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 __DIR__ . '/../resources/views/livewire/datatables' => resource_path('views/livewire/datatables'),
                 __DIR__ . '/../resources/views/icons' => resource_path('views/livewire/datatables/icons'),
             ], 'views');
+
+            $this->commands([MakeDatatableCommand::class]);
         }
+
+
     }
 
     public function register()

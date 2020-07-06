@@ -117,7 +117,7 @@ class LivewireDatatable extends Component
 
     public function toggle($index)
     {
-        $this->columns[$index]['hidden'] = !$this->columns[$index]['hidden'];
+        $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
 
         if ($this->sort === $index) {
             $this->initialiseSort();
