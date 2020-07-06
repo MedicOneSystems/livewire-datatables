@@ -20,7 +20,6 @@
     </div>
     @endif
     <div class="rounded-lg shadow-lg bg-white">
-
         <div
             class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif max-w-screen overflow-x-scroll bg-white">
             <div class="table align-middle min-w-full">
