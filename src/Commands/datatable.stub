@@ -1,0 +1,18 @@
+<?php
+
+namespace [namespace];
+
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+
+class [class] extends LivewireDatatable
+{
+    public function builder()
+    {
+        //
+    }
+
+    public function columns()
+    {
+        //
+    }
+}
