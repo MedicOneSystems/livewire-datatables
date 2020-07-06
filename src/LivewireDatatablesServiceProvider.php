@@ -13,13 +13,14 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        Livewire::component('livewire-datatable', LivewireDatatable::class);
+        Livewire::component('datatable', LivewireDatatable::class);
 
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'livewire-datatables');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views/livewire/datatables', 'datatables');
         $this->loadViewsFrom(__DIR__ . '/../resources/views/icons', 'icons');
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');
         Blade::component('icons::arrow-right', 'icons.arrow-right');
+        Blade::component('icons::arrow-circle-left', 'icons.arrow-circle-left');
         Blade::component('icons::chevron-up', 'icons.chevron-up');
         Blade::component('icons::chevron-down', 'icons.chevron-down');
         Blade::component('icons::cog', 'icons.cog');
@@ -32,9 +33,8 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             ], 'config');
 
             $this->publishes([
-                __DIR__ . '/../resources/views' => resource_path('views/vendor/livewire-datatables'),
-                __DIR__ . '/../resources/views/livewire' => resource_path('views/vendor/livewire-datatables/livewire'),
-                __DIR__ . '/../resources/views/icons' => resource_path('views/vendor/livewire-datatables/icons'),
+                __DIR__ . '/../resources/views/livewire/datatables' => resource_path('views/livewire/datatables'),
+                __DIR__ . '/../resources/views/icons' => resource_path('views/livewire/datatables/icons'),
             ], 'views');
         }
     }
@@ -42,5 +42,23 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/livewire-datatables.php', 'livewire-datatables');
+    }
+
+    protected function loadViewsFrom($path, $namespace)
+    {
+        $this->callAfterResolving('view', function ($view) use ($path, $namespace) {
+            if (
+                isset($this->app->config['view']['paths']) &&
+                is_array($this->app->config['view']['paths'])
+            ) {
+                foreach ($this->app->config['view']['paths'] as $viewPath) {
+                    if (is_dir($appPath = $viewPath . '/livewire/' . $namespace)) {
+                        $view->addNamespace($namespace, $appPath);
+                    }
+                }
+            }
+
+            $view->addNamespace($namespace, $path);
+        });
     }
 }
