@@ -16,7 +16,7 @@ use Mediconesystems\LivewireDatatables\NumericColumn;
 
 ## [Live Demo App](https://livewire-datatables.com)
 
-## [Demo App](https://github.com/MedicOneSystems/demo-livewire-datatables)
+## [Demo App Repo](https://github.com/MedicOneSystems/demo-livewire-datatables)
 
 ![screenshot](resources/images/screenshot.png "Screenshot")
 
