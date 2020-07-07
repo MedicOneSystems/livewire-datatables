@@ -14,6 +14,8 @@ use Mediconesystems\LivewireDatatables\NumericColumn;
 - Filter using booleans, times, dates, selects or free text
 - Show / hide columns
 
+## [Live Demo App](https://livewire-datatables.com)
+
 ## [Demo App](https://github.com/MedicOneSystems/demo-livewire-datatables)
 
 ![screenshot](resources/images/screenshot.png "Screenshot")
