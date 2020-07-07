@@ -83,7 +83,7 @@ class LivewireDatatable extends Component
     public function initialiseSort()
     {
         $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleColumns->keys()->first();
-        $this->direction = $this->defaultSort()['direction'] === 'asc';
+        $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
     public function defaultSort()

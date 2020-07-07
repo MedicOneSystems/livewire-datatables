@@ -29,7 +29,7 @@
 
                     <div wire:click.prefetch="toggle('{{ $index }}')"
                         class="@if($column['hidden']) relative table-cell h-12 w-3 bg-blue-100 hover:bg-blue-300 overflow-none align-top group @else hidden @endif"
-                        style="min-width:12px max:width:12px">
+                        style="min-width:12px; max-width:12px">
                         <button class="relative h-12 w-3 focus:outline-none">
                             <span
                                 class="w-32 hidden group-hover:inline-block absolute z-10 top-0 left-0 ml-3 bg-blue-300 font-medium leading-4 text-xs text-left text-blue-700 tracking-wider transform uppercase focus:outline-none">
