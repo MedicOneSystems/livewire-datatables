@@ -78,15 +78,35 @@ class ColumnSet
     {
         $dates = is_array($dates) ? $dates : explode(', ', $dates);
 
-        foreach ($dates as $date) {
-            if ($column = $this->columns->first(function ($column) use ($date) {
-                return Str::after($column->field, '.') === Str::before($date, '|');
-            })) {
-                $column->callback = 'format';
-                $column->params = Str::of($date)->contains('|') ? [Str::after($date, '|')] : [config('livewire-datatables.default_date_format')];
+        // foreach ($dates as $date) {
+        //     if ($column = $this->columns->first(function ($column) use ($date) {
+        //         return Str::after($column->field, '.') === Str::before($date, '|');
+        //     })) {
+        //         $column->callback = 'format';
+        //         $column->params = Str::of($date)->contains('|') ? [Str::after($date, '|')] : [config('livewire-datatables.default_date_format')];
+        //     }
+        // }
+
+        $this->columns = $this->columns->map(function ($column) use ($dates) {
+            foreach ($dates as $date) {
+                if (Str::after($column->field, '.') === Str::before($date, '|')) {
+                    return DateColumn::field($column->field);
+                }
             }
-        }
+            return $column;
+        });
+
         return $this;
+
+
+        $this->columns = $this->columns->map(function ($column) use ($dates) {
+            foreach ($dates as $date) {
+                if (Str::after($column->field, '.') === Str::before($date, '|')) {
+                    return DateColumn::field($column->field);
+                }
+            }
+            return $column;
+        });
     }
 
     public function formatTimes($times)

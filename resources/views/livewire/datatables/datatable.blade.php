@@ -1,24 +1,32 @@
-<div class="">
-    @if($this->searchableColumns()->count())
-    <div class="w-full sm:w-2/3 md:w-2/5 mt-1 mb-2 flex rounded-lg shadow-sm">
-        <div class="relative flex-grow focus-within:z-10">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+<div class="relative">
+    <div class="flex justify-between items-center">
+        <div class="flex-grow">
+            @if($this->searchableColumns()->count())
+            <div class="w-full sm:w-2/3 md:w-2/5 mt-1 mb-2 flex rounded-lg shadow-sm">
+                <div class="relative flex-grow focus-within:z-10">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input wire:model.debounce.500ms="search"
+                        class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5"
+                        placeholder="search in {{ $this->searchableColumns()->map->label->join(', ') }}" />
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button wire:click="$set('search', null)" class="text-gray-300 hover:text-red-600 focus:outline-none">
+                            <x-icons.x-circle class="h-5 w-5 stroke-current" />
+                        </button>
+                    </div>
+                </div>
             </div>
-            <input wire:model.debounce.500ms="search"
-                class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5"
-                placeholder="search in {{ $this->searchableColumns()->map->label->join(', ') }}" />
-            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <button wire:click="$set('search', null)" class="text-gray-300 hover:text-red-600 focus:outline-none">
-                    <x-icons.x-circle class="h-5 w-5 stroke-current" />
-                </button>
-            </div>
+            @endif
+        </div>
+
+        <div>
+            <x-icons.cog wire:loading class="h-9 w-9 spinner text-gray-400" />
         </div>
     </div>
-    @endif
     <div class="rounded-lg shadow-lg bg-white">
         <div
             class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif max-w-screen overflow-x-scroll bg-white">
@@ -139,18 +147,5 @@
 
         </div>
         @endif
-    </div>
-
-
-    <div wire:loading>
-        <div class="fixed z-50 bottom-0 inset-x-0 px-4 pb-4 sm:inset-0 sm:flex sm:items-center sm:justify-center">
-            <div x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="fixed inset-0 transition-opacity">
-                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <x-icons.cog class="h-36 w-36 spinner" />
-        </div>
     </div>
 </div>

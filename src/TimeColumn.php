@@ -2,20 +2,27 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Illuminate\Support\Carbon;
+
 
 class TimeColumn extends Column
 {
     public $type = 'time';
-    public $callback = 'format';
+    public $callback;
 
     public function __construct()
     {
-        $this->params = [config('livewire-datatables.default_time_format')];
+        $this->callback = function($value) {
+            return $value ? Carbon::parse($value)->format(config('livewire-datatables.default_time_format')) : null;
+        };
     }
 
-    public function format($format)
+    public function format($format = null)
     {
-        $this->params = [$format];
+        $this->callback = function($value) use ($format) {
+            return $value ? Carbon::parse($value)->format($format ?? config('livewire-datatables.default_time_format')) : null;
+        };
+
         return $this;
     }
 }
