@@ -119,7 +119,7 @@ class ComplexDemoTable extends LivewireDatatable
             ->leftJoin('planets', 'planets.id', 'users.planet_id');
     }
 
-    public function columnset()
+    public function columns()
     {
         return Columnset::fromArray([
             NumericColumn::field('users.id')
@@ -182,7 +182,7 @@ class CallbackDemoTable extends LivewireDatatable
 {
     public model = User::class
 
-    public function columnset()
+    public function columns()
     {
         return Columnset::fromArray([
             Column::field('users.id'),
@@ -210,7 +210,7 @@ class CallbackDemoTable extends LivewireDatatable
 {
     public model = User::class
 
-    public function columnset()
+    public function columns()
     {
         return Columnset::fromArray([
             Column::field('users.id'),
@@ -240,7 +240,7 @@ class CallbackDemoTable extends LivewireDatatable
 {
     public model = User::class
 
-    public function columnset()
+    public function columns()
     {
         return Columnset::fromArray([
             Column::field('users.id'),
@@ -272,7 +272,7 @@ class EditableTable extends LivewireDatatable
             ->leftJoin('planets', 'planets.id', 'users.planet_id');
     }
 
-    public function columnset()
+    public function columns()
     {
         return Columnset::fromArray([
             Column::field('users.id')

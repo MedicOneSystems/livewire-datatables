@@ -12,9 +12,7 @@ class TimeColumn extends Column
 
     public function __construct()
     {
-        $this->callback = function($value) {
-            return $value ? Carbon::parse($value)->format(config('livewire-datatables.default_time_format')) : null;
-        };
+        $this->format();
     }
 
     public function format($format = null)

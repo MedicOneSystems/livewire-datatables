@@ -12,9 +12,7 @@ class DateColumn extends Column
 
     public function __construct()
     {
-        $this->callback = function($value) {
-            return $value ? Carbon::parse($value)->format(config('livewire-datatables.default_date_format')) : null;
-        };
+        $this->format();
     }
 
     public function format($format = null)

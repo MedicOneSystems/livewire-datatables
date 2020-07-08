@@ -12,7 +12,7 @@
                     </div>
                     <input wire:model.debounce.500ms="search"
                         class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5"
-                        placeholder="search in {{ $this->searchableColumns()->map->label->join(', ') }}" />
+                        placeholder="Search in {{ $this->searchableColumns()->map->label->join(', ') }}" />
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                         <button wire:click="$set('search', null)" class="text-gray-300 hover:text-red-600 focus:outline-none">
                             <x-icons.x-circle class="h-5 w-5 stroke-current" />

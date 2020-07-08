@@ -15,14 +15,12 @@ class ColumnSet
         $this->columns = $columns;
     }
 
-    public static function fromModel($model)
+    public static function fromModelInstance($model)
     {
-        $instance = $model::firstOrFail();
-
-        return new static(collect($instance->getAttributes())->keys()->reject(function ($name) use ($instance) {
-            return in_array($name, $instance->getHidden());
-        })->map(function ($attribute) use ($instance) {
-            return Column::field($instance->getTable() . '.' . $attribute);
+        return new static(collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
+            return in_array($name, $model->getHidden());
+        })->map(function ($attribute) use ($model) {
+            return Column::field($model->getTable() . '.' . $attribute);
         }));
     }
 
@@ -78,57 +76,44 @@ class ColumnSet
     {
         $dates = is_array($dates) ? $dates : explode(', ', $dates);
 
-        // foreach ($dates as $date) {
-        //     if ($column = $this->columns->first(function ($column) use ($date) {
-        //         return Str::after($column->field, '.') === Str::before($date, '|');
-        //     })) {
-        //         $column->callback = 'format';
-        //         $column->params = Str::of($date)->contains('|') ? [Str::after($date, '|')] : [config('livewire-datatables.default_date_format')];
-        //     }
-        // }
-
         $this->columns = $this->columns->map(function ($column) use ($dates) {
             foreach ($dates as $date) {
                 if (Str::after($column->field, '.') === Str::before($date, '|')) {
-                    return DateColumn::field($column->field);
+                    $format = Str::of($date)->contains('|') ? Str::after($date, '|') : null;
+
+                    return DateColumn::field($column->field)->format($format);
                 }
             }
             return $column;
         });
 
         return $this;
-
-
-        $this->columns = $this->columns->map(function ($column) use ($dates) {
-            foreach ($dates as $date) {
-                if (Str::after($column->field, '.') === Str::before($date, '|')) {
-                    return DateColumn::field($column->field);
-                }
-            }
-            return $column;
-        });
     }
 
     public function formatTimes($times)
     {
         $times = is_array($times) ? $times : explode(', ', $times);
 
-        foreach ($times as $time) {
-
-            if ($column = $this->columns->first(function ($column) use ($time) {
-                return Str::after($column->field, '.') === Str::before($time, '|');
-            })) {
-                $column->callback = 'format';
-                $column->params = Str::of($time)->contains('|') ? [Str::after($time, '|')] : [config('livewire-datatables.default_time_format')];
+        $this->columns = $this->columns->map(function ($column) use ($times) {
+            foreach ($times as $time) {
+                if (Str::after($column->field, '.') === Str::before($time, '|')) {
+                    $format = Str::of($time)->contains('|') ? Str::after($time, '|') : null;
+                    return TimeColumn::field($column->field)->format($format);
+                }
             }
-        }
+            return $column;
+        });
+
         return $this;
     }
 
     public function rename($names)
     {
-        $names = is_array($names) ? $names : explode(', ', $names);
+        if (!$names) {
+            return $this;
+        }
 
+        $names = is_array($names) ? $names : explode(', ', $names);
         foreach ($names as $name) {
             $this->columns->first(function ($column) use ($name) {
                 return Str::after($column->field, '.') === Str::before($name, '|');
@@ -137,16 +122,15 @@ class ColumnSet
         return $this;
     }
 
-    public function search($search)
+    public function search($searchable)
     {
-        if (!$search) {
+        if (!$searchable) {
             return $this;
         }
 
-        $search = is_array($search) ? $search : explode(', ', $search);
-
-        $this->columns->each(function ($column) use ($search) {
-            $column->globalSearch = in_array(Str::after($column->field, '.'), $search);
+        $searchable = is_array($searchable) ? $searchable : explode(', ', $searchable);
+        $this->columns->each(function ($column) use ($searchable) {
+            $column->searchable = in_array(Str::after($column->field, '.'), $searchable);
         });
 
         return $this;
@@ -154,10 +138,10 @@ class ColumnSet
 
     public function sort($sort)
     {
-        if ($sort) {
-            $this->columns->first(function ($column) use ($sort) {
-                return Str::after($column->field, '.') === Str::before($sort, '|');
-            })->defaultSort = Str::after($sort, '|');
+        if ($sort && $column = $this->columns->first(function ($column) use ($sort) {
+            return Str::after($column->field, '.') === Str::before($sort, '|');
+        })) {
+            $column->defaultSort(Str::of($sort)->contains('|') ? Str::after($sort, '|') : null);
         }
         return $this;
     }
