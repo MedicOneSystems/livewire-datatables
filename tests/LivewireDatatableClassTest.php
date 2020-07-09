@@ -99,7 +99,7 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject = Livewire::test(DummyTable::class)
             ->assertSee('Results 1 - 2')
-            ->call('doBooleanFilter', 4)
+            ->call('doBooleanFilter', 4, "1")
             ->assertSee('Results 1 - 1');
     }
 

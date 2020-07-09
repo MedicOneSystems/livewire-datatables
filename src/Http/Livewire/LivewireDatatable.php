@@ -326,9 +326,10 @@ class LivewireDatatable extends Component
             foreach ($this->activeBooleanFilters as $index => $value) {
                 if ($this->addScopeBooleanFilter($query, $index, $value)) {
                     return;
-                } else if ($value) {
+                } else if ($value == 1) {
+
                     $query->where(DB::raw($this->getColumnField($index)), '>', 0);
-                } else {
+                } else if (strlen($value)) {
                     $query->whereNull(DB::raw($this->getColumnField($index)))
                         ->orWhere(DB::raw($this->getColumnField($index)), 0);
                 }
@@ -528,10 +529,11 @@ class LivewireDatatable extends Component
     {
         $paginatedCollection->getCollection()->map(function ($row, $i) {
             foreach ($row->getAttributes() as $label => $value) {
-                $row->$label = $this->getCallback($label) !== null && is_callable($this->getCallback($label))
-                    ? $this->getCallback($label)($value, $row)
-                    : $value;
-
+                if($this->getCallback($label) !== null && is_callable($this->getCallback($label))) {
+                    $row->$label = $this->getCallback($label)($value, $row);
+                } else if ($this->getCallback($label) !== null && is_string($this->getCallback($label))) {
+                    $row->$label = $this->{$this->getCallback($label)}($value, $row);
+                }
                 if($this->search && $this->searchableColumns()->firstWhere('label', $label)) {
                     $row->$label = $this->highlight($row->$label, $this->search);
                 }
@@ -550,7 +552,6 @@ class LivewireDatatable extends Component
     public function highlight($value, $string)
     {
         $output = substr($value, stripos($value, $string), strlen($string));
-// dd($value);
 
         if ($value instanceof View) {
             return $value
