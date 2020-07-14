@@ -1,8 +1,8 @@
 <div class="relative">
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center  mt-1 mb-2 ">
         <div class="flex-grow">
             @if($this->searchableColumns()->count())
-            <div class="w-full sm:w-2/3 md:w-2/5 mt-1 mb-2 flex rounded-lg shadow-sm">
+            <div class="w-full sm:w-2/3 md:w-2/5 flex rounded-lg shadow-sm">
                 <div class="relative flex-grow focus-within:z-10">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
@@ -23,8 +23,11 @@
             @endif
         </div>
 
-        <div>
-            <x-icons.cog wire:loading class="h-9 w-9 spinner text-gray-400" />
+        <x-icons.cog wire:loading class="h-9 w-9 spinner text-gray-400" />
+        <div x-data="{ init() {
+            window.livewire.on('startDownload', link => window.open(link,'_blank'))
+        } }" x-init="init">
+            <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200"><span>Export</span><x-icons.excel class="m-2" /></button>
         </div>
     </div>
     <div class="rounded-lg shadow-lg bg-white">
@@ -73,7 +76,7 @@
                 </div>
 
                 <div class="table-row divide-x divide-blue-200 bg-blue-100">
-                    @foreach($columns as $index => $column)
+                    @foreach($this->columns as $index => $column)
                     @if($column['hidden'])
                     <div class="table-cell w-5 overflow-hidden align-top bg-blue-100">
                     </div>
@@ -99,7 +102,7 @@
                 @endif
                 @foreach($this->results as $result)
                 <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
-                    @foreach($columns as $column)
+                    @foreach($this->columns as $column)
                     @if($column['hidden'])
                     <div class="table-cell w-5 overflow-hidden align-top">
                     </div>

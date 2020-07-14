@@ -68,15 +68,17 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject = new DummyTable(1);
 
-        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()->map->getAttributes()[0]['subject']);
-        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()->map->getAttributes()[1]['subject']);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[1]->subject);
 
         $subject->forgetComputed();
         $subject->sort = 1;
         $subject->direction = true;
 
-        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()->map->getAttributes()[0]['subject']);
-        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()->map->getAttributes()[1]['subject']);
+        // dd($subject->results->getCollection());
+
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[1]->subject);
     }
 
     /** @test */

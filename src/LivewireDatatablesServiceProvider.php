@@ -4,9 +4,11 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Livewire\Livewire;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
+use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 
@@ -25,6 +27,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         Blade::component('icons::chevron-up', 'icons.chevron-up');
         Blade::component('icons::chevron-down', 'icons.chevron-down');
         Blade::component('icons::cog', 'icons.cog');
+        Blade::component('icons::excel', 'icons.excel');
         Blade::component('icons::x-circle', 'icons.x-circle');
         Blade::component('icons::check-circle', 'icons.check-circle');
 
@@ -41,7 +44,9 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             $this->commands([MakeDatatableCommand::class]);
         }
 
-
+        Route::get('/datatables/{filename}', [FileExportController::class, 'handle'])
+        ->middleware(config('livewire.middleware_group', 'web'))
+        ->name('livewire.preview-file');
     }
 
     public function register()
