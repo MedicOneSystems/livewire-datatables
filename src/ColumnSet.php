@@ -34,7 +34,7 @@ class ColumnSet
         if (!$include) {
             return $this;
         }
-        $include = is_array($include) ? $include : explode(', ', $include);
+        $include = is_array($include) ? $include : array_map('trim', explode(',', $include));
 
         $this->columns = $this->columns->filter(function ($column) use ($include) {
             return in_array(Str::after($column->field, '.'), $include);
@@ -49,7 +49,7 @@ class ColumnSet
             return $this;
         }
 
-        $exclude = is_array($exclude) ? $exclude : explode(', ', $exclude);
+        $exclude = is_array($exclude) ? $exclude : array_map('trim', explode(',', $exclude));
 
         $this->columns = $this->columns->reject(function ($column) use ($exclude) {
             return in_array(Str::after($column->field, '.'), $exclude);
@@ -64,7 +64,7 @@ class ColumnSet
             return $this;
         }
 
-        $hidden = is_array($hidden) ? $hidden : explode(', ', $hidden);
+        $hidden = is_array($hidden) ? $hidden : array_map('trim', explode(',', $hidden));
         $this->columns->each(function ($column) use ($hidden) {
             $column->hidden = in_array(Str::after($column->field, '.'), $hidden);
         });
@@ -74,7 +74,7 @@ class ColumnSet
 
     public function formatDates($dates)
     {
-        $dates = is_array($dates) ? $dates : explode(', ', $dates);
+        $dates = is_array($dates) ? $dates : array_map('trim', explode(',', $dates));
 
         $this->columns = $this->columns->map(function ($column) use ($dates) {
             foreach ($dates as $date) {
@@ -92,7 +92,7 @@ class ColumnSet
 
     public function formatTimes($times)
     {
-        $times = is_array($times) ? $times : explode(', ', $times);
+        $times = is_array($times) ? $times : array_map('trim', explode(',', $times));
 
         $this->columns = $this->columns->map(function ($column) use ($times) {
             foreach ($times as $time) {
@@ -113,7 +113,7 @@ class ColumnSet
             return $this;
         }
 
-        $names = is_array($names) ? $names : explode(', ', $names);
+        $names = is_array($names) ? $names : array_map('trim', explode(',', $names));
         foreach ($names as $name) {
             $this->columns->first(function ($column) use ($name) {
                 return Str::after($column->field, '.') === Str::before($name, '|');
@@ -128,7 +128,7 @@ class ColumnSet
             return $this;
         }
 
-        $searchable = is_array($searchable) ? $searchable : explode(', ', $searchable);
+        $searchable = is_array($searchable) ? $searchable : array_map('trim', explode(',', $searchable));
         $this->columns->each(function ($column) use ($searchable) {
             $column->searchable = in_array(Str::after($column->field, '.'), $searchable);
         });

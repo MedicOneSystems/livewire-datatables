@@ -82,7 +82,7 @@ class Column
         return $this;
     }
 
-    public function linkTo($model, $pad = 6)
+    public function linkTo($model, $pad = null)
     {
         $this->callback = function($value) use ($model, $pad) {
             return view('datatables::link', [
@@ -129,6 +129,8 @@ class Column
 
     public function additionalSelects($selects)
     {
+        $selects = is_array($selects) ? $selects : array_map('trim', explode(',', $selects));
+
         $this->additionalSelects = $selects;
 
         return $this;

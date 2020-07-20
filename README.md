@@ -57,26 +57,23 @@ This will enable you to modify the blade views and apply your own styling, the d
 ```html
 <livewire:datatable
     model="App\User"
-    :hide-show="true"
-    :except="['users.updated_at', 'users.email_verified_at']"
-    :uppercase="['users.id', 'users.dob']"
-    :truncate="['users.bio']"
-    :formatDates="['users.dob']"
-    :dateFilters="['users.dob']"
-    :rename="['users.created_at' => 'Created']"
+    exclude="updated_at, email_verified_at"
+    dates="dob"
+    renames="created_at|Created"
 />
 ```
 
 ### Props
 | Property | Arguments | Result | Example |
 |----|----|----|----|
+|**model**|*String* full model name|Define the base model for the table| ```model="App\Post"```|
 |**include**|*String\|Array* of column definitions|only these columns are shown in table| ```include="name, email, dob, role"```|
 |**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exlcude="['created_at', 'updated_at']"```|
 |**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```:hidden="email_verified_at"```|
 |**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob|lS F y', 'created_at']"```|
 |**times**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime|g:i A'```|
 |**renames**|*String\|Array* of column definitions and desired name in \| delimited string |Applies custom column names | ```renames="email_verified_at|Verififed"```|
-|**search**|*String\|Array* of column definitions and desired name in \| delimited string |Applies custom column names | ```:search="['name', 'email']"```|
+|**searchable**|*String\|Array* of column names | Defines columns to be included in global search | ```searchable="name, email"```|
 |**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name|asc"```|
 |**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
 |**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
@@ -103,7 +100,7 @@ There are different types of Column, using the correct one for your datatype wil
 
 | Class | Description |
 |---|---|
-|Column|Generic string-based column|
+|Column|Generic string-based column. Filter will be a text input|
 |NumericColumn| Number-based column. Filters will be a numeric range|
 |BooleanColumn| Values will be automatically formatted to a yes/no icon, filters will be yes/no|
 |DateColumn| Values will be automatically formatted to the default date format. Filters will be a date range|
@@ -159,14 +156,14 @@ class ComplexDemoTable extends LivewireDatatable
 |**label**|*String* $name|Changes the display name of a column|```Column::field('users.id')->label('ID)```|
 |**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::field('users.email_verified_at')->filterable(),```|
 |**hide**| |Marks column to start as hidden|```Column::field('users.id')->hidden()```|
-|**sort**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::field('users.dob')->sortBy(DB::raw('DATE_FORMAT(users.dob, "%m%d%Y")')),```|
-|**truncate**|[*Integer* $length (default: 16)]Truncates column to $length and provides full-txt in a tooltip. Uses ```view('livewire-datatables::tooltip)```|```Column::field('users.biography)->truncate(30)```|
+|**sortBy**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::field('users.dob')->sortBy(DB::raw('DATE_FORMAT(users.dob, "%m%d%Y")')),```|
+|**truncate**|[*Integer* $length (default: 16)]Truncates column to $length and provides full-text in a tooltip. Uses ```view('livewire-datatables::tooltip)```|```Column::field('users.biography)->truncate(30)```|
 |**linkTo**|*String* $model, [*Integer* $pad]|Replaces the value with a link to ```"/$model/$value"```. Useful for ID columns. Optional zero-padding. Uses ```view('livewire-datatables::link)```|```Column::field('users.id')->linkTo('user')```|
 |**round**|[*Integer* $precision (default: 0)]|Rounds value to given precision|```Column::field('patients.age')->round()```|
 |**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::field('users.name')->defaultSort('asc')```|
 |**searchable**| |Includes the column in the global search|```Column::field('users.name')->searchable()```|
 |**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::field('users.allegiance')->filterable(['Rebellion', 'Empire'])```|
-|**callback**|*String* $callback [, *Array* $params (default: [])]| Passes the column value, whole row of values, and any additional parameters to a callback to allow custom mutations| _(see below)_|
+|**callback**|*Closure\|String* $callback [, *Array* $params (default: [])]| Passes the column value, whole row of values, and any additional parameters to a callback to allow custom mutations the callback can be a method of the table class, or inline and will recieve the column value, and the row of other data as its first 2 parameters | _(see below)_|
 |**additionalSelects**|*String\|Array* $selectStatements| Queries additional data required for callbacks, views or editable columns| _(see below)_|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
@@ -197,7 +194,7 @@ class CallbackDemoTable extends LivewireDatatable
     {
         $age = $value->diffInYears($row->dob);
         return age > $threshold
-            ? '<span class="text-red-500">' .$age . '</span>'
+            ? '<span class="text-' . $colour . '-500">' .$age . '</span>'
             : $age;
     }
 }
@@ -217,16 +214,13 @@ class CallbackDemoTable extends LivewireDatatable
 
             Column::field('users.signup_date')
                 ->additionalSelects('users.dob')
-                ->callback('ageAtSignup', 10, 'red'),
+                ->callback(function ($value, $row, $threshold, $colour) {
+                    $age = $value->diffInYears($row->dob);
+                    return age > 10
+                        ? '<span class="text-red-500">' .$age . '</span>'
+                        : $age;
+                })
         ]);
-    }
-
-    public function ageAtSignup($value, $row, $threshold, $colour)
-    {
-        $age = $value->diffInYears($row->dob);
-        return age > $threshold
-            ? '<span class="text-red-500">' .$age . '</span>'
-            : $age;
     }
 }
 ```

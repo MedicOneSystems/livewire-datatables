@@ -59,9 +59,6 @@ class LivewireDatatable extends Component
         $perPage = 10
     ) {
         $this->model = $this->model ?? $model;
-        $this->hideHeader = $hideHeader;
-        $this->hidePagination = $hidePagination;
-        $this->perPage = $perPage;
         $this->include = $include;
         $this->exclude = $exclude;
         $this->hide = $hide;
@@ -70,6 +67,9 @@ class LivewireDatatable extends Component
         $this->renames = $renames;
         $this->searchable = $searchable;
         $this->sort = $sort;
+        $this->hideHeader = $hideHeader;
+        $this->hidePagination = $hidePagination;
+        $this->perPage = $perPage;
 
         $this->columns = $this->freshColumns();
 
