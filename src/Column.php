@@ -141,7 +141,7 @@ class Column
             $this->additionalSelects[] = $table . '.id AS ' . $table . '.id';
 
             $this->callback = function ($value, $row) use ($table, $column) {
-                return view('datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row["$table.id"]]);
+                return view('datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row->{"$table.id"}]);
             };
         }
         return $this;

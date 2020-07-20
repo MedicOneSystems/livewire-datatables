@@ -3,12 +3,16 @@
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
 use Livewire\Component;
+use Illuminate\View\View;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
+use Livewire\Controllers\FileUploadHandler;
+use Livewire\FileUploadConfiguration;
+use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\HandlesProperties;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
@@ -38,6 +42,7 @@ class LivewireDatatable extends Component
     public $times;
     public $renames;
     public $searchable;
+    public $exportFile;
 
     public function mount(
         $model = null,
@@ -324,7 +329,7 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) use ($builder) {
             foreach ($this->activeBooleanFilters as $index => $value) {
-                if ($this->addScopeBooleanFilter($query, $index, $value)) {
+                if ($this->addScopeSelectFilter($query, $index, $value)) {
                     return;
                 } else if ($value == 1) {
 
@@ -444,7 +449,7 @@ class LivewireDatatable extends Component
 
     public function getResultsProperty()
     {
-        return $this->mapCallbacks($this->buildDatabaseQuery()->paginate($this->perPage));
+        return $this->mapCallbacks($this->buildDatabaseQuery()->toBase()->paginate($this->perPage));
     }
 
     public function getSelectFiltersProperty()
@@ -521,18 +526,23 @@ class LivewireDatatable extends Component
                 return $this->addTimeRangeFilter($query);
             })
             ->when(isset($this->sort), function ($query) {
+                // dd($this->sort, $this->direction);
                 $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
             });
     }
 
     public function mapCallbacks($paginatedCollection)
     {
-        $paginatedCollection->getCollection()->map(function ($row, $i) {
-            foreach ($row->getAttributes() as $label => $value) {
-                if($this->getCallback($label) !== null && is_callable($this->getCallback($label))) {
-                    $row->$label = $this->getCallback($label)($value, $row);
-                } else if ($this->getCallback($label) !== null && is_string($this->getCallback($label))) {
-                    $row->$label = $this->{$this->getCallback($label)}($value, $row);
+        $callbacks = collect($this->freshColumns())->filter->callback->mapWithKeys(function ($column) {
+            return [$column['label'] => $column['callback']];
+        });
+
+        $paginatedCollection->getCollection()->map(function ($row, $i) use ($callbacks) {
+            foreach ($row as $label => $value) {
+                if(isset($callbacks[$label]) && is_callable($callbacks[$label])) {
+                    $row->$label = $callbacks[$label]($value, $row);
+                } else if (isset($callbacks[$label]) && is_string($callbacks[$label])) {
+                    $row->$label = $this->{$callbacks[$label]}($value, $row);
                 }
                 if($this->search && $this->searchableColumns()->firstWhere('label', $label)) {
                     $row->$label = $this->highlight($row->$label, $this->search);
@@ -542,11 +552,6 @@ class LivewireDatatable extends Component
         });
 
         return $paginatedCollection;
-    }
-
-    public function getCallback($label)
-    {
-        return collect($this->freshColumns())->firstWhere('label', $label)['callback'];
     }
 
     public function highlight($value, $string)
@@ -564,5 +569,13 @@ class LivewireDatatable extends Component
     public function render()
     {
         return view('datatables::datatable');
+    }
+
+    public function export()
+    {
+        $path = '/datatables/export-' . now()->timestamp . '.xlsx';
+        (new DatatableExport($this->buildDatabaseQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
+        $this->exportFile = $path;
+        $this->emit('startDownload', $path);
     }
 }
