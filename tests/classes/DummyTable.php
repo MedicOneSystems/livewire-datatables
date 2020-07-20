@@ -12,6 +12,8 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class DummyTable extends LivewireDatatable
 {
+    public $perPage = 10;
+
     public function builder()
     {
         return DummyModel::query();

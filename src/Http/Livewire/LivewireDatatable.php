@@ -3,11 +3,16 @@
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
 use Livewire\Component;
+use Illuminate\View\View;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
+use Livewire\Controllers\FileUploadHandler;
+use Livewire\FileUploadConfiguration;
+use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\HandlesProperties;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
@@ -30,7 +35,14 @@ class LivewireDatatable extends Component
     public $hideHeader;
     public $hidePagination;
     public $perPage;
-
+    public $include;
+    public $exclude;
+    public $hide;
+    public $dates;
+    public $times;
+    public $renames;
+    public $searchable;
+    public $exportFile;
 
     public function mount(
         $model = null,
@@ -40,7 +52,7 @@ class LivewireDatatable extends Component
         $dates = [],
         $times = [],
         $renames = [],
-        $search = [],
+        $searchable = [],
         $sort = null,
         $hideHeader = null,
         $hidePagination = null,
@@ -50,34 +62,47 @@ class LivewireDatatable extends Component
         $this->hideHeader = $hideHeader;
         $this->hidePagination = $hidePagination;
         $this->perPage = $perPage;
+        $this->include = $include;
+        $this->exclude = $exclude;
+        $this->hide = $hide;
+        $this->dates = $dates;
+        $this->times = $times;
+        $this->renames = $renames;
+        $this->searchable = $searchable;
+        $this->sort = $sort;
 
-        $this->columns = $this->columns()
-            ->include($include)
-            ->exclude($exclude)
-            ->hide($hide)
-            ->formatDates($dates)
-            ->formatTimes($times)
-            ->rename($renames)
-            ->search($search)
-            ->sort($sort)
-            ->columnsArray();
+        $this->columns = $this->freshColumns();
 
         $this->initialiseSort();
     }
 
-    public function model()
+    public function columns()
     {
-        return $this->model;
+        return ColumnSet::fromModelInstance($this->modelInstance);
+    }
+
+    public function getModelInstanceProperty()
+    {
+        return $this->model::firstOrFail();
+    }
+
+    public function freshColumns()
+    {
+        return $this->columns()
+            ->include($this->include)
+            ->exclude($this->exclude)
+            ->hide($this->hide)
+            ->formatDates($this->dates)
+            ->formatTimes($this->times)
+            ->rename($this->renames)
+            ->search($this->searchable)
+            ->sort($this->sort)
+            ->columnsArray();
     }
 
     public function builder()
     {
-        return $this->model()::query();
-    }
-
-    public function columns()
-    {
-        return ColumnSet::fromModel($this->model());
+        return $this->model::query();
     }
 
     public function initialiseSort()
@@ -100,9 +125,9 @@ class LivewireDatatable extends Component
 
     public function getSortString()
     {
-        return $this->columns()->columns()[$this->sort]->sort
-            ?? $this->columns()->columns()[$this->sort]->field
-            ?? $this->columns()->columns()[$this->sort]->raw;
+        return $this->freshColumns()[$this->sort]['sort']
+            ?? $this->freshColumns()[$this->sort]['field']
+            ?? $this->freshColumns()[$this->sort]['raw'];
     }
 
     public function sort($index)
@@ -190,7 +215,7 @@ class LivewireDatatable extends Component
 
     public function clearDateFilter()
     {
-        // $this->dates = null;
+        $this->dates = null;
     }
 
     public function clearTimeFilter()
@@ -304,11 +329,12 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) use ($builder) {
             foreach ($this->activeBooleanFilters as $index => $value) {
-                if ($this->addScopeBooleanFilter($query, $index, $value)) {
+                if ($this->addScopeSelectFilter($query, $index, $value)) {
                     return;
-                } else if ($value) {
+                } else if ($value == 1) {
+
                     $query->where(DB::raw($this->getColumnField($index)), '>', 0);
-                } else {
+                } else if (strlen($value)) {
                     $query->whereNull(DB::raw($this->getColumnField($index)))
                         ->orWhere(DB::raw($this->getColumnField($index)), 0);
                 }
@@ -390,7 +416,7 @@ class LivewireDatatable extends Component
     public function searchableColumns()
     {
         return collect($this->columns)->filter(function ($column, $key) {
-            return isset($column['searchable']);
+            return $column['searchable'];
         });
     }
 
@@ -423,7 +449,7 @@ class LivewireDatatable extends Component
 
     public function getResultsProperty()
     {
-        return $this->mapCallbacks($this->buildDatabaseQuery()->paginate($this->perPage));
+        return $this->mapCallbacks($this->buildDatabaseQuery()->toBase()->paginate($this->perPage));
     }
 
     public function getSelectFiltersProperty()
@@ -448,11 +474,9 @@ class LivewireDatatable extends Component
 
     public function getActiveFiltersProperty()
     {
-        return /* isset($this->dates['field'])
-            ||  isset($this->times['field'])
-            ||
-            */
-            count($this->activeSelectFilters)
+        return count($this->activeDateFilters)
+            || count($this->activeTimeFilters)
+            || count($this->activeSelectFilters)
             || count($this->activeBooleanFilters)
             || count($this->activeTextFilters)
             || count($this->activeNumberFilters);
@@ -467,8 +491,6 @@ class LivewireDatatable extends Component
                     foreach (explode(' ', $this->search) as $search) {
                         $query->where(function ($query) use ($search) {
                             $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
-                                $this->columns[$i]['callback'] = 'highlight';
-                                $this->columns[$i]['params'] = [$search];
                                 $query->orWhereRaw("LOWER(" . $column['field'] . ") like ?", "%$search%");
                             });
                         });
@@ -504,17 +526,27 @@ class LivewireDatatable extends Component
                 return $this->addTimeRangeFilter($query);
             })
             ->when(isset($this->sort), function ($query) {
+                // dd($this->sort, $this->direction);
                 $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
             });
     }
 
     public function mapCallbacks($paginatedCollection)
     {
-        $paginatedCollection->getCollection()->map(function ($row, $i) {
-            foreach ($row->getAttributes() as $label => $value) {
-                $row->$label = isset($this->getColumnFromLabel($label)['callback'])
-                    ? $this->{$this->getColumnFromLabel($label)['callback']}($value, $row, ...$this->getColumnFromLabel($label)['params'] ?? null)
-                    : $value;
+        $callbacks = collect($this->freshColumns())->filter->callback->mapWithKeys(function ($column) {
+            return [$column['label'] => $column['callback']];
+        });
+
+        $paginatedCollection->getCollection()->map(function ($row, $i) use ($callbacks) {
+            foreach ($row as $label => $value) {
+                if(isset($callbacks[$label]) && is_callable($callbacks[$label])) {
+                    $row->$label = $callbacks[$label]($value, $row);
+                } else if (isset($callbacks[$label]) && is_string($callbacks[$label])) {
+                    $row->$label = $this->{$callbacks[$label]}($value, $row);
+                }
+                if($this->search && $this->searchableColumns()->firstWhere('label', $label)) {
+                    $row->$label = $this->highlight($row->$label, $this->search);
+                }
             }
             return $row;
         });
@@ -522,8 +554,28 @@ class LivewireDatatable extends Component
         return $paginatedCollection;
     }
 
+    public function highlight($value, $string)
+    {
+        $output = substr($value, stripos($value, $string), strlen($string));
+
+        if ($value instanceof View) {
+            return $value
+                ->with(['value' => str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'])]);
+        }
+
+        return str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value);
+    }
+
     public function render()
     {
         return view('datatables::datatable');
+    }
+
+    public function export()
+    {
+        $path = '/datatables/export-' . now()->timestamp . '.xlsx';
+        (new DatatableExport($this->buildDatabaseQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
+        $this->exportFile = $path;
+        $this->emit('startDownload', $path);
     }
 }

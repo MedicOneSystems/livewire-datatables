@@ -84,22 +84,29 @@ class Column
 
     public function linkTo($model, $pad = 6)
     {
-        $this->callback = 'makeLink';
-        $this->params = func_get_args();
+        $this->callback = function($value) use ($model, $pad) {
+            return view('datatables::link', [
+                'href' => "/$model/$value",
+                'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value
+            ]);
+        };
+
         return $this;
     }
 
     public function truncate($length = 16)
     {
-        $this->callback = 'truncate';
-        $this->params = [$length];
+        $this->callback = function($value) use ($length) {
+            return view('datatables::tooltip', ['slot' => $value, 'length' => $length]);
+        };
         return $this;
     }
 
     public function round($precision = 0)
     {
-        $this->callback = 'round';
-        $this->params = func_get_args();
+        $this->callback = function ($value) use ($precision) {
+            return $value ? round($value, $precision) : null;
+        };
         return $this;
     }
 
@@ -113,8 +120,9 @@ class Column
 
     public function view($view)
     {
-        $this->callback = 'view';
-        $this->params = func_get_args();
+        $this->callback = function ($value, $row) use ($view) {
+            return view($view, ['value' => $value, 'row' => $row]);
+        };
 
         return $this;
     }
@@ -131,8 +139,10 @@ class Column
         if ($this->field) {
             [$table, $column] = explode('.', $this->field);
             $this->additionalSelects[] = $table . '.id AS ' . $table . '.id';
-            $this->callback = 'edit';
-            $this->params = [$table, $column];
+
+            $this->callback = function ($value, $row) use ($table, $column) {
+                return view('datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row->{"$table.id"}]);
+            };
         }
         return $this;
     }

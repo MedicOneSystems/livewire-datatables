@@ -37,9 +37,7 @@ class LivewireDatatableClassTest extends TestCase
     {
         factory(DummyModel::class)->create();
 
-        $subject = Livewire::test(LivewireDatatable::class, [
-            'model' => DummyModel::class,
-        ]);
+        $subject = Livewire::test(DummyTable::class);
 
         $this->assertIsArray($subject->columns);
 
@@ -52,13 +50,13 @@ class LivewireDatatableClassTest extends TestCase
     {
         factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs']);
 
-        $subject = Livewire::test(LivewireDatatable::class, ['model' => DummyModel::class])
+        $subject = Livewire::test(DummyTable::class)
             ->assertSee('Beet growing for noobs')
-            ->call('toggle', 2)
+            ->call('toggle', 1)
             ->assertDontSee('Beet growing for noobs')
-            ->call('toggle', 2)
+            ->call('toggle', 1)
             ->assertSee('Beet growing for noobs')
-            ->call('toggle', 2)
+            ->call('toggle', 1)
             ->assertDontSee('Beet growing for noobs');
     }
 
@@ -68,18 +66,19 @@ class LivewireDatatableClassTest extends TestCase
         factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs']);
         factory(DummyModel::class)->create(['subject' => 'Advanced beet growing']);
 
-        $subject = new LivewireDatatable(1);
-        $subject->model = DummyModel::class;
+        $subject = new DummyTable(1);
 
-        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()->map->getAttributes()[0]['subject']);
-        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()->map->getAttributes()[1]['subject']);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[1]->subject);
 
         $subject->forgetComputed();
-        $subject->sort = 2;
+        $subject->sort = 1;
         $subject->direction = true;
 
-        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()->map->getAttributes()[0]['subject']);
-        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()->map->getAttributes()[1]['subject']);
+        // dd($subject->results->getCollection());
+
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[1]->subject);
     }
 
     /** @test */
@@ -102,7 +101,7 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject = Livewire::test(DummyTable::class)
             ->assertSee('Results 1 - 2')
-            ->call('doBooleanFilter', 4)
+            ->call('doBooleanFilter', 4, "1")
             ->assertSee('Results 1 - 1');
     }
 

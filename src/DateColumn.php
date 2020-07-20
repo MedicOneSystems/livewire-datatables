@@ -2,20 +2,25 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Illuminate\Support\Carbon;
+
 
 class DateColumn extends Column
 {
     public $type = 'date';
-    public $callback = 'format';
+    public $callback;
 
     public function __construct()
     {
-        $this->params = [config('livewire-datatables.default_date_format')];
+        $this->format();
     }
 
-    public function format($format)
+    public function format($format = null)
     {
-        $this->params = [$format];
+        $this->callback = function($value) use ($format) {
+            return $value ? Carbon::parse($value)->format($format ?? config('livewire-datatables.default_date_format')) : null;
+        };
+
         return $this;
     }
 }
