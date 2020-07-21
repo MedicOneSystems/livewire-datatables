@@ -7,10 +7,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
-use Livewire\FileUploadConfiguration;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Controllers\FileUploadHandler;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
@@ -43,7 +40,7 @@ class LivewireDatatable extends Component
     public $times;
     public $renames;
     public $searchable;
-    public $exportFile;
+    public $exportable;
 
     public function mount(
         $model = null,
