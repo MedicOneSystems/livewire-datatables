@@ -576,6 +576,7 @@ class LivewireDatatable extends Component
     {
         $path = 'datatables/export-' . now()->timestamp . '.xlsx';
         (new DatatableExport($this->buildDatabaseQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
+        Storage::setVisibility($path, 'public');
         $this->exportFile = $path;
         $this->emit('startDownload', $path);
     }

@@ -5,7 +5,7 @@ namespace Mediconesystems\LivewireDatatables\Http\Controllers;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 
- class FileExportController
+ class FilseExportController
  {
      public function handle($filename)
      {
@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Response;
             ->get('datatables/' . $filename), 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
-        ])->withHeaders([
             'X-Vapor-Base64-Encode' => 'True',
         ]);
 
