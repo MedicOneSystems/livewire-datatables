@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Response;
             ->get('datatables/' . $filename), 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ])->withHeaders([
+            'X-Vapor-Base64-Encode' => 'True',
         ]);
 
         // Storage::disk(config('livewire-datatables.file_export.disk') ?: config('filesystems.default'))
