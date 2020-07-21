@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\Response;
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]);
 
-        Storage::disk(config('livewire-datatables.file_export.disk') ?: config('filesystems.default'))
-        ->delete('datatables/' . $filename);
+        // Storage::disk(config('livewire-datatables.file_export.disk') ?: config('filesystems.default'))
+        // ->delete('datatables/' . $filename);
 
         return $response;
      }

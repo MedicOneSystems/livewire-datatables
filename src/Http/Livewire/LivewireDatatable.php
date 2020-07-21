@@ -7,9 +7,10 @@ use Illuminate\View\View;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
-use Livewire\Controllers\FileUploadHandler;
-use Livewire\FileUploadConfiguration;
 use Maatwebsite\Excel\Facades\Excel;
+use Livewire\FileUploadConfiguration;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Controllers\FileUploadHandler;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
@@ -573,7 +574,7 @@ class LivewireDatatable extends Component
 
     public function export()
     {
-        $path = '/datatables/export-' . now()->timestamp . '.xlsx';
+        $path = 'datatables/export-' . now()->timestamp . '.xlsx';
         (new DatatableExport($this->buildDatabaseQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
         $this->exportFile = $path;
         $this->emit('startDownload', $path);
