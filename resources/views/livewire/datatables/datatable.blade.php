@@ -1,5 +1,5 @@
 <div class="relative">
-    <div class="flex justify-between items-center  mt-1 mb-2 ">
+    <div class="flex justify-between items-center">
         <div class="flex-grow">
             @if($this->searchableColumns()->count())
             <div class="w-full sm:w-2/3 md:w-2/5 flex rounded-lg shadow-sm">
@@ -111,7 +111,7 @@
                     </div>
                     @else
                     <div class="table-cell px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900">
-                        {!! $result->{$column['label']} !!}
+                        {!! $result->{$column['name']} !!}
                     </div>
                     @endif
                     @endforeach
@@ -150,7 +150,6 @@
                     {{ $this->results->total() }}
                 </div>
             </div>
-
         </div>
         @endif
     </div>

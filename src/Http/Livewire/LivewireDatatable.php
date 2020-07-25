@@ -2,6 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
+use Exception;
 use Livewire\Component;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
@@ -9,17 +10,19 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Mediconesystems\LivewireDatatables\ColumnSet;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
-use Mediconesystems\LivewireDatatables\Traits\HandlesProperties;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
 
 class LivewireDatatable extends Component
 {
-    use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters, HandlesProperties;
+    use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters;
 
     public $model;
+    public $with;
     public $columns;
     public $search;
     public $sort;
@@ -41,6 +44,7 @@ class LivewireDatatable extends Component
     public $renames;
     public $searchable;
     public $exportable;
+    public $params;
 
     public function mount(
         $model = null,
@@ -54,20 +58,24 @@ class LivewireDatatable extends Component
         $sort = null,
         $hideHeader = null,
         $hidePagination = null,
-        $perPage = 10
+        $perPage = 10,
+        $exportable = false,
+        $params = []
     ) {
         $this->model = $this->model ?? $model;
-        $this->include = $include;
-        $this->exclude = $exclude;
-        $this->hide = $hide;
-        $this->dates = $dates;
-        $this->times = $times;
-        $this->renames = $renames;
-        $this->searchable = $searchable;
-        $this->sort = $sort;
-        $this->hideHeader = $hideHeader;
-        $this->hidePagination = $hidePagination;
-        $this->perPage = $perPage;
+        $this->include = $this->include ?? $include;
+        $this->exclude = $this->exclude ?? $exclude;
+        $this->hide = $this->hide ?? $hide;
+        $this->dates = $this->dates ?? $dates;
+        $this->times = $this->times ?? $times;
+        $this->renames = $this->renames ?? $renames;
+        $this->searchable = $this->searchable ?? $searchable;
+        $this->sort = $this->sort ?? $sort;
+        $this->hideHeader = $this->hideHeader ?? $hideHeader;
+        $this->hidePagination = $this->hidePagination ?? $hidePagination;
+        $this->perPage = $this->perPage ?? $perPage;
+        $this->exportable = $this->exportable ?? $exportable;
+        $this->params = $params;
 
         $this->columns = $this->freshColumns();
 
@@ -86,7 +94,7 @@ class LivewireDatatable extends Component
 
     public function freshColumns()
     {
-        return $this->columns()
+        $columns = $this->columns()
             ->include($this->include)
             ->exclude($this->exclude)
             ->hide($this->hide)
@@ -96,11 +104,44 @@ class LivewireDatatable extends Component
             ->search($this->searchable)
             ->sort($this->sort)
             ->columnsArray();
+
+        if(($name = collect($columns)->pluck('name')->duplicates() )&& collect($columns)->pluck('name')->duplicates()->count()) {
+            throw new Exception('Duplicate Column Name: ' . $name->first());
+        }
+
+        return $columns;
     }
 
     public function builder()
     {
-        return $this->model::query();
+        return $this->model::query()
+            ->when($this->with, function ($query) {
+                foreach($this->with as $with) {
+                    $with = app($this->model)->query()->getRelation($with);
+
+                    switch (true) {
+                        case $with instanceof BelongsTo:
+                            $query->leftJoin(
+                                $with->getRelated()->getTable(), //'planets'
+                                $with->getQualifiedOwnerKeyName(), // 'planets.id'
+                                $with->getQualifiedForeignKeyName() // 'users.planet_id'
+                            );
+                        break;
+
+                        case $with instanceof BelongsToMany:
+                            $query->leftJoin(
+                                $with->getTable(),
+                                $with->getExistenceCompareKey(),
+                                $with->getQualifiedParentKeyName()
+                            )->leftJoin(
+                                $with->getRelated()->getTable(),
+                                $with->getRelated()->getQualifiedKeyName(),
+                                $with->getTable() . '.' . $with->getRelated()->getForeignKey()
+                            );
+                        break;
+                    }
+                }
+            });
     }
 
     public function initialiseSort()
@@ -124,7 +165,7 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         return $this->freshColumns()[$this->sort]['sort']
-            ?? $this->freshColumns()[$this->sort]['field']
+            ?? $this->freshColumns()[$this->sort]['name']
             ?? $this->freshColumns()[$this->sort]['raw'];
     }
 
@@ -265,8 +306,20 @@ class LivewireDatatable extends Component
     public function getSelectStatements()
     {
         return $this->visibleColumns->map(function ($column) {
-            return $column['field'] ? $column['field'] . ' AS ' . $column['label'] : null;
-        })->filter()->merge($this->getAdditionalSelectStatements());
+            if (isset($column['base'])) {
+                return $column['base'] . ' AS ' . $column['name'];
+            }
+            if (Str::contains($column['name'], 'callback_')) {
+                return DB::raw(Str::after($column['name'], 'callback_') . ' AS  `' . $column['name'] . '`');
+            }
+            if (Str::contains($column['name'], '.')) {
+                $nameParts = explode('.', $column['name']);
+                return app($this->model)->{$nameParts[0]}()->getRelated()->getTable().'.'.$nameParts[1] . ' AS ' . $column['name'];
+            }
+
+            return app($this->model)->getTable().'.' . $column['name'];
+        })
+        ->merge($this->getAdditionalSelectStatements());
     }
 
     public function getAdditionalSelectStatements()
@@ -285,7 +338,7 @@ class LivewireDatatable extends Component
     {
         return $this->columns[$index]['raw']
             ? Str::of($this->columns[$index]['raw'])->beforeLast(' AS ')
-            : $this->columns[$index]['field'];
+            : $this->columns[$index]['name'];
     }
 
     public function getColumnLabel($index)
@@ -484,12 +537,13 @@ class LivewireDatatable extends Component
     {
         return $this->builder()
             ->addSelect($this->getSelectStatements()->toArray())
+            // ->dd()
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {
                     foreach (explode(' ', $this->search) as $search) {
                         $query->where(function ($query) use ($search) {
                             $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
-                                $query->orWhereRaw("LOWER(" . $column['field'] . ") like ?", "%$search%");
+                                $query->orWhereRaw("LOWER(" . $column['name'] . ") like ?", "%$search%");
                             });
                         });
                     }
@@ -524,28 +578,31 @@ class LivewireDatatable extends Component
                 return $this->addTimeRangeFilter($query);
             })
             ->when(isset($this->sort), function ($query) {
-                // dd($this->sort, $this->direction);
                 $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
-            });
+            })
+            ;
     }
 
     public function mapCallbacks($paginatedCollection)
     {
         $callbacks = collect($this->freshColumns())->filter->callback->mapWithKeys(function ($column) {
-            return [$column['label'] => $column['callback']];
+            return [$column['name'] => $column['callback']];
         });
 
         $paginatedCollection->getCollection()->map(function ($row, $i) use ($callbacks) {
-            foreach ($row as $label => $value) {
-                if(isset($callbacks[$label]) && is_callable($callbacks[$label])) {
-                    $row->$label = $callbacks[$label]($value, $row);
-                } else if (isset($callbacks[$label]) && is_string($callbacks[$label])) {
-                    $row->$label = $this->{$callbacks[$label]}($value, $row);
+            foreach ($row as $name => $value) {
+                // dump($name);
+                if(isset($callbacks[$name]) && is_callable($callbacks[$name])) {
+
+                    $row->$name = $callbacks[$name]($value, $row);
+                } else if (isset($callbacks[$name]) && is_string($callbacks[$name])) {
+                    $row->$name = $this->{$callbacks[$name]}($value, $row);
                 }
-                if($this->search && $this->searchableColumns()->firstWhere('label', $label)) {
-                    $row->$label = $this->highlight($row->$label, $this->search);
+                if($this->search && $this->searchableColumns()->firstWhere('name', $name)) {
+                    $row->$name = $this->highlight($row->$name, $this->search);
                 }
             }
+
             return $row;
         });
 
