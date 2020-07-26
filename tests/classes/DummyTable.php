@@ -17,7 +17,7 @@ class DummyTable extends LivewireDatatable
 
     public function columns()
     {
-        return ColumnSet::fromArray([
+        return [
             NumericColumn::name('id')
                 ->label('ID')
                 ->linkTo('dummy_model', 6),
@@ -39,6 +39,6 @@ class DummyTable extends LivewireDatatable
                 ->label('Expiry')
                 ->format('jS F Y')
                 ->hide(),
-        ]);
+        ];
     }
 }

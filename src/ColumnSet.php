@@ -15,6 +15,13 @@ class ColumnSet
         $this->columns = $columns;
     }
 
+    public static function build($input)
+    {
+        return is_array($input)
+            ? self::fromArray($input)
+            : self::fromModelInstance($input);
+    }
+
     public static function fromModelInstance($model)
     {
         return new static(collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {

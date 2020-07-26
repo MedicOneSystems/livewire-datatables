@@ -4,12 +4,14 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class Column
 {
     public $type = 'string';
     public $label;
     public $name;
+    public $base;
     public $raw;
     public $searchable;
     public $filterable;
@@ -28,7 +30,6 @@ class Column
         $column->name = $name;
         $column->label = (string) Str::of($name)->after('.')->ucfirst();
 
-
         if (Str::contains(Str::lower($name), ' as ')) {
             $column->name = array_reverse(preg_split("/ as /i", $name))[0];
             $column->base = preg_split("/ as /i", $name)[0];
@@ -41,17 +42,20 @@ class Column
     {
         $column = new static;
         $column->raw = $raw;
+        $column->name = Str::after($raw, ' AS ');
         $column->label = (string) Str::of($raw)->afterLast(' AS ')->replace('`', '');
         $column->sort = DB::raw((string) Str::of($raw)->beforeLast(' AS '));
 
         return $column;
     }
 
-    public static function callback($name, $callback, $params = [])
+    public static function callback($columns, $callback, $params = [])
     {
         $column = new static;
-        $column->name = "callback_$name";
+
+        $column->name = "callback_" . crc32(json_encode(func_get_args()));
         $column->callback = $callback;
+        $column->additionalSelects = is_array($columns) ? $columns : array_map('trim', explode(',', $columns));
         $column->params = $params;
 
         return $column;
@@ -62,6 +66,7 @@ class Column
     {
         $column = new static;
         $column->scope = $scope;
+        $column->name = $alias;
         $column->label = $alias;
         $column->sortBy($alias);
 

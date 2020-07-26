@@ -1,6 +1,6 @@
 <div class="relative">
-    <div class="flex justify-between items-center">
-        <div class="flex-grow">
+    <div class="flex justify-between items-center mb-1">
+        <div class="flex-grow h-10 flex items-center">
             @if($this->searchableColumns()->count())
             <div class="w-full sm:w-2/3 md:w-2/5 flex rounded-lg shadow-sm">
                 <div class="relative flex-grow focus-within:z-10">

@@ -30,9 +30,9 @@ class ColumnSetTest extends TestCase
     public function it_can_correctly_populate_the_columns_from_the_model($name, $index, $column)
     {
         $model = factory(DummyModel::class)->create();
-// dd($model);
+
         $subject = ColumnSet::fromModelInstance($model)->columns();
-// dd($subject);
+
         $this->assertEquals($name, $subject[$index]->label);
         $this->assertEquals($column, $subject[$index]->name);
         $this->assertNull($subject[$index]->callback);

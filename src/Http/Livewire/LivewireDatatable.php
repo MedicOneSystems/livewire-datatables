@@ -21,6 +21,8 @@ class LivewireDatatable extends Component
 {
     use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters;
 
+    const SEPARATOR = '|**lwdt**|';
+
     public $model;
     public $with;
     public $columns;
@@ -84,7 +86,7 @@ class LivewireDatatable extends Component
 
     public function columns()
     {
-        return ColumnSet::fromModelInstance($this->modelInstance);
+        return $this->modelInstance;
     }
 
     public function getModelInstanceProperty()
@@ -94,7 +96,7 @@ class LivewireDatatable extends Component
 
     public function freshColumns()
     {
-        $columns = $this->columns()
+        $columns = ColumnSet::build($this->columns())
             ->include($this->include)
             ->exclude($this->exclude)
             ->hide($this->hide)
@@ -104,7 +106,7 @@ class LivewireDatatable extends Component
             ->search($this->searchable)
             ->sort($this->sort)
             ->columnsArray();
-
+// dd(collect($columns)->pluck('name'));
         if(($name = collect($columns)->pluck('name')->duplicates() )&& collect($columns)->pluck('name')->duplicates()->count()) {
             throw new Exception('Duplicate Column Name: ' . $name->first());
         }
@@ -164,9 +166,28 @@ class LivewireDatatable extends Component
 
     public function getSortString()
     {
-        return $this->freshColumns()[$this->sort]['sort']
-            ?? $this->freshColumns()[$this->sort]['name']
-            ?? $this->freshColumns()[$this->sort]['raw'];
+        $column = $this->freshColumns()[$this->sort];
+
+        switch (true) {
+            case $column['sort']:
+                return $column['sort'];
+                break;
+
+            case $column['base']:
+                return $column['base'];
+                break;
+
+            case $column['raw']:
+                return $column['raw'];
+                break;
+
+            case isset($column['callback']) && count($column['additionalSelects']):
+                return $this->getSelectStatementFromCallback($column);
+
+            default:
+                return $this->getSelectStatementFromName($column['name']);
+                break;
+        }
     }
 
     public function sort($index)
@@ -181,11 +202,11 @@ class LivewireDatatable extends Component
 
     public function toggle($index)
     {
-        $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
-
-        if ($this->sort === $index) {
+        if ($this->sort == $index) {
             $this->initialiseSort();
         }
+
+        $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
     }
 
     public function doBooleanFilter($index, $value)
@@ -306,20 +327,40 @@ class LivewireDatatable extends Component
     public function getSelectStatements()
     {
         return $this->visibleColumns->map(function ($column) {
+            if (isset($column['scope'])) {
+                return;
+            }
+            if (isset($column['raw'])) {
+                return DB::raw($column['raw']);
+            }
             if (isset($column['base'])) {
                 return $column['base'] . ' AS ' . $column['name'];
             }
-            if (Str::contains($column['name'], 'callback_')) {
-                return DB::raw(Str::after($column['name'], 'callback_') . ' AS  `' . $column['name'] . '`');
+            if (isset($column['callback']) && count($column['additionalSelects'])) {
+                return $this->getSelectStatementFromCallback($column, true);
             }
-            if (Str::contains($column['name'], '.')) {
-                $nameParts = explode('.', $column['name']);
-                return app($this->model)->{$nameParts[0]}()->getRelated()->getTable().'.'.$nameParts[1] . ' AS ' . $column['name'];
-            }
+            return $this->getSelectStatementFromName($column['name'], true);
+        })->filter()
+        // ->merge($this->getAdditionalSelectStatements())
+        ;
+    }
 
-            return app($this->model)->getTable().'.' . $column['name'];
-        })
-        ->merge($this->getAdditionalSelectStatements());
+    public function getSelectStatementFromCallback($column, $alias = false)
+    {
+        $columns = array_map([$this, 'getSelectStatementFromName'], $column['additionalSelects']);
+        return
+        count($columns) > 1
+            ? DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' . implode(', ', $columns) . ')' . ($alias ? ' AS  `' . $column['name'] . '`' : ''))
+            : $columns[0] . ($alias ? ' AS ' . $column['name'] : '');
+    }
+
+    public function getSelectStatementFromName($name, $alias = false) {
+        if (Str::contains($name, '.')) {
+            $nameParts = explode('.', $name);
+            return app($this->model)->{$nameParts[0]}()->getRelated()->getTable().'.'.$nameParts[1] . ($alias ? ' AS ' . $name : '');
+        }
+
+        return app($this->model)->getTable().'.' . $name;
     }
 
     public function getAdditionalSelectStatements()
@@ -329,16 +370,17 @@ class LivewireDatatable extends Component
         })->filter();
     }
 
-    public function getRawStatements()
-    {
-        return $this->visibleColumns->map->raw->filter();
-    }
-
     public function getColumnField($index)
     {
-        return $this->columns[$index]['raw']
-            ? Str::of($this->columns[$index]['raw'])->beforeLast(' AS ')
-            : $this->columns[$index]['name'];
+        if ($this->columns[$index]['raw']) {
+            return Str::of($this->columns[$index]['raw'])->beforeLast(' AS ');
+        }
+
+        if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
+            return $this->getSelectStatementFromCallback($this->columns[$index]);
+        }
+
+        return $this->getSelectStatementFromName($this->columns[$index]['name']);
     }
 
     public function getColumnLabel($index)
@@ -404,7 +446,7 @@ class LivewireDatatable extends Component
 
     public function addTextFilters($builder)
     {
-
+        // dd($builder);
         return $builder->where(function ($query) {
             foreach ($this->activeTextFilters as $index => $activeTextFilter) {
                 $query->where(function ($query) use ($index, $activeTextFilter) {
@@ -413,7 +455,9 @@ class LivewireDatatable extends Component
                     }
                 });
             }
-        });
+        })
+        // ->dd()
+        ;
     }
 
     public function addNumberFilters($builder)
@@ -537,7 +581,6 @@ class LivewireDatatable extends Component
     {
         return $this->builder()
             ->addSelect($this->getSelectStatements()->toArray())
-            // ->dd()
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {
                     foreach (explode(' ', $this->search) as $search) {
@@ -547,11 +590,6 @@ class LivewireDatatable extends Component
                             });
                         });
                     }
-                });
-            })
-            ->when(count($this->getRawStatements()), function ($query) {
-                $this->getRawStatements()->each(function ($statement) use ($query) {
-                    $query->selectRaw($statement);
                 });
             })
             ->when(count($this->scopeColumns()), function ($query) {
@@ -591,13 +629,14 @@ class LivewireDatatable extends Component
 
         $paginatedCollection->getCollection()->map(function ($row, $i) use ($callbacks) {
             foreach ($row as $name => $value) {
-                // dump($name);
-                if(isset($callbacks[$name]) && is_callable($callbacks[$name])) {
-
-                    $row->$name = $callbacks[$name]($value, $row);
-                } else if (isset($callbacks[$name]) && is_string($callbacks[$name])) {
+                if (isset($callbacks[$name]) && is_string($callbacks[$name])) {
                     $row->$name = $this->{$callbacks[$name]}($value, $row);
+                } else if(Str::startsWith($name, 'callback_')) {
+                    $row->$name = $callbacks[$name](...explode(static::SEPARATOR, $value));
+                } else if(isset($callbacks[$name]) && is_callable($callbacks[$name])) {
+                    $row->$name = $callbacks[$name]($value, $row);
                 }
+
                 if($this->search && $this->searchableColumns()->firstWhere('name', $name)) {
                     $row->$name = $this->highlight($row->$name, $this->search);
                 }

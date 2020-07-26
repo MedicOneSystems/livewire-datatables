@@ -83,6 +83,7 @@ class ColumnTest extends TestCase
         $this->assertEquals([
             'type' => 'string',
             'name' => 'table.column',
+            'base' => null,
             'label' => 'Column',
             'filterable' => ['A', 'B', 'C'],
             'hidden' => true,
@@ -109,7 +110,8 @@ class ColumnTest extends TestCase
 
         $this->assertEquals([
             'type' => 'date',
-            'name' => null,
+            'name' => 'table_column',
+            'base' => null,
             'label' => 'table_column',
             'filterable' => true,
             'hidden' => null,
