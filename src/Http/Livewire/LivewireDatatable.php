@@ -74,7 +74,7 @@ class LivewireDatatable extends Component
 
         $this->params = $params;
 
-        $this->columns = $this->freshColumns();
+        $this->columns = $this->freshColumns;
 
         $this->initialiseSort();
     }
@@ -107,7 +107,7 @@ class LivewireDatatable extends Component
         })->flatten()->toArray();
     }
 
-    public function freshColumns()
+    public function getFreshColumnsProperty()
     {
         $columns = ColumnSet::build($this->columns(), $this->withRelationModelInstances)
             ->include($this->include)
@@ -172,7 +172,7 @@ class LivewireDatatable extends Component
 
     public function getSortString()
     {
-        $column = $this->freshColumns()[$this->sort];
+        $column = $this->freshColumns[$this->sort];
 
         switch (true) {
             case $column['sort']:
@@ -621,14 +621,14 @@ class LivewireDatatable extends Component
 
     public function getCallbacks()
     {
-        return collect($this->freshColumns())->filter->callback->mapWithKeys(function ($column) {
+        return collect($this->freshColumns)->filter->callback->mapWithKeys(function ($column) {
             return [$column['name'] => $column['callback']];
         });
     }
 
     public function getEditables()
     {
-        return collect($this->freshColumns())->filter(function ($column) {
+        return collect($this->freshColumns)->filter(function ($column) {
             return $column['type'] === 'editable';
         })->mapWithKeys(function ($column) {
             return [$column['name'] => true];
