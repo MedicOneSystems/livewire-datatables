@@ -66,11 +66,11 @@ This will enable you to modify the blade views and apply your own styling, the d
 |**include**|*String\|Array* of column definitions|only these columns are shown in table| ```include="name, email, dob, role"```|
 |**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exlcude="['created_at', 'updated_at']"```|
 |**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```:hidden="email_verified_at"```|
-|**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob|lS F y', 'created_at']"```|
-|**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime|g:i A'```|
-|**renames**|*String\|Array* of column definitions and desired name in \| delimited string |Applies custom column names | ```renames="email_verified_at|Verififed"```|
+|**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob\|lS F y', 'created_at']"```|
+|**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime\|g:i A'```|
+|**renames**|*String\|Array* of column definitions and desired name in \| delimited string |Applies custom column names | ```renames="email_verified_at\|Verififed"```|
 |**searchable**|*String\|Array* of column names | Defines columns to be included in global search | ```searchable="name, email"```|
-|**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name|asc"```|
+|**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name\|asc"```|
 |**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
 |**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
 |**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
@@ -147,29 +147,28 @@ class ComplexDemoTable extends LivewireDatatable
 ### Column Methods
 | Method | Arguments | Result | Example |
 |----|----|----|----|
-|_static_ **name**| *String* $column |Builds a column from column definition|```Column::name('users.name')```|
+|_static_ **name**| *String* $column |Builds a column from column definition|```Column::name('name')```|
 |_static_ **raw**| *String* $rawSqlStatement|Builds a column from raw SQL statement. Must include "... AS _alias_"|```Column::raw("CONCAT(ROUND(DATEDIFF(NOW(), users.dob) / planets.orbital_period, 1) AS `Native Age`")```|
 |_static_ **callback**|*Array\|String* $columns, *Closure\|String* $callback| Passes the columns from the first argument into the callback to allow custom mutations. The callback can be a method on the table class, or inline | _(see below)_|
 |_static_ **scope**|*String* $scope, *String* $alias|Builds a column from a scope on the parent model|```Column::scope('selectLastLogin', 'Last Login')```|
-|**label**|*String* $name|Changes the display name of a column|```Column::name('users.id')->label('ID)```|
-|**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::name('users.email_verified_at')->filterable(),```|
-|**hide**| |Marks column to start as hidden|```Column::name('users.id')->hidden()```|
-|**sortBy**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::name('users.dob')->sortBy(DB::raw('DATE_FORMAT(users.dob, "%m%d%Y")')),```|
-|**truncate**|[*Integer* $length (default: 16)]Truncates column to $length and provides full-text in a tooltip. Uses ```view('livewire-datatables::tooltip)```|```Column::name('users.biography)->truncate(30)```|
-|**linkTo**|*String* $model, [*Integer* $pad]|Replaces the value with a link to ```"/$model/$value"```. Useful for ID columns. Optional zero-padding. Uses ```view('livewire-datatables::link)```|```Column::name('users.id')->linkTo('user')```|
-|**round**|[*Integer* $precision (default: 0)]|Rounds value to given precision|```Column::name('patients.age')->round()```|
-|**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::name('users.name')->defaultSort('asc')```|
-|**searchable**| |Includes the column in the global search|```Column::name('users.name')->searchable()```|
-|**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::name('users.allegiance')->filterable(['Rebellion', 'Empire'])```|
-|**additionalSelects**|*String\|Array* $selectStatements| Queries additional data required for callbacks, views or editable columns| _(see below)_|
+|**label**|*String* $name|Changes the display name of a column|```Column::name('id')->label('ID)```|
+|**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::name('email_verified_at')->filterable(),```|
+|**hide**| |Marks column to start as hidden|```Column::name('id')->hidden()```|
+|**sortBy**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::name('dob')->sortBy('DATE_FORMAT(users.dob, "%m%d%Y")'),```|
+|**truncate**|[*Integer* $length (default: 16)]Truncates column to $length and provides full-text in a tooltip. Uses ```view('livewire-datatables::tooltip)```|```Column::name('biography)->truncate(30)```|
+|**linkTo**|*String* $model, [*Integer* $pad]|Replaces the value with a link to ```"/$model/$value"```. Useful for ID columns. Optional zero-padding. Uses ```view('livewire-datatables::link)```|```Column::name('id')->linkTo('user')```|
+|**round**|[*Integer* $precision (default: 0)]|Rounds value to given precision|```Column::name('age')->round()```|
+|**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::name('name')->defaultSort('asc')```|
+|**searchable**| |Includes the column in the global search|```Column::name('name')->searchable()```|
+|**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
 
 
 ### Callbacks
 Callbacks give you the freedom to perform any mutations you like on the data before displaying in the table.
-- The callbacks are performed to the paginated results of the database query
-- Callbacks will receive the column's value as their first argument, and the whole query row as the second, followed by any specified.
+- The callbacks are performed on the paginated results of the database query, so shouldn't use a ton of memory
+- Callbacks will receive the chosen columns as their arguments.
 
 ```php
 class CallbackDemoTable extends LivewireDatatable
@@ -232,21 +231,19 @@ This uses the ```view()``` method above to pass the data into an Alpine/Livewire
 class EditableTable extends LivewireDatatable
 {
 
-    public function builder()
-    {
-        return User::query()
-            ->leftJoin('planets', 'planets.id', 'users.planet_id');
-    }
+    public $model = User::class;
 
     public function columns()
     {
         return Columnset::fromArray([
-            Column::name('users.id')
+            Column::name('id')
                 ->label('ID')
                 ->linkTo('job', 6),
 
-            Column::name('users.email')
-                ->editable()
+            Column::name('email')
+                ->editable(),
+                
+            ...
         ]);
     }
 }
