@@ -137,23 +137,14 @@ class LivewireDatatable extends Component
                     switch (true) {
                         case $with instanceof BelongsTo:
                             $query->leftJoin(
-                                $with->getRelated()->getTable(), //'planets'
-                                $with->getQualifiedOwnerKeyName(), // 'planets.id'
-                                $with->getQualifiedForeignKeyName() // 'users.planet_id'
+                                $with->getRelated()->getTable(),
+                                $with->getQualifiedOwnerKeyName(),
+                                $with->getQualifiedForeignKeyName()
                             );
                         break;
 
                         case $with instanceof BelongsToMany:
                             throw new Exception('If you join a BelongsToMany you will get more records than you expect. Try a scope instead');
-                            // $query->leftJoin(
-                            //     $with->getTable(),
-                            //     $with->getExistenceCompareKey(),
-                            //     $with->getQualifiedParentKeyName()
-                            // )->leftJoin(
-                            //     $with->getRelated()->getTable(),
-                            //     $with->getRelated()->getQualifiedKeyName(),
-                            //     $with->getTable() . '.' . $with->getRelated()->getForeignKey()
-                            // );
                         break;
                     }
                 }
@@ -537,7 +528,7 @@ class LivewireDatatable extends Component
 
     public function getHeaderProperty()
     {
-        return method_exists(static::class, 'header'); // ? $this->header() : $this->header;
+        return method_exists(static::class, 'header');
     }
 
     public function getShowHideProperty()
@@ -587,8 +578,6 @@ class LivewireDatatable extends Component
 
     public function buildDatabaseQuery()
     {
-        // dd($this->builder()->getModel()->getTable());
-
         return $this->builder()
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
