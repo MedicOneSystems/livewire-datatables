@@ -151,8 +151,9 @@ class ComplexDemoTable extends LivewireDatatable
 ### Column Methods
 | Method | Arguments | Result | Example |
 |----|----|----|----|
-|_static_ **field**| *String* $column |Builds a column from column definition|```Column::name('users.name')```|
+|_static_ **name**| *String* $column |Builds a column from column definition|```Column::name('users.name')```|
 |_static_ **raw**| *String* $rawSqlStatement|Builds a column from raw SQL statement. Must include "... AS _alias_"|```Column::raw("CONCAT(ROUND(DATEDIFF(NOW(), users.dob) / planets.orbital_period, 1) AS `Native Age`")```|
+|_static_ **callback**|*Array\|String* $columns, *Closure\|String* $callback| Passes the columns from the first argument into the callback to allow custom mutations. The callback can be a method on the table class, or inline | _(see below)_|
 |_static_ **scope**|*String* $scope, *String* $alias|Builds a column from a scope on the parent model|```Column::scope('selectLastLogin', 'Last Login')```|
 |**label**|*String* $name|Changes the display name of a column|```Column::name('users.id')->label('ID)```|
 |**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::name('users.email_verified_at')->filterable(),```|
@@ -164,7 +165,6 @@ class ComplexDemoTable extends LivewireDatatable
 |**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::name('users.name')->defaultSort('asc')```|
 |**searchable**| |Includes the column in the global search|```Column::name('users.name')->searchable()```|
 |**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::name('users.allegiance')->filterable(['Rebellion', 'Empire'])```|
-|**callback**|*Closure\|String* $callback [, *Array* $params (default: [])]| Passes the column value, whole row of values, and any additional parameters to a callback to allow custom mutations the callback can be a method of the table class, or inline and will recieve the column value, and the row of other data as its first 2 parameters | _(see below)_|
 |**additionalSelects**|*String\|Array* $selectStatements| Queries additional data required for callbacks, views or editable columns| _(see below)_|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
@@ -187,41 +187,16 @@ class CallbackDemoTable extends LivewireDatatable
 
             Column::name('users.dob')->format(),
 
-            Column::name('users.signup_date')->callback('ageAtSignup', 10, 'red'),
+            Column::callback(['dob', 'signup_date'], 'ageAtSignup'),
         ]);
     }
 
-    public function ageAtSignup($value, $row, $threshold, $colour)
+    public function ageAtSignup($dob, $signupDate)
     {
-        $age = $value->diffInYears($row->dob);
-        return age > $threshold
-            ? '<span class="text-' . $colour . '-500">' .$age . '</span>'
+        $age = $signupDate->diffInYears($dob);
+        return age > 18
+            ? '<span class="text-red-500">' .$age . '</span>'
             : $age;
-    }
-}
-```
-
-> If you are using a callback that depends on data that has not been queried from the database, you can use ```additionalSelects``` to append them to the query
-
-```php
-class CallbackDemoTable extends LivewireDatatable
-{
-    public model = User::class
-
-    public function columns()
-    {
-        return Columnset::fromArray([
-            Column::name('users.id'),
-
-            Column::name('users.signup_date')
-                ->additionalSelects('users.dob')
-                ->callback(function ($value, $row, $threshold, $colour) {
-                    $age = $value->diffInYears($row->dob);
-                    return age > 10
-                        ? '<span class="text-red-500">' .$age . '</span>'
-                        : $age;
-                })
-        ]);
     }
 }
 ```

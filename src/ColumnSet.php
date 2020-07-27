@@ -15,20 +15,22 @@ class ColumnSet
         $this->columns = $columns;
     }
 
-    public static function build($input)
+    public static function build($input, $relationColumns = [])
     {
         return is_array($input)
             ? self::fromArray($input)
-            : self::fromModelInstance($input);
+            : self::fromModelInstance($input, $relationColumns);
     }
 
-    public static function fromModelInstance($model)
+    public static function fromModelInstance($model, $relationColumns)
     {
-        return new static(collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
-            return in_array($name, $model->getHidden());
-        })->map(function ($attribute) use ($model) {
-            return Column::name($attribute);
-        }));
+        return new static(
+            collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
+                return in_array($name, $model->getHidden());
+            })->map(function ($attribute) use ($model) {
+                return Column::name($attribute);
+            })->merge($relationColumns)
+        );
     }
 
     public static function fromArray($columns)
@@ -41,11 +43,13 @@ class ColumnSet
         if (!$include) {
             return $this;
         }
-        $include = is_array($include) ? $include : array_map('trim', explode(',', $include));
+        $include = collect(is_array($include) ? $include : array_map('trim', explode(',', $include)));
 
-        $this->columns = $this->columns->filter(function ($column) use ($include) {
-            return in_array(Str::after($column->name, '.'), $include);
+        $this->columns = $include->map(function ($inc) {
+            return $this->columns->firstWhere('name', $inc);
         });
+
+
 
         return $this;
     }
@@ -123,7 +127,7 @@ class ColumnSet
         $names = is_array($names) ? $names : array_map('trim', explode(',', $names));
         foreach ($names as $name) {
             $this->columns->first(function ($column) use ($name) {
-                return Str::after($column->name, '.') === Str::before($name, '|');
+                return $column->name === Str::before($name, '|');
             })->label = Str::after($name, '|');
         }
         return $this;
@@ -137,7 +141,7 @@ class ColumnSet
 
         $searchable = is_array($searchable) ? $searchable : array_map('trim', explode(',', $searchable));
         $this->columns->each(function ($column) use ($searchable) {
-            $column->searchable = in_array(Str::after($column->name, '.'), $searchable);
+            $column->searchable = in_array($column->name, $searchable);
         });
 
         return $this;

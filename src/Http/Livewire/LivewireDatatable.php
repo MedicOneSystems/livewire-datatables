@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -50,6 +51,7 @@ class LivewireDatatable extends Component
 
     public function mount(
         $model = null,
+        $with = null,
         $include = [],
         $exclude = [],
         $hide = [],
@@ -65,6 +67,7 @@ class LivewireDatatable extends Component
         $params = []
     ) {
         $this->model = $this->model ?? $model;
+        $this->with = $this->with ?? $with;
         $this->include = $this->include ?? $include;
         $this->exclude = $this->exclude ?? $exclude;
         $this->hide = $this->hide ?? $hide;
@@ -94,9 +97,27 @@ class LivewireDatatable extends Component
         return $this->model::firstOrFail();
     }
 
+    public function getWithRelationModelInstancesProperty()
+    {
+        if (! $this->with) {
+            return;
+        }
+
+        return collect(is_array($this->with) ? $this->with : array_map('trim', explode(',', $this->with)))->map(function ($with) {
+            $model = $this->model::query()->getRelation($with)->getQuery()->first();
+
+            return collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
+                return in_array($name, $model->getHidden());
+            })
+            ->map(function ($attribute) use ($with) {
+                return Column::name($with.'.'.$attribute);
+            });
+        })->flatten()->toArray();
+    }
+
     public function freshColumns()
     {
-        $columns = ColumnSet::build($this->columns())
+        $columns = ColumnSet::build($this->columns(), $this->withRelationModelInstances)
             ->include($this->include)
             ->exclude($this->exclude)
             ->hide($this->hide)
@@ -118,7 +139,7 @@ class LivewireDatatable extends Component
     {
         return $this->model::query()
             ->when($this->with, function ($query) {
-                foreach($this->with as $with) {
+                foreach(is_array($this->with) ? $this->with : array_map('trim', explode(',', $this->with)) as $with) {
                     $with = app($this->model)->query()->getRelation($with);
 
                     switch (true) {
@@ -131,19 +152,21 @@ class LivewireDatatable extends Component
                         break;
 
                         case $with instanceof BelongsToMany:
-                            $query->leftJoin(
-                                $with->getTable(),
-                                $with->getExistenceCompareKey(),
-                                $with->getQualifiedParentKeyName()
-                            )->leftJoin(
-                                $with->getRelated()->getTable(),
-                                $with->getRelated()->getQualifiedKeyName(),
-                                $with->getTable() . '.' . $with->getRelated()->getForeignKey()
-                            );
+                            throw new Exception('If you join a BelongsToMany you will get more records than you expect. Try a scope instead');
+                            // $query->leftJoin(
+                            //     $with->getTable(),
+                            //     $with->getExistenceCompareKey(),
+                            //     $with->getQualifiedParentKeyName()
+                            // )->leftJoin(
+                            //     $with->getRelated()->getTable(),
+                            //     $with->getRelated()->getQualifiedKeyName(),
+                            //     $with->getTable() . '.' . $with->getRelated()->getForeignKey()
+                            // );
                         break;
                     }
                 }
-            });
+            })
+            ;
     }
 
     public function initialiseSort()
@@ -349,10 +372,10 @@ class LivewireDatatable extends Component
     public function getSelectStatementFromName($name, $alias = false) {
         if (Str::contains($name, '.')) {
             $nameParts = explode('.', $name);
-            return app($this->model)->{$nameParts[0]}()->getRelated()->getTable().'.'.$nameParts[1] . ($alias ? ' AS ' . $name : '');
+            return $this->builder()->getModel()->{$nameParts[0]}()->getRelated()->getTable().'.'.$nameParts[1] . ($alias ? ' AS ' . $name : '');
         }
 
-        return app($this->model)->getTable().'.' . $name;
+        return $this->builder()->getModel()->getTable().'.' . $name;
     }
 
     public function getSelectStatementFromCallback($column, $alias = false)
@@ -367,7 +390,7 @@ class LivewireDatatable extends Component
     {
         return [
             $this->getSelectStatementFromName($column['name']),
-            app($this->model)->getTable().'.id AS ' . app($this->model)->getTable().'.id'
+            $this->builder()->getModel()->getTable().'.id AS ' . $this->builder()->getModel()->getTable().'.id'
         ];
     }
 
@@ -572,6 +595,8 @@ class LivewireDatatable extends Component
 
     public function buildDatabaseQuery()
     {
+        // dd($this->builder()->getModel()->getTable());
+
         return $this->builder()
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
@@ -633,17 +658,13 @@ class LivewireDatatable extends Component
     {
         $paginatedCollection->getCollection()->map(function ($row, $i) {
             foreach ($row as $name => $value) {
-
                 if (isset($this->getEditables()[$name])) {
-
-                    $table = app($this->model)->getTable();
-
-                    $column = Str::after($name, '.');
-
-                    $rowId = $row->{"$table.id"};
-
-                    $row->$name = view('datatables::editable', compact('value', 'table', 'column', 'rowId'));
-
+                    $row->$name = view('datatables::editable', [
+                        'value' => $value,
+                        'table' => $this->builder()->getModel()->getTable(),
+                        'column' => Str::after($name, '.'),
+                        'rowId' => $row->{$this->builder()->getModel()->getTable() . '.id'},
+                    ]);
                 } else if (isset($this->getCallbacks()[$name]) && is_string($this->getCallbacks()[$name])) {
                     $row->$name = $this->{$this->getCallbacks()[$name]}($value, $row);
                 } else if(Str::startsWith($name, 'callback_')) {

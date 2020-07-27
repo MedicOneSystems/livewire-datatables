@@ -82,8 +82,8 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'Id',
-            2 => 'Subject',
-            4 => 'Body',
+            1 => 'Subject',
+            2 => 'Body',
         ], collect($subject->columns)->map->label->toArray());
     }
 

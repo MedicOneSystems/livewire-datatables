@@ -14,7 +14,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model);
+        $subject = ColumnSet::build($model);
 
         $this->assertCount(9, $subject->columns());
 
@@ -31,7 +31,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model)->columns();
+        $subject = ColumnSet::build($model)->columns();
 
         $this->assertEquals($name, $subject[$index]->label);
         $this->assertEquals($column, $subject[$index]->name);
@@ -62,7 +62,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model)
+        $subject = ColumnSet::build($model)
             ->exclude(['id', 'body'])
             ->columns();
 
@@ -77,7 +77,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model)
+        $subject = ColumnSet::build($model)
             ->rename(['id|ID'])
             ->columns();
 
