@@ -255,3 +255,11 @@ class EditableTable extends LivewireDatatable
     }
 }
 ````
+
+## Credits
+- [Laravel](https://laravel.com/)
+- [Laravel Livewire](https://laravel-livewire.com/docs/quickstart/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [AlpineJS](https://github.com/alpinejs/alpine)
+- [livewire-table by coryrose1](https://github.com/coryrose1/livewire-tables)
+- [laravel-livewire-datatables by kdion4891](https://github.com/kdion4891/laravel-livewire-tables)
