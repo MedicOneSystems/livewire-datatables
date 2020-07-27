@@ -619,14 +619,14 @@ class LivewireDatatable extends Component
             });
     }
 
-    public function getCallbacks()
+    public function getCallbacksProperty()
     {
         return collect($this->freshColumns)->filter->callback->mapWithKeys(function ($column) {
             return [$column['name'] => $column['callback']];
         });
     }
 
-    public function getEditables()
+    public function getEditablesProperty()
     {
         return collect($this->freshColumns)->filter(function ($column) {
             return $column['type'] === 'editable';
@@ -639,19 +639,19 @@ class LivewireDatatable extends Component
     {
         $paginatedCollection->getCollection()->map(function ($row, $i) {
             foreach ($row as $name => $value) {
-                if (isset($this->getEditables()[$name])) {
+                if (isset($this->editables[$name])) {
                     $row->$name = view('datatables::editable', [
                         'value' => $value,
                         'table' => $this->builder()->getModel()->getTable(),
                         'column' => Str::after($name, '.'),
                         'rowId' => $row->{$this->builder()->getModel()->getTable() . '.id'},
                     ]);
-                } else if (isset($this->getCallbacks()[$name]) && is_string($this->getCallbacks()[$name])) {
-                    $row->$name = $this->{$this->getCallbacks()[$name]}($value, $row);
+                } else if (isset($this->callbacks[$name]) && is_string($this->callbacks[$name])) {
+                    $row->$name = $this->{$this->callbacks[$name]}($value, $row);
                 } else if(Str::startsWith($name, 'callback_')) {
-                    $row->$name = $this->getCallbacks()[$name](...explode(static::SEPARATOR, $value));
-                } else if(isset($this->getCallbacks()[$name]) && is_callable($this->getCallbacks()[$name])) {
-                    $row->$name = $this->getCallbacks()[$name]($value, $row);
+                    $row->$name = $this->callbacks[$name](...explode(static::SEPARATOR, $value));
+                } else if(isset($this->callbacks[$name]) && is_callable($this->callbacks[$name])) {
+                    $row->$name = $this->callbacks[$name]($value, $row);
                 }
 
                 if($this->search && $this->searchableColumns()->firstWhere('name', $name)) {
