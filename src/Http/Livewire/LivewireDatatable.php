@@ -47,6 +47,7 @@ class LivewireDatatable extends Component
     public $renames;
     public $searchable;
     public $exportable;
+    public $hideable;
     public $params;
 
     public function mount(
@@ -64,22 +65,13 @@ class LivewireDatatable extends Component
         $hidePagination = null,
         $perPage = 10,
         $exportable = false,
+        $hideable = false,
         $params = []
     ) {
-        $this->model = $this->model ?? $model;
-        $this->with = $this->with ?? $with;
-        $this->include = $this->include ?? $include;
-        $this->exclude = $this->exclude ?? $exclude;
-        $this->hide = $this->hide ?? $hide;
-        $this->dates = $this->dates ?? $dates;
-        $this->times = $this->times ?? $times;
-        $this->renames = $this->renames ?? $renames;
-        $this->searchable = $this->searchable ?? $searchable;
-        $this->sort = $this->sort ?? $sort;
-        $this->hideHeader = $this->hideHeader ?? $hideHeader;
-        $this->hidePagination = $this->hidePagination ?? $hidePagination;
-        $this->perPage = $this->perPage ?? $perPage;
-        $this->exportable = $this->exportable ?? $exportable;
+        foreach(['model','with','include','exclude','hide','dates','times','renames','searchable','sort','hideHeader','hidePagination','perPage','exportable','hideable'] as $property) {
+            $this->$property = $this->$property ?? $$property;
+        }
+
         $this->params = $params;
 
         $this->columns = $this->freshColumns();

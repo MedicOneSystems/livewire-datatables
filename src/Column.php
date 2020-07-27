@@ -61,14 +61,13 @@ class Column
         return $column;
     }
 
-
     public static function scope($scope, $alias)
     {
         $column = new static;
         $column->scope = $scope;
         $column->name = $alias;
         $column->label = $alias;
-        $column->sortBy($alias);
+        $column->sortBy("`$alias`");
 
         return $column;
     }
