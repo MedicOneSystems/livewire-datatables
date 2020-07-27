@@ -14,7 +14,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model);
+        $subject = ColumnSet::build($model);
 
         $this->assertCount(9, $subject->columns());
 
@@ -30,11 +30,11 @@ class ColumnSetTest extends TestCase
     public function it_can_correctly_populate_the_columns_from_the_model($name, $index, $column)
     {
         $model = factory(DummyModel::class)->create();
-// dd($model);
-        $subject = ColumnSet::fromModelInstance($model)->columns();
-// dd($subject);
+
+        $subject = ColumnSet::build($model)->columns();
+
         $this->assertEquals($name, $subject[$index]->label);
-        $this->assertEquals($column, $subject[$index]->field);
+        $this->assertEquals($column, $subject[$index]->name);
         $this->assertNull($subject[$index]->callback);
         $this->assertNull($subject[$index]->filterable);
         $this->assertNull($subject[$index]->scope);
@@ -45,15 +45,15 @@ class ColumnSetTest extends TestCase
     public function fieldDataProvider()
     {
         return [
-            ['Relation_id', 0, 'dummy_models.relation_id'],
-            ['Subject', 1, 'dummy_models.subject'],
-            ['Category', 2, 'dummy_models.category'],
-            ['Body', 3, 'dummy_models.body'],
-            ['Flag', 4, 'dummy_models.flag'],
-            ['Expires_at', 5, 'dummy_models.expires_at'],
-            ['Updated_at', 6, 'dummy_models.updated_at'],
-            ['Created_at', 7, 'dummy_models.created_at'],
-            ['Id', 8, 'dummy_models.id'],
+            ['Relation_id', 0, 'relation_id'],
+            ['Subject', 1, 'subject'],
+            ['Category', 2, 'category'],
+            ['Body', 3, 'body'],
+            ['Flag', 4, 'flag'],
+            ['Expires_at', 5, 'expires_at'],
+            ['Updated_at', 6, 'updated_at'],
+            ['Created_at', 7, 'created_at'],
+            ['Id', 8, 'id'],
         ];
     }
 
@@ -62,7 +62,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model)
+        $subject = ColumnSet::build($model)
             ->exclude(['id', 'body'])
             ->columns();
 
@@ -77,7 +77,7 @@ class ColumnSetTest extends TestCase
     {
         $model = factory(DummyModel::class)->create();
 
-        $subject = ColumnSet::fromModelInstance($model)
+        $subject = ColumnSet::build($model)
             ->rename(['id|ID'])
             ->columns();
 

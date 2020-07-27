@@ -13,36 +13,32 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 class DummyTable extends LivewireDatatable
 {
     public $perPage = 10;
-
-    public function builder()
-    {
-        return DummyModel::query();
-    }
+    public $model = DummyModel::class;
 
     public function columns()
     {
-        return ColumnSet::fromArray([
-            NumericColumn::field('dummy_models.id')
+        return [
+            NumericColumn::name('id')
                 ->label('ID')
                 ->linkTo('dummy_model', 6),
 
-            Column::field('dummy_models.subject')
+            Column::name('subject')
                 ->filterable(),
 
-            Column::field('dummy_models.category')
+            Column::name('category')
                 ->filterable(['A', 'B', 'C']),
 
-            Column::field('dummy_models.body')
+            Column::name('body')
                 ->truncate()
                 ->filterable(),
 
-            BooleanColumn::field('dummy_models.flag')
+            BooleanColumn::name('flag')
                 ->filterable(),
 
-            DateColumn::field('dummy_models.expires_at')
+            DateColumn::name('expires_at')
                 ->label('Expiry')
                 ->format('jS F Y')
                 ->hide(),
-        ]);
+        ];
     }
 }

@@ -15,13 +15,22 @@ class ColumnSet
         $this->columns = $columns;
     }
 
-    public static function fromModelInstance($model)
+    public static function build($input, $relationColumns = [])
     {
-        return new static(collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
-            return in_array($name, $model->getHidden());
-        })->map(function ($attribute) use ($model) {
-            return Column::field($model->getTable() . '.' . $attribute);
-        }));
+        return is_array($input)
+            ? self::fromArray($input)
+            : self::fromModelInstance($input, $relationColumns);
+    }
+
+    public static function fromModelInstance($model, $relationColumns)
+    {
+        return new static(
+            collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
+                return in_array($name, $model->getHidden());
+            })->map(function ($attribute) use ($model) {
+                return Column::name($attribute);
+            })->merge($relationColumns)
+        );
     }
 
     public static function fromArray($columns)
@@ -34,11 +43,13 @@ class ColumnSet
         if (!$include) {
             return $this;
         }
-        $include = is_array($include) ? $include : array_map('trim', explode(',', $include));
+        $include = collect(is_array($include) ? $include : array_map('trim', explode(',', $include)));
 
-        $this->columns = $this->columns->filter(function ($column) use ($include) {
-            return in_array(Str::after($column->field, '.'), $include);
+        $this->columns = $include->map(function ($inc) {
+            return $this->columns->firstWhere('name', $inc);
         });
+
+
 
         return $this;
     }
@@ -52,7 +63,7 @@ class ColumnSet
         $exclude = is_array($exclude) ? $exclude : array_map('trim', explode(',', $exclude));
 
         $this->columns = $this->columns->reject(function ($column) use ($exclude) {
-            return in_array(Str::after($column->field, '.'), $exclude);
+            return in_array(Str::after($column->name, '.'), $exclude);
         });
 
         return $this;
@@ -66,7 +77,7 @@ class ColumnSet
 
         $hidden = is_array($hidden) ? $hidden : array_map('trim', explode(',', $hidden));
         $this->columns->each(function ($column) use ($hidden) {
-            $column->hidden = in_array(Str::after($column->field, '.'), $hidden);
+            $column->hidden = in_array(Str::after($column->name, '.'), $hidden);
         });
 
         return $this;
@@ -78,10 +89,10 @@ class ColumnSet
 
         $this->columns = $this->columns->map(function ($column) use ($dates) {
             foreach ($dates as $date) {
-                if (Str::after($column->field, '.') === Str::before($date, '|')) {
+                if ($column->name === Str::before($date, '|')) {
                     $format = Str::of($date)->contains('|') ? Str::after($date, '|') : null;
 
-                    return DateColumn::field($column->field)->format($format);
+                    return DateColumn::name($column->name)->format($format);
                 }
             }
             return $column;
@@ -96,9 +107,9 @@ class ColumnSet
 
         $this->columns = $this->columns->map(function ($column) use ($times) {
             foreach ($times as $time) {
-                if (Str::after($column->field, '.') === Str::before($time, '|')) {
+                if (Str::after($column->name, '.') === Str::before($time, '|')) {
                     $format = Str::of($time)->contains('|') ? Str::after($time, '|') : null;
-                    return TimeColumn::field($column->field)->format($format);
+                    return TimeColumn::name($column->name)->format($format);
                 }
             }
             return $column;
@@ -116,7 +127,7 @@ class ColumnSet
         $names = is_array($names) ? $names : array_map('trim', explode(',', $names));
         foreach ($names as $name) {
             $this->columns->first(function ($column) use ($name) {
-                return Str::after($column->field, '.') === Str::before($name, '|');
+                return $column->name === Str::before($name, '|');
             })->label = Str::after($name, '|');
         }
         return $this;
@@ -130,7 +141,7 @@ class ColumnSet
 
         $searchable = is_array($searchable) ? $searchable : array_map('trim', explode(',', $searchable));
         $this->columns->each(function ($column) use ($searchable) {
-            $column->searchable = in_array(Str::after($column->field, '.'), $searchable);
+            $column->searchable = in_array($column->name, $searchable);
         });
 
         return $this;
@@ -139,7 +150,7 @@ class ColumnSet
     public function sort($sort)
     {
         if ($sort && $column = $this->columns->first(function ($column) use ($sort) {
-            return Str::after($column->field, '.') === Str::before($sort, '|');
+            return Str::after($column->name, '.') === Str::before($sort, '|');
         })) {
             $column->defaultSort(Str::of($sort)->contains('|') ? Str::after($sort, '|') : null);
         }

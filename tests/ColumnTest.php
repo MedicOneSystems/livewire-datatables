@@ -12,9 +12,9 @@ class ColumnTest extends TestCase
     /** @test */
     public function it_can_generate_a_column_from_a_table_column()
     {
-        $subject = Column::field('table.column');
+        $subject = Column::name('table.column');
 
-        $this->assertEquals('table.column', $subject->field);
+        $this->assertEquals('table.column', $subject->name);
         $this->assertEquals('Column', $subject->label);
     }
 
@@ -33,7 +33,7 @@ class ColumnTest extends TestCase
      */
     public function it_sets_properties_and_parameters($method, $value, $attribute)
     {
-        $subject = Column::field('table.column')->$method($value);
+        $subject = Column::name('table.column')->$method($value);
 
         $this->assertEquals($value, $subject->$attribute);
     }
@@ -55,7 +55,7 @@ class ColumnTest extends TestCase
     //  */
     // public function it_sets_preset_callbacks($method, $value, $attribute)
     // {
-    //     $subject = DateColumn::field('table.column')->$method(...$value);
+    //     $subject = DateColumn::name('table.column')->$method(...$value);
 
     //     $this->assertEquals($value, $subject->$attribute);
     // }
@@ -73,7 +73,7 @@ class ColumnTest extends TestCase
     /** @test */
     public function it_returns_an_array_from_column()
     {
-        $subject = Column::field('table.column')
+        $subject = Column::name('table.column')
             ->label('Column')
             ->filterable(['A', 'B', 'C'])
             ->hide()
@@ -82,7 +82,8 @@ class ColumnTest extends TestCase
 
         $this->assertEquals([
             'type' => 'string',
-            'field' => 'table.column',
+            'name' => 'table.column',
+            'base' => null,
             'label' => 'Column',
             'filterable' => ['A', 'B', 'C'],
             'hidden' => true,
@@ -109,7 +110,8 @@ class ColumnTest extends TestCase
 
         $this->assertEquals([
             'type' => 'date',
-            'field' => null,
+            'name' => 'table_column',
+            'base' => null,
             'label' => 'table_column',
             'filterable' => true,
             'hidden' => null,

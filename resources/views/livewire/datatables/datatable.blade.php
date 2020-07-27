@@ -1,6 +1,6 @@
 <div class="relative">
-    <div class="flex justify-between items-center  mt-1 mb-2 ">
-        <div class="flex-grow">
+    <div class="flex justify-between items-center mb-1">
+        <div class="flex-grow h-10 flex items-center">
             @if($this->searchableColumns()->count())
             <div class="w-full sm:w-2/3 md:w-2/5 flex rounded-lg shadow-sm">
                 <div class="relative flex-grow focus-within:z-10">
@@ -23,16 +23,34 @@
             @endif
         </div>
 
-        <x-icons.cog wire:loading class="h-9 w-9 spinner text-gray-400" />
+        <div class="flex items-center space-x-1">
+            <x-icons.cog wire:loading class="h-9 w-9 spinner text-gray-400" />
 
-        @if($exportable)
-        <div x-data="{ init() {
-            window.livewire.on('startDownload', link => window.open(link,'_blank'))
-        } }" x-init="init">
-            <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200"><span>Export</span><x-icons.excel class="m-2" /></button>
+            @if($exportable)
+            <div x-data="{ init() {
+                window.livewire.on('startDownload', link => window.open(link,'_blank'))
+            } }" x-init="init">
+                <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span>Export</span><x-icons.excel class="m-2" /></button>
+            </div>
+            @endif
+
+            @if($hideable === 'select')
+                @include('datatables::hide-column-multiselect')
+            @endif
         </div>
-        @endif
     </div>
+
+    @if($hideable === 'buttons')
+    <div class="p-2 grid grid-cols-8 gap-2">
+        @foreach($this->columns as $index => $column)
+        <button wire:click.prefetch="toggle('{{ $index }}')" class="px-3 py-2 rounded text-white text-xs focus:outline-none
+        {{ $column['hidden'] ? 'bg-blue-100 hover:bg-blue-300 text-blue-600' : 'bg-blue-500 hover:bg-blue-800' }}">
+            {{ $column['label'] }}
+        </button>
+        @endforeach
+    </div>
+    @endif
+
     <div class="rounded-lg shadow-lg bg-white">
         <div
             class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif max-w-screen overflow-x-scroll bg-white">
@@ -40,49 +58,21 @@
                 @unless($this->hideHeader)
                 <div class="table-row divide-x divide-gray-200">
                     @foreach($this->columns as $index => $column)
-
-                    <div wire:click.prefetch="toggle('{{ $index }}')"
-                        class="@if($column['hidden']) relative table-cell h-12 w-3 bg-blue-100 hover:bg-blue-300 overflow-none align-top group @else hidden @endif"
-                        style="min-width:12px; max-width:12px">
-                        <button class="relative h-12 w-3 focus:outline-none">
-                            <span
-                                class="w-32 hidden group-hover:inline-block absolute z-10 top-0 left-0 ml-3 bg-blue-300 font-medium leading-4 text-xs text-left text-blue-700 tracking-wider transform uppercase focus:outline-none">
-                                {{ str_replace('_', ' ', $column['label']) }}
-                            </span>
-                        </button>
-                        <svg class="absolute text-blue-100 fill-current w-full inset-x-0 bottom-0"
-                            viewBox="0 0 314.16 207.25">
-                            <path stroke-miterlimit="10" d="M313.66 206.75H.5V1.49l157.65 204.9L313.66 1.49v205.26z" />
-                        </svg>
-                    </div>
-                    <div
-                        class="@if($column['hidden']) hidden @else relative table-cell h-12 overflow-hidden align-top @endif">
-                        <button wire:click.prefetch="sort('{{ $index }}')"
-                            class="w-full h-full px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex justify-between items-center focus:outline-none">
-                            <span class="inline ">{{ str_replace('_', ' ', $column['label']) }}</span>
-                            <span class="inline text-xs text-blue-400">
-                                @if($sort === $index)
-                                @if($direction)
-                                <x-icons.chevron-up class="h-6 w-6 text-green-600 stroke-current" />
-                                @else
-                                <x-icons.chevron-down class="h-6 w-6 text-green-600 stroke-current" />
-                                @endif
-                                @endif
-                            </span>
-                        </button>
-                        <button wire:click.prefetch="toggle('{{ $index }}')"
-                            class="absolute bottom-1 right-1 focus:outline-none">
-                            <x-icons.arrow-circle-left class="h-3 w-3 text-gray-300 hover:text-blue-400" />
-                        </button>
-                    </div>
+                        @if($hideable === 'inline')
+                            @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
+                        @else
+                            @include('datatables::header-no-hide', ['column' => $column, 'sort' => $sort])
+                        @endif
                     @endforeach
                 </div>
 
                 <div class="table-row divide-x divide-blue-200 bg-blue-100">
                     @foreach($this->columns as $index => $column)
                     @if($column['hidden'])
+                    @if($hideable === 'inline')
                     <div class="table-cell w-5 overflow-hidden align-top bg-blue-100">
                     </div>
+                    @endif
                     @else
                     <div class="table-cell overflow-hidden align-top">
                         @isset($column['filterable'])
@@ -107,11 +97,13 @@
                 <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
                     @foreach($this->columns as $column)
                     @if($column['hidden'])
+                    @if($hideable === 'inline')
                     <div class="table-cell w-5 overflow-hidden align-top">
                     </div>
+                    @endif
                     @else
                     <div class="table-cell px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900">
-                        {!! $result->{$column['label']} !!}
+                        {!! $result->{$column['name']} !!}
                     </div>
                     @endif
                     @endforeach
@@ -150,7 +142,6 @@
                     {{ $this->results->total() }}
                 </div>
             </div>
-
         </div>
         @endif
     </div>

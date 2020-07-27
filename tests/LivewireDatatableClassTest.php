@@ -75,8 +75,6 @@ class LivewireDatatableClassTest extends TestCase
         $subject->sort = 1;
         $subject->direction = true;
 
-        // dd($subject->results->getCollection());
-
         $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
         $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[1]->subject);
     }
