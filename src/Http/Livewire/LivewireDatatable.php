@@ -106,7 +106,7 @@ class LivewireDatatable extends Component
             ->search($this->searchable)
             ->sort($this->sort)
             ->columnsArray();
-// dd(collect($columns)->pluck('name'));
+
         if(($name = collect($columns)->pluck('name')->duplicates() )&& collect($columns)->pluck('name')->duplicates()->count()) {
             throw new Exception('Duplicate Column Name: ' . $name->first());
         }
@@ -175,10 +175,6 @@ class LivewireDatatable extends Component
 
             case $column['base']:
                 return $column['base'];
-                break;
-
-            case $column['raw']:
-                return $column['raw'];
                 break;
 
             case isset($column['callback']) && count($column['additionalSelects']):
@@ -306,10 +302,14 @@ class LivewireDatatable extends Component
         unset($this->activeBooleanFilters[$column]);
     }
 
-    public function removeTextFilter($column, $key)
+    public function removeTextFilter($column, $key = null)
     {
-        unset($this->activeTextFilters[$column][$key]);
-        if (count($this->activeTextFilters[$column]) < 1) {
+        if ($key) {
+            unset($this->activeTextFilters[$column][$key]);
+            if (count($this->activeTextFilters[$column]) < 1) {
+                unset($this->activeTextFilters[$column]);
+            }
+        } else {
             unset($this->activeTextFilters[$column]);
         }
     }
@@ -339,19 +339,11 @@ class LivewireDatatable extends Component
             if (isset($column['callback']) && count($column['additionalSelects'])) {
                 return $this->getSelectStatementFromCallback($column, true);
             }
+            if ($column['type'] === 'editable') {
+                return $this->getSelectStatementForEditable($column);
+            }
             return $this->getSelectStatementFromName($column['name'], true);
-        })->filter()
-        // ->merge($this->getAdditionalSelectStatements())
-        ;
-    }
-
-    public function getSelectStatementFromCallback($column, $alias = false)
-    {
-        $columns = array_map([$this, 'getSelectStatementFromName'], $column['additionalSelects']);
-        return
-        count($columns) > 1
-            ? DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' . implode(', ', $columns) . ')' . ($alias ? ' AS  `' . $column['name'] . '`' : ''))
-            : $columns[0] . ($alias ? ' AS ' . $column['name'] : '');
+        })->filter()->flatten();
     }
 
     public function getSelectStatementFromName($name, $alias = false) {
@@ -363,17 +355,26 @@ class LivewireDatatable extends Component
         return app($this->model)->getTable().'.' . $name;
     }
 
-    public function getAdditionalSelectStatements()
+    public function getSelectStatementFromCallback($column, $alias = false)
     {
-        return collect($this->columns)->flatMap(function ($column) {
-            return $column['additionalSelects'];
-        })->filter();
+        $columns = array_map([$this, 'getSelectStatementFromName'], $column['additionalSelects']);
+        return count($columns) > 1
+            ? DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' . implode(', ', $columns) . ')' . ($alias ? ' AS  `' . $column['name'] . '`' : ''))
+            : $columns[0] . ($alias ? ' AS ' . $column['name'] : '');
+    }
+
+    public function getSelectStatementForEditable($column)
+    {
+        return [
+            $this->getSelectStatementFromName($column['name']),
+            app($this->model)->getTable().'.id AS ' . app($this->model)->getTable().'.id'
+        ];
     }
 
     public function getColumnField($index)
     {
         if ($this->columns[$index]['raw']) {
-            return Str::of($this->columns[$index]['raw'])->beforeLast(' AS ');
+            return $this->columns[$index]['sort'];
         }
 
         if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
@@ -446,7 +447,6 @@ class LivewireDatatable extends Component
 
     public function addTextFilters($builder)
     {
-        // dd($builder);
         return $builder->where(function ($query) {
             foreach ($this->activeTextFilters as $index => $activeTextFilter) {
                 $query->where(function ($query) use ($index, $activeTextFilter) {
@@ -455,9 +455,7 @@ class LivewireDatatable extends Component
                     }
                 });
             }
-        })
-        // ->dd()
-        ;
+        });
     }
 
     public function addNumberFilters($builder)
@@ -488,21 +486,16 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) {
             foreach ($this->activeTimeFilters as $index => $filter) {
-                if (($filter['start'] ?? 0) < ($filter['end'] ?? 0)) {
-                    $query->whereBetween($this->getColumnField($index), [
-                        isset($filter['start']) ? $filter['start'] : '00:00:00',
-                        isset($filter['end']) ? $filter['end'] : '23:59:59'
-                    ]);
-                } else {
-                    $query->where(function ($subQuery) use ($filter, $index) {
-                        $subQuery->whereBetween($this->getColumnField($index), [
-                            isset($filter['start']) ? $filter['start'] : '00:00:00',
-                            '23:59'
-                        ])->orWhereBetween($this->getColumnField($index), [
-                            '00:00',
-                            isset($filter['end']) ? $filter['end'] : '23:59:59'
-                        ]);
+                $start = isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '00:00:00';
+                $end = isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : '23:59:59';
+
+                if ($end < $start) {
+                    $query->where(function ($subQuery) use ($index, $start, $end) {
+                        $subQuery->whereBetween($this->getColumnField($index), [$start, '23:59'])
+                            ->orWhereBetween($this->getColumnField($index), ['00:00', $end]);
                     });
+                } else {
+                    $query->whereBetween($this->getColumnField($index), [$start, $end]);
                 }
             }
         });
@@ -586,7 +579,7 @@ class LivewireDatatable extends Component
                     foreach (explode(' ', $this->search) as $search) {
                         $query->where(function ($query) use ($search) {
                             $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
-                                $query->orWhereRaw("LOWER(" . $column['name'] . ") like ?", "%$search%");
+                                $query->orWhereRaw("LOWER(" . $this->getSelectStatementFromName($column['name']) . ") like ?", "%$search%");
                             });
                         });
                     }
@@ -616,25 +609,47 @@ class LivewireDatatable extends Component
                 return $this->addTimeRangeFilter($query);
             })
             ->when(isset($this->sort), function ($query) {
-                $query->orderBy($this->getSortString(), $this->direction ? 'asc' : 'desc');
-            })
-            ;
+                $query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
+            });
+    }
+
+    public function getCallbacks()
+    {
+        return collect($this->freshColumns())->filter->callback->mapWithKeys(function ($column) {
+            return [$column['name'] => $column['callback']];
+        });
+    }
+
+    public function getEditables()
+    {
+        return collect($this->freshColumns())->filter(function ($column) {
+            return $column['type'] === 'editable';
+        })->mapWithKeys(function ($column) {
+            return [$column['name'] => true];
+        });
     }
 
     public function mapCallbacks($paginatedCollection)
     {
-        $callbacks = collect($this->freshColumns())->filter->callback->mapWithKeys(function ($column) {
-            return [$column['name'] => $column['callback']];
-        });
-
-        $paginatedCollection->getCollection()->map(function ($row, $i) use ($callbacks) {
+        $paginatedCollection->getCollection()->map(function ($row, $i) {
             foreach ($row as $name => $value) {
-                if (isset($callbacks[$name]) && is_string($callbacks[$name])) {
-                    $row->$name = $this->{$callbacks[$name]}($value, $row);
+
+                if (isset($this->getEditables()[$name])) {
+
+                    $table = app($this->model)->getTable();
+
+                    $column = Str::after($name, '.');
+
+                    $rowId = $row->{"$table.id"};
+
+                    $row->$name = view('datatables::editable', compact('value', 'table', 'column', 'rowId'));
+
+                } else if (isset($this->getCallbacks()[$name]) && is_string($this->getCallbacks()[$name])) {
+                    $row->$name = $this->{$this->getCallbacks()[$name]}($value, $row);
                 } else if(Str::startsWith($name, 'callback_')) {
-                    $row->$name = $callbacks[$name](...explode(static::SEPARATOR, $value));
-                } else if(isset($callbacks[$name]) && is_callable($callbacks[$name])) {
-                    $row->$name = $callbacks[$name]($value, $row);
+                    $row->$name = $this->getCallbacks()[$name](...explode(static::SEPARATOR, $value));
+                } else if(isset($this->getCallbacks()[$name]) && is_callable($this->getCallbacks()[$name])) {
+                    $row->$name = $this->getCallbacks()[$name]($value, $row);
                 }
 
                 if($this->search && $this->searchableColumns()->firstWhere('name', $name)) {

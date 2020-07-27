@@ -44,7 +44,7 @@ class Column
         $column->raw = $raw;
         $column->name = Str::after($raw, ' AS ');
         $column->label = (string) Str::of($raw)->afterLast(' AS ')->replace('`', '');
-        $column->sort = DB::raw((string) Str::of($raw)->beforeLast(' AS '));
+        $column->sort = (string) Str::of($raw)->beforeLast(' AS ');
 
         return $column;
     }
@@ -152,14 +152,8 @@ class Column
 
     public function editable()
     {
-        // if ($this->name) {
-        //     [$table, $column] = explode('.', $this->name);
-        //     $this->additionalSelects[] = $table . '.id AS ' . $table . '.id';
+        $this->type = 'editable';
 
-        //     $this->callback = function ($value, $row) use ($table, $column) {
-        //         return view('datatables::editable', ['value' => $value, 'table' => $table, 'column' => $column, 'rowId' => $row->{"$table.id"}]);
-        //     };
-        // }
         return $this;
     }
 

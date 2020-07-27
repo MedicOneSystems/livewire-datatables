@@ -1,8 +1,11 @@
 <div x-data class="flex flex-col">
-    <select x-on:livewire:load.window="window.livewire.hook('afterDomUpdate', () => {
-            $refs.select.value=''
-        });" x-ref="select" name="{{ $name }}" class="m-1 text-sm leading-4 flex-grow form-select"
-        wire:input="doSelectFilter('{{ $index }}', $event.target.value)">
+    <select
+        x-ref="select"
+        name="{{ $name }}"
+        class="m-1 text-sm leading-4 flex-grow form-select"
+        wire:input="doSelectFilter('{{ $index }}', $event.target.value)"
+        x-on:input="$refs.select.value=''"
+    >
         <option value=""></option>
         @foreach($options as $value => $label)
         @if(is_object($label))
