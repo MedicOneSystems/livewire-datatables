@@ -3,8 +3,6 @@ use Mediconesystems\LivewireDatatables\NumericColumn;
 # Livewire Datatables
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mediconesystems/livewire-datatables.svg?style=flat-square)](https://packagist.org/packages/mediconesystems/livewire-datatables)
-[![Build Status](https://img.shields.io/travis/mediconesystems/livewire-datatables/master.svg?style=flat-square)](https://travis-ci.org/mediconesystems/livewire-datatables)
-[![Quality Score](https://img.shields.io/scrutinizer/g/mediconesystems/livewire-datatables.svg?style=flat-square)](https://scrutinizer-ci.com/g/mediconesystems/livewire-datatables)
 [![Total Downloads](https://img.shields.io/packagist/dt/mediconesystems/livewire-datatables.svg?style=flat-square)](https://packagist.org/packages/mediconesystems/livewire-datatables)
 
 ### Features
