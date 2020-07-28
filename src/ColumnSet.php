@@ -15,21 +15,21 @@ class ColumnSet
         $this->columns = $columns;
     }
 
-    public static function build($input, $relationColumns = [])
+    public static function build($input)
     {
         return is_array($input)
             ? self::fromArray($input)
-            : self::fromModelInstance($input, $relationColumns);
+            : self::fromModelInstance($input);
     }
 
-    public static function fromModelInstance($model, $relationColumns)
+    public static function fromModelInstance($model)
     {
         return new static(
             collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
                 return in_array($name, $model->getHidden());
             })->map(function ($attribute) use ($model) {
                 return Column::name($attribute);
-            })->merge($relationColumns)
+            })
         );
     }
 

@@ -25,7 +25,6 @@ class LivewireDatatable extends Component
     const SEPARATOR = '|**lwdt**|';
 
     public $model;
-    public $with;
     public $columns;
     public $search;
     public $sort;
@@ -52,7 +51,6 @@ class LivewireDatatable extends Component
 
     public function mount(
         $model = null,
-        $with = null,
         $include = [],
         $exclude = [],
         $hide = [],
@@ -68,7 +66,7 @@ class LivewireDatatable extends Component
         $hideable = false,
         $params = []
     ) {
-        foreach(['model', 'with', 'include', 'exclude', 'hide', 'dates', 'times', 'renames', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
+        foreach(['model', 'include', 'exclude', 'hide', 'dates', 'times', 'renames', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
 
@@ -89,37 +87,9 @@ class LivewireDatatable extends Component
         return $this->model::firstOrFail();
     }
 
-    public function getWithRelationModelInstancesProperty()
-    {
-        if (! $this->with) {
-            return;
-        }
-
-        return collect(is_array($this->with) ? $this->with : array_map('trim', explode(',', $this->with)))->map(function ($with) {
-        // return $this->withs->map(function ($with) {
-
-                $parent = $this->builder()->getModel();
-                $columns = [];
-
-                foreach (explode('.', $with) as $child) {
-                    $model = $parent->query()->getRelation($child)->getQuery()->first();
-                    $parent = $parent->query()->getRelation($child)->getModel();
-
-                    $columns[] = collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
-                        return in_array($name, $model->getHidden());
-                    })->map(function ($attribute) use ($with) {
-                        return Column::name($with.'.'.$attribute);
-                    })->toArray();
-                }
-
-                return $columns;
-
-        })->flatten()->toArray();
-    }
-
     public function getFreshColumnsProperty()
     {
-        $columns = ColumnSet::build($this->columns(), $this->withRelationModelInstances)
+        $columns = ColumnSet::build($this->columns())
             ->include($this->include)
             ->exclude($this->exclude)
             ->hide($this->hide)
@@ -579,9 +549,9 @@ class LivewireDatatable extends Component
 
     public function getWithsProperty()
     {
-        return collect($this->visibleColumns)->pluck('name')->map(function ($name) {
-            return Str::contains($name, '.')
-                ? Str::beforeLast($name, '.')
+        return collect($this->columns)->reject->hidden->map(function ($column) {
+            return Str::contains($column['name'], '.')
+                ? Str::beforeLast($column['name'], '.')
                 : null;
         })->filter();
     }
@@ -589,7 +559,7 @@ class LivewireDatatable extends Component
     public function buildDatabaseQuery()
     {
         return $this->builder()
-            ->when($this->withs, function ($query) {
+            ->when($this->withs->count(), function ($query) {
                 foreach($this->withs as $with) {
                     $parent = $query;
                     foreach(explode('.', $with) as $each_with) {
