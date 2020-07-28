@@ -43,7 +43,6 @@ class LivewireDatatable extends Component
     public $hide;
     public $dates;
     public $times;
-    public $renames;
     public $searchable;
     public $exportable;
     public $hideable;
@@ -56,7 +55,6 @@ class LivewireDatatable extends Component
         $hide = [],
         $dates = [],
         $times = [],
-        $renames = [],
         $searchable = [],
         $sort = null,
         $hideHeader = null,
@@ -66,7 +64,7 @@ class LivewireDatatable extends Component
         $hideable = false,
         $params = []
     ) {
-        foreach(['model', 'include', 'exclude', 'hide', 'dates', 'times', 'renames', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
+        foreach(['model', 'include', 'exclude', 'hide', 'dates', 'times', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
 
@@ -95,7 +93,6 @@ class LivewireDatatable extends Component
             ->hide($this->hide)
             ->formatDates($this->dates)
             ->formatTimes($this->times)
-            ->rename($this->renames)
             ->search($this->searchable)
             ->sort($this->sort)
             ->columnsArray();

@@ -73,14 +73,34 @@ class ColumnSetTest extends TestCase
     }
 
     /** @test */
-    public function it_can_rename_columns_from_the_model()
+    public function it_can_include_columns()
     {
         $model = factory(DummyModel::class)->create();
 
         $subject = ColumnSet::build($model)
-            ->rename(['id|ID'])
+            ->include(['id', 'body'])
             ->columns();
 
-        $this->assertEquals('ID', $subject[8]->label);
+        $this->assertCount(2, $subject);
+
+        $this->assertEquals('id', $subject[0]->name);
+        $this->assertEquals('body', $subject[1]->name);
+    }
+
+    /** @test */
+    public function it_can_rename_columns()
+    {
+        $model = factory(DummyModel::class)->create();
+
+        $subject = ColumnSet::build($model)
+            ->include(['id|ident', 'body|main text'])
+            ->columns();
+
+        $this->assertCount(2, $subject);
+
+        $this->assertEquals('id', $subject[0]->name);
+        $this->assertEquals('ident', $subject[0]->label);
+        $this->assertEquals('body', $subject[1]->name);
+        $this->assertEquals('main text', $subject[1]->label);
     }
 }

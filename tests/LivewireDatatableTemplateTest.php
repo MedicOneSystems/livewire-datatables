@@ -156,21 +156,6 @@ class LivewireDatatableTemplateTest extends TestCase
     }
 
     /** @test */
-    public function it_can_rename_columns_from_a_property()
-    {
-        factory(DummyModel::class)->create();
-
-        $subject = Livewire::test(LivewireDatatable::class, [
-            'model' => DummyModel::class,
-            'renames' => ['id|ID']
-        ]);
-
-        $this->assertIsArray($subject->columns);
-
-        $this->assertEquals('ID', $subject->columns[0]['label']);
-    }
-
-    /** @test */
     public function it_can_set_sort_from_a_property()
     {
         factory(DummyModel::class)->create();

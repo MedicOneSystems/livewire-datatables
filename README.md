@@ -53,9 +53,8 @@ This will enable you to modify the blade views and apply your own styling, the d
 ```html
 <livewire:datatable
     model="App\User"
-    exclude="updated_at, email_verified_at"
+    include="id, name, dob, created_at"
     dates="dob"
-    renames="created_at|Created"
 />
 ```
 
@@ -63,12 +62,11 @@ This will enable you to modify the blade views and apply your own styling, the d
 | Property | Arguments | Result | Example |
 |----|----|----|----|
 |**model**|*String* full model name|Define the base model for the table| ```model="App\Post"```|
-|**include**|*String\|Array* of column definitions|only these columns are shown in table| ```include="name, email, dob, role"```|
+|**include**|*String\|Array* of column definitions|specify columns to be shown in table, label can be specified by using \| delimter | ```include="name, email, dob|Birth Date, role"```|
 |**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exlcude="['created_at', 'updated_at']"```|
 |**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```:hidden="email_verified_at"```|
 |**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob\|lS F y', 'created_at']"```|
 |**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime\|g:i A'```|
-|**renames**|*String\|Array* of column definitions and desired name in \| delimited string |Applies custom column names | ```renames="email_verified_at\|Verififed"```|
 |**searchable**|*String\|Array* of column names | Defines columns to be included in global search | ```searchable="name, email"```|
 |**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name\|asc"```|
 |**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
@@ -242,7 +240,7 @@ class EditableTable extends LivewireDatatable
 
             Column::name('email')
                 ->editable(),
-                
+
             ...
         ]);
     }

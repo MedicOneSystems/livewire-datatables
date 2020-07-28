@@ -46,7 +46,9 @@ class ColumnSet
 
         $include = collect(is_array($include) ? $include : array_map('trim', explode(',', $include)));
         $this->columns = $include->map(function ($column) {
-            return Column::name($column);
+            return Str::contains($column, '|')
+                ? Column::name(Str::before($column, '|'))->label(Str::after($column, '|'))
+                : Column::name($column);
         });
 
         return $this;
@@ -112,21 +114,6 @@ class ColumnSet
             return $column;
         });
 
-        return $this;
-    }
-
-    public function rename($names)
-    {
-        if (!$names) {
-            return $this;
-        }
-
-        $names = is_array($names) ? $names : array_map('trim', explode(',', $names));
-        foreach ($names as $name) {
-            $this->columns->first(function ($column) use ($name) {
-                return $column->name === Str::before($name, '|');
-            })->label = Str::after($name, '|');
-        }
         return $this;
     }
 
