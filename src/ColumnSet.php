@@ -43,13 +43,11 @@ class ColumnSet
         if (!$include) {
             return $this;
         }
+
         $include = collect(is_array($include) ? $include : array_map('trim', explode(',', $include)));
-
-        $this->columns = $include->map(function ($inc) {
-            return $this->columns->firstWhere('name', $inc);
+        $this->columns = $include->map(function ($column) {
+            return Column::name($column);
         });
-
-
 
         return $this;
     }
@@ -74,7 +72,6 @@ class ColumnSet
         if (!$hidden) {
             return $this;
         }
-
         $hidden = is_array($hidden) ? $hidden : array_map('trim', explode(',', $hidden));
         $this->columns->each(function ($column) use ($hidden) {
             $column->hidden = in_array(Str::after($column->name, '.'), $hidden);

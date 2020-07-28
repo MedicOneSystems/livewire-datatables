@@ -5,11 +5,11 @@ namespace Mediconesystems\LivewireDatatables;
 use Livewire\Livewire;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\ServiceProvider;
-use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
-use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
@@ -47,6 +47,11 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         Route::get('/datatables/{filename}', [FileExportController::class, 'handle'])
         ->middleware(config('livewire.middleware_group', 'web'))
         ->name('livewire.preview-file');
+
+        Builder::macro('leftJoinIfNotJoined', function(...$params) {
+            $isJoined = collect($this->joins)->pluck('table')->contains($params[0]);
+            return $isJoined ? $this : call_user_func_array([ $this, 'leftJoin' ], $params);
+        });
     }
 
     public function register()

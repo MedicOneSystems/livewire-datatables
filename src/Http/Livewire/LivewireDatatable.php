@@ -25,7 +25,6 @@ class LivewireDatatable extends Component
     const SEPARATOR = '|**lwdt**|';
 
     public $model;
-    public $with;
     public $columns;
     public $search;
     public $sort;
@@ -52,7 +51,6 @@ class LivewireDatatable extends Component
 
     public function mount(
         $model = null,
-        $with = null,
         $include = [],
         $exclude = [],
         $hide = [],
@@ -68,7 +66,7 @@ class LivewireDatatable extends Component
         $hideable = false,
         $params = []
     ) {
-        foreach(['model','with','include','exclude','hide','dates','times','renames','searchable','sort','hideHeader','hidePagination','perPage','exportable','hideable'] as $property) {
+        foreach(['model', 'include', 'exclude', 'hide', 'dates', 'times', 'renames', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
 
@@ -91,19 +89,28 @@ class LivewireDatatable extends Component
 
     public function getWithRelationModelInstancesProperty()
     {
-        if (! $this->with) {
+        if (! $this->withs) {
             return;
         }
 
-        return collect(is_array($this->with) ? $this->with : array_map('trim', explode(',', $this->with)))->map(function ($with) {
-            $model = $this->model::query()->getRelation($with)->getQuery()->first();
+        return $this->withs->map(function ($with) {
 
-            return collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
-                return in_array($name, $model->getHidden());
-            })
-            ->map(function ($attribute) use ($with) {
-                return Column::name($with.'.'.$attribute);
-            });
+                $parent = $this->builder()->getModel();
+                $columns = [];
+
+                foreach (explode('.', $with) as $child) {
+                    $model = $parent->query()->getRelation($child)->getQuery()->first();
+                    $parent = $parent->query()->getRelation($child)->getModel();
+
+                    $columns[] = collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
+                        return in_array($name, $model->getHidden());
+                    })->map(function ($attribute) use ($with) {
+                        return Column::name($with.'.'.$attribute);
+                    })->toArray();
+                }
+
+                return $columns;
+
         })->flatten()->toArray();
     }
 
@@ -129,27 +136,7 @@ class LivewireDatatable extends Component
 
     public function builder()
     {
-        return $this->model::query()
-            ->when($this->with, function ($query) {
-                foreach(is_array($this->with) ? $this->with : array_map('trim', explode(',', $this->with)) as $with) {
-                    $with = app($this->model)->query()->getRelation($with);
-
-                    switch (true) {
-                        case $with instanceof BelongsTo:
-                            $query->leftJoin(
-                                $with->getRelated()->getTable(),
-                                $with->getQualifiedOwnerKeyName(),
-                                $with->getQualifiedForeignKeyName()
-                            );
-                        break;
-
-                        case $with instanceof BelongsToMany:
-                            throw new Exception('If you join a BelongsToMany you will get more records than you expect. Try a scope instead');
-                        break;
-                    }
-                }
-            })
-            ;
+        return $this->model::query();
     }
 
     public function initialiseSort()
@@ -206,6 +193,10 @@ class LivewireDatatable extends Component
     {
         if ($this->sort == $index) {
             $this->initialiseSort();
+        }
+
+        if (! $this->columns[$index]['hidden']) {
+            unset($this->activeSelectFilters[$index]);
         }
 
         $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
@@ -354,8 +345,15 @@ class LivewireDatatable extends Component
 
     public function getSelectStatementFromName($name, $alias = false) {
         if (Str::contains($name, '.')) {
-            $nameParts = explode('.', $name);
-            return $this->builder()->getModel()->{$nameParts[0]}()->getRelated()->getTable().'.'.$nameParts[1] . ($alias ? ' AS ' . $name : '');
+            $column = Str::afterLast($name, '.');
+
+            $parent = $this->builder()->getModel();
+
+                foreach (explode('.', Str::beforeLast($name, '.')) as $child) {
+                    $parent = $parent->query()->getRelation($child)->getModel();
+                }
+
+            return $parent->getTable().'.'.$column . ($alias ? ' AS ' . $name : '');
         }
 
         return $this->builder()->getModel()->getTable().'.' . $name;
@@ -576,9 +574,40 @@ class LivewireDatatable extends Component
             || count($this->activeNumberFilters);
     }
 
+    public function getWithsProperty()
+    {
+        return collect($this->visibleColumns)->pluck('name')->map(function ($name) {
+            return Str::contains($name, '.')
+                ? Str::beforeLast($name, '.')
+                : null;
+        })->filter();
+    }
+
     public function buildDatabaseQuery()
     {
         return $this->builder()
+            ->when($this->withs, function ($query) {
+                foreach($this->withs as $with) {
+                    $parent = $query;
+                    foreach(explode('.', $with) as $each_with) {
+                        $with = $parent->getRelation($each_with);
+                        switch (true) {
+                            case $with instanceof BelongsTo:
+                                $query->leftJoinIfNotJoined(
+                                    $with->getRelated()->getTable(),
+                                    $with->getQualifiedOwnerKeyName(),
+                                    $with->getQualifiedForeignKeyName()
+                                );
+                            break;
+
+                            case $with instanceof BelongsToMany:
+                                throw new Exception('If you join a BelongsToMany you will get more records than you expect. Try a scope instead');
+                            break;
+                        }
+                        $parent = $with->getQuery();
+                    }
+                }
+            })
             ->addSelect($this->getSelectStatements()->toArray())
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {
