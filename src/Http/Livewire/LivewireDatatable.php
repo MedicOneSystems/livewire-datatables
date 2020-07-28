@@ -25,6 +25,7 @@ class LivewireDatatable extends Component
     const SEPARATOR = '|**lwdt**|';
 
     public $model;
+    public $with;
     public $columns;
     public $search;
     public $sort;
@@ -51,6 +52,7 @@ class LivewireDatatable extends Component
 
     public function mount(
         $model = null,
+        $with = null,
         $include = [],
         $exclude = [],
         $hide = [],
@@ -66,7 +68,7 @@ class LivewireDatatable extends Component
         $hideable = false,
         $params = []
     ) {
-        foreach(['model', 'include', 'exclude', 'hide', 'dates', 'times', 'renames', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
+        foreach(['model', 'with', 'include', 'exclude', 'hide', 'dates', 'times', 'renames', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
 
@@ -89,11 +91,12 @@ class LivewireDatatable extends Component
 
     public function getWithRelationModelInstancesProperty()
     {
-        if (! $this->withs) {
+        if (! $this->with) {
             return;
         }
 
-        return $this->withs->map(function ($with) {
+        return collect(is_array($this->with) ? $this->with : array_map('trim', explode(',', $this->with)))->map(function ($with) {
+        // return $this->withs->map(function ($with) {
 
                 $parent = $this->builder()->getModel();
                 $columns = [];
