@@ -96,7 +96,7 @@ There are different types of Column, using the correct one for your datatype wil
 | Class | Description |
 |---|---|
 |Column|Generic string-based column. Filter will be a text input|
-|NumericColumn| Number-based column. Filters will be a numeric range|
+|NumberColumn| Number-based column. Filters will be a numeric range|
 |BooleanColumn| Values will be automatically formatted to a yes/no icon, filters will be yes/no|
 |DateColumn| Values will be automatically formatted to the default date format. Filters will be a date range|
 |TimeColumn| Values will be automatically formatted to the default time format. Filters will be a time range|
@@ -114,7 +114,7 @@ class ComplexDemoTable extends LivewireDatatable
     public function columns()
     {
         return Columnset::fromArray([
-            NumericColumn::name('users.id')
+            NumberColumn::name('users.id')
                 ->label('ID')
                 ->linkTo('job', 6),
 

@@ -95,7 +95,8 @@ class ColumnTest extends TestCase
             'params' => [],
             'additionalSelects' => [],
             'scope' => null,
-            'scopeFilter' => null
+            'scopeFilter' => null,
+            'filterView' => null
         ], $subject);
     }
 
@@ -123,7 +124,8 @@ class ColumnTest extends TestCase
             'params' => [],
             'additionalSelects' => [],
             'scope' => null,
-            'scopeFilter' => null
+            'scopeFilter' => null,
+            'filterView' => null
         ], $subject);
     }
 }

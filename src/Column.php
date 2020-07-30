@@ -3,8 +3,6 @@
 namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class Column
 {
@@ -23,6 +21,7 @@ class Column
     public $scopeFilter;
     public $params = [];
     public $additionalSelects = [];
+    public $filterView;
 
     public static function name($name)
     {
@@ -84,7 +83,7 @@ class Column
         return $this;
     }
 
-    public function defaultSort($direction = 'desc')
+    public function defaultSort($direction = true)
     {
         $this->defaultSort = $direction;
         return $this;

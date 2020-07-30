@@ -83,7 +83,7 @@
                         </div>
                         @else
                         <div wire:key="{{ $index }}">
-                            @include('datatables::filters.' . $column['type'], ['index' => $index, 'name' =>
+                            @include('datatables::filters.' . ($column['filterView'] ?? $column['type']), ['index' => $index, 'name' =>
                             $column['label']])
                         </div>
                         @endif
