@@ -309,6 +309,7 @@ class LivewireDatatable extends Component
                 return $column['base'] . ' AS ' . $column['name'];
             }
             if (isset($column['callback']) && count($column['additionalSelects'])) {
+
                 return $this->getSelectStatementFromCallback($column, true);
             }
             if ($column['type'] === 'editable') {
@@ -612,17 +613,18 @@ class LivewireDatatable extends Component
     public function getWithsProperty()
     {
         return collect($this->columns)->reject->hidden->filter(function ($column) {
-            return Str::contains($column['name'], '.') && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
+            return Str::contains($column['name'], '.') /* && $column['type'] !== 'aggregate' */ && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
         })->map(function ($column) {
-                return $column['name'];
-                // : (
-                //     $column['additionalSelects']
-                //         ? collect($column['additionalSelects'])->flatten()->filter(function ($select) {
-                //             return Str::contains($select, '.');
-                //         })
-                //         : null
-                // );
-        })->flatten();
+                return Str::startsWith($column['name'], '_callback')
+                ? (
+                    $column['additionalSelects']
+                    ? collect($column['additionalSelects'])->flatten()->filter(function ($select) {
+                        return Str::contains($select, '.');
+                    })
+                    : null
+                )
+                : $column['name'];
+        })->flatten()->filter();
     }
 
     public function buildDatabaseQuery()
@@ -630,15 +632,18 @@ class LivewireDatatable extends Component
         // dd($this->withs);
         return $this->builder()
             ->when($this->withs->count(), function ($query) {
+
+                // dd($this->withs);
                 foreach($this->withs as $with) {
                     $parent = $query;
-
+// dd($parent);
                     $with = Str::beforeLast($with, '.');
 
+                    // dd($with, explode('.', $with));
                     foreach(explode('.', $with) as $each_with) {
                         $relation = $parent->getRelation($each_with);
 
-                        // dump($relation);s
+                        // dump($relation);
 
                         switch (true) {
                             case $relation instanceof HasOne:
