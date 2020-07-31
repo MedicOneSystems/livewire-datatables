@@ -25,4 +25,5 @@ class AggregateStringColumn extends Column
 
         return $column;
     }
+
 }
