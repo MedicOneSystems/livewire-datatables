@@ -170,4 +170,18 @@ class Column
     {
         return get_object_vars($this);
     }
+
+    // public function columnIsRelation($column)
+    // {
+    //     return Str::contains($column['name'], '.') && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
+    // }
+
+    // public function isAggregateRelation($column)
+    // {
+    //     if (! $this->columnIsRelation($column)) {
+    //         return;
+    //     }
+    //     $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
+    //     return $relation instanceof HasMany || $relation instanceof belongsToMany;
+    // }
 }

@@ -52,6 +52,13 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         ->middleware(config('livewire.middleware_group', 'web'))
         ->name('livewire.preview-file');
 
+        $this->loadBuilderMacros();
+        $this->loadEloquentBuilderMacros();
+        $this->loadRelationMacros();
+    }
+
+    public function loadBuilderMacros()
+    {
         Builder::macro('leftJoinIfNotJoined', function(...$params) {
             $isJoined = collect($this->joins)->pluck('table')->contains($params[0]);
             return $isJoined ? $this : call_user_func_array([ $this, 'leftJoin' ], $params);
@@ -61,7 +68,9 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             $isGrouped = collect($this->groups)->contains($params[0]);
             return $isGrouped ? $this : call_user_func_array([ $this, 'groupBy' ], $params);
         });
+    }
 
+    public function loadEloquentBuilderMacros() {
         EloquentBuilder::macro('withAggregate', function ($relations, $aggregate, $column) {
 
             if (empty($relations)) {
@@ -79,9 +88,6 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
                 $relation = $this->getRelationWithoutConstraints($name);
 
-            // dd($relation::$selfJoinCount);
-
-
                 $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
                     ? $relation->getRelationCountHashWithoutIncrementing()
                     : $relation->getRelated()->getTable();
@@ -93,30 +99,16 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $query->callScope($constraints);
 
                 $query = $query->mergeConstraintsFrom($relation->getQuery())->toBase();
-// dd($query->columns);
+
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
-                $columnAlias = collect([$relations, $column, $aggregate])->filter()->flatten()->join('_');
+                $columnAlias = new Expression("`" . collect([$relations, $column])->filter()->flatten()->join('.') . "`");
 
                 $this->selectSub($query, $columnAlias);
             }
-            $this->groupIfNotGrouped($this->getModel()->getTable() . '.' . $this->getModel()->getKeyName());
+            // $this->groupIfNotGrouped($this->getModel()->getTable() . '.' . $this->getModel()->getKeyName());
             return $this;
-        });
-
-        Relation::macro('getRelationExistenceAggregatesQuery', function (EloquentBuilder $query, EloquentBuilder $parentQuery, $aggregate, $column) {
-            $expression = $aggregate === 'group_concat'
-                ? new Expression($aggregate."(distinct {$column} separator ', ')")
-                : new Expression($aggregate."({$column})");
-
-            return $this->getRelationExistenceQuery(
-                $query, $parentQuery, $expression
-            )->setBindings([], 'select');
-        });
-
-        Relation::macro('getRelationCountHashWithoutIncrementing', function () {
-            return 'laravel_reserved_'.static::$selfJoinCount;
         });
 
         EloquentBuilder::macro('hasAggregate', function ($relation, $column, $aggregate, $operator = '>=', $count = 1)
@@ -136,6 +128,22 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             $hasQuery->mergeConstraintsFrom($relation->getQuery());
 
             return $this->addWhereCountQuery($hasQuery->toBase(), $operator, $count, 'and');
+        });
+    }
+
+    public function loadRelationMacros() {
+        Relation::macro('getRelationExistenceAggregatesQuery', function (EloquentBuilder $query, EloquentBuilder $parentQuery, $aggregate, $column) {
+            $expression = $aggregate === 'group_concat'
+                ? new Expression($aggregate."(distinct {$column} separator ', ')")
+                : new Expression($aggregate."({$column})");
+
+            return $this->getRelationExistenceQuery(
+                $query, $parentQuery, $expression
+            )->setBindings([], 'select');
+        });
+
+        Relation::macro('getRelationCountHashWithoutIncrementing', function () {
+            return 'laravel_reserved_'.static::$selfJoinCount;
         });
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Query\Expression;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -145,8 +146,8 @@ class LivewireDatatable extends Component
             case isset($column['callback']) && count($column['additionalSelects']):
                 return $this->getSelectStatementFromCallback($column);
 
-            case $column['type'] === 'aggregate':
-                return $column['name'];
+            case $this->columnIsRelation($column):
+                return new Expression("`" . $column['name']. "`");
 
             default:
                 return $this->getSelectStatementFromName($column['name']);
@@ -299,7 +300,7 @@ class LivewireDatatable extends Component
     public function getSelectStatements()
     {
         return $this->visibleColumns->map(function ($column) {
-            if (isset($column['scope']) || $column['type'] === 'aggregate') {
+            if (isset($column['scope'])) {
                 return;
             }
             if (isset($column['raw'])) {
@@ -315,6 +316,13 @@ class LivewireDatatable extends Component
             if ($column['type'] === 'editable') {
                 return $this->getSelectStatementForEditable($column);
             }
+            // if (substr_count($column['name'], '.') > 1) {
+            //     thorw
+            //     dd($column['name']);
+            //     return;
+            // }
+
+
             return $this->getSelectStatementFromName($column['name'], true);
         })->filter()->flatten();
     }
@@ -324,33 +332,21 @@ class LivewireDatatable extends Component
             return $name;
         }
 
-        if (Str::contains($name, '.')) {
-            if (method_exists($this->builder()->getModel(), Str::before($name, '.'))) {
-                $column = Str::before(Str::afterLast($name, '.'), ':');
+        if (Str::contains($column['name'], '.')) {
+            if (method_exists($this->builder()->getModel(), Str::before($column['name'], '.'))) {
+                $col = Str::before(Str::afterLast($column['name'], '.'), ':');
 
-                $relation = $this->builder()->getRelation(Str::before($name, '.'));
-// dd($relation);
-                $group = Str::contains(Str::afterLast($name, '.'), ':')
-                    ? Str::after(Str::afterLast($name, '.'), ':')
-                    : ($relation instanceof HasMany || $relation instanceof belongsToMany ? 'count' : null);
-// dd($group);
-// dd($thsis->builder()->getRelation(Str::before($name, '.')));
+                $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
 
-                $parent = $this->builder()->getModel();
-
-                // dd($column, $group, $parent);
-
-                foreach (explode('.', Str::beforeLast($name, '.')) as $child) {
-                    $parent = $parent->query()->getRelation($child)->getModel();
+                if ($relation instanceof HasMany || $relation instanceof belongsToMany) {
+                    return false;
                 }
 
-                return $group
-                    ? DB::raw($group . '(' . $parent->getTable() . '.' . $column . ')' . ($alias ? ' AS `' . $name . '`': ''))
-                    : $parent->getTable().'.'.$column . ($alias ? ' AS ' . $name : '');
+                return $relation->getRelated()->getTable().'.'.$col . ' AS ' . $column['name'];
             }
-
-            return $name . ' AS ' . $name;
+            return $column['name'] . ' AS ' . $column['name'];
         }
+
 
         return $this->builder()->getModel()->getTable().'.' . $name;
     }
@@ -410,7 +406,7 @@ class LivewireDatatable extends Component
             foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
                 $query->where(function ($query) use ($index, $activeSelectFilter) {
                     foreach ($activeSelectFilter as $value) {
-                        if ($this->columns[$index]['type'] === 'aggregate') {
+                        if ($this->columnIsRelation($this->columns[$index])) {
                             $this->addAggregateFilter($query, $index, $activeSelectFilter);
                         } else {
                             $this->addScopeSelectFilter($query, $index, $value)
@@ -463,7 +459,7 @@ class LivewireDatatable extends Component
             foreach ($this->activeTextFilters as $index => $activeTextFilter) {
                 $query->where(function ($query) use ($index, $activeTextFilter) {
                     foreach ($activeTextFilter as $value) {
-                        if ($this->columns[$index]['type'] === 'aggregate') {
+                        if ($this->columnIsRelation($this->columns[$index])) {
                             $this->addAggregateFilter($query, $index, $activeTextFilter);
                         } else {
                             $query->orWhereRaw("LOWER(" . $this->getColumnField($index) . ") like ?", [strtolower("%$value%")]);
@@ -477,9 +473,10 @@ class LivewireDatatable extends Component
     public function addAggregateFilter($query, $index, $filter)
     {
         $column = $this->columns[$index];
-        $relation = Str::before($column['name'], '_');
-        $aggregate = $column['aggregate'];
-        $field = explode('_', $column['name'])[1];
+        // dd($column);
+        $relation = Str::before($column['name'], '.');
+        $aggregate = $this->columnAggregateType($column);
+        $field = explode('.', $column['name'])[1];
 
         $query->when($aggregate === 'group_concat' && count($filter), function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
@@ -498,7 +495,7 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) {
             foreach ($this->activeNumberFilters as $index => $filter) {
-                if ($this->columns[$index]['type'] === 'aggregate') {
+                if ($this->columnIsRelation($this->columns[$index])) {
                     $this->addAggregateFilter($query, $index, $filter);
                 } else {
                     $query->whereRaw($this->getColumnField($index) . " BETWEEN ? AND ?", [
@@ -613,7 +610,7 @@ class LivewireDatatable extends Component
     public function getWithsProperty()
     {
         return collect($this->columns)->reject->hidden->filter(function ($column) {
-            return Str::contains($column['name'], '.') /* && $column['type'] !== 'aggregate' */ && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
+            return Str::contains($column['name'], '.') && ! $this->columnIsAggregateRelation($column) && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
         })->map(function ($column) {
                 return Str::startsWith($column['name'], '_callback')
                 ? (
@@ -626,6 +623,30 @@ class LivewireDatatable extends Component
                 : $column['name'];
         })->flatten()->filter();
     }
+
+    public function columnIsRelation($column)
+    {
+        return Str::contains($column['name'], '.') && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
+    }
+
+    public function columnIsAggregateRelation($column)
+    {
+        if (! $this->columnIsRelation($column)) {
+            return;
+        }
+        $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
+        // dd($this->builder()->toSql());
+        return $relation instanceof HasMany || $relation instanceof belongsToMany;
+    }
+
+
+public function columnAggregateType($column)
+{
+    // dd($column);
+    return $column['type'] === 'string'
+        ? 'group_concat'
+        : 'count';
+}
 
     public function buildDatabaseQuery()
     {
@@ -656,11 +677,13 @@ class LivewireDatatable extends Component
 
                             case $relation instanceof HasMany:
 
-                                $query->leftJoinIfNotJoined(
-                                    $relation->getRelated()->getTable(),
-                                    $relation->getQualifiedForeignKeyName(),
-                                    $relation->getQualifiedParentKeyName()
-                                )->groupBy($relation->getQualifiedParentKeyName());
+                                // $query->leftJoinIfNotJoined(
+                                //     $relation->getRelated()->getTable(),
+                                //     $relation->getQualifiedForeignKeyName(),
+                                //     $relation->getQualifiedParentKeyName()
+                                // )
+                                // ->groupBy($relation->getQualifiedParentKeyName())
+                                ;
                                 break;
 
                             case $relation instanceof BelongsTo:
@@ -671,52 +694,39 @@ class LivewireDatatable extends Component
                                 );
                                 break;
 
-                            case $relation instanceof BelongsToMany:
-                                $pivot = $relation->getTable();
-                                $pivotPK = $relation->getExistenceCompareKey();
-                                $pivotFK = $relation->getQualifiedParentKeyName();
-                                $query->leftJoinIfNotJoined($pivot, $pivotPK, $pivotFK);
+                            // case $relation instanceof BelongsToMany:
+                            //     $pivot = $relation->getTable();
+                            //     $pivotPK = $relation->getExistenceCompareKey();
+                            //     $pivotFK = $relation->getQualifiedParentKeyName();
+                            //     $query->leftJoinIfNotJoined($pivot, $pivotPK, $pivotFK);
 
-                                $related = $relation->getRelated();
-                                $table = $related->getTable();
-                                $tablePK = $related->getForeignKey();
-                                $foreign = $pivot . '.' . $tablePK;
-                                $other = $related->getQualifiedKeyName();
-                                $query->leftJoinIfNotJoined($table, $foreign, $other);
-                                // $query->groupBy($parent->getModel()->getTable() . '.id');
-                                $query->groupIfNotGrouped($parent->getModel()->getTable() . '.' . $parent->getModel()->getKeyName());
+                            //     $related = $relation->getRelated();
+                            //     $table = $related->getTable();
+                            //     $tablePK = $related->getForeignKey();
+                            //     $foreign = $pivot . '.' . $tablePK;
+                            //     $other = $related->getQualifiedKeyName();
+                            //     $query->leftJoinIfNotJoined($table, $foreign, $other);
+                            //     // $query->groupIfNotGrouped($parent->getModel()->getTable() . '.' . $parent->getModel()->getKeyName());
 
-                            break;
+                            // break;
                         }
+                        // dd($relation);
                         $parent = $relation->getQuery();
                     }
                 }
             })
             ->addSelect($this->getSelectStatements()->toArray())
-            ->when($columns = collect($this->columns)->reject->hidden->map(function ($column) {
-                return $column['type'] === 'aggregate'
-                ? $column
-                : null;
-            })->filter(), function ($query) use ($columns) {
+
+            ->when($columns = collect($this->columns)->reject->hidden->filter(function ($column) {
+                return $this->columnIsAggregateRelation($column);
+            }), function ($query) use ($columns) {
+
+
                 $columns->each(function ($column) use ($query) {
-
-                    $name = explode('_', $column['name']);
-// dd($name);
-                    // if (method_exists($this->builder()->getModel(), $name[0])) {
-                    //     // dd($column['name'][0]);
-                    //     $relation = $this->builder()->getRelation($name[0]);
-
-                    //     $expression = $name[2] . '(' . $relation->getRelated()->getKeyName() . ')';
-                    //     dd($relation);
-                    //     $relationQuery = $relation->getQuery()->selectRaw($expression)
-                    //         ->whereColumn($relation->getForeignKeyName(), $relation->getParent()->getTable() . '.' . $relation->getParent()->getKeyName());
-
-                    //     $query->addSelect([$column['name'] => $relationQuery]);
-                    // }
-
-
-
-                    $query->withAggregate($name[0], $column['aggregate'], $name[1]);
+                    $aggregate = $this->columnAggregateType($column);
+                    $name = explode('.', $column['name']);
+                    // $this->columns['name'] = implode('_', [$name[0], $name[1], $aggregate]);
+                    $query->withAggregate($name[0], $aggregate, $name[1]);
                 });
             })
 
