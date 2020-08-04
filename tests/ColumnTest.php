@@ -87,7 +87,8 @@ class ColumnTest extends TestCase
             'label' => 'Column',
             'filterable' => ['A', 'B', 'C'],
             'hidden' => true,
-            'callback' => function() {},
+            'callback' => function () {
+            },
             'raw' => null,
             'sort' => null,
             'defaultSort' => null,
@@ -96,7 +97,10 @@ class ColumnTest extends TestCase
             'additionalSelects' => [],
             'scope' => null,
             'scopeFilter' => null,
-            'filterView' => null
+            'filterView' => null,
+            'select' => null,
+            'joins' => null,
+            'aggregates' => null
         ], $subject);
     }
 
@@ -116,7 +120,8 @@ class ColumnTest extends TestCase
             'label' => 'table_column',
             'filterable' => true,
             'hidden' => null,
-            'callback' => function () {},
+            'callback' => function () {
+            },
             'raw' => 'SELECT column FROM table AS table_column',
             'sort' => DB::raw('SELECT column FROM table'),
             'defaultSort' => 'asc',
@@ -125,7 +130,10 @@ class ColumnTest extends TestCase
             'additionalSelects' => [],
             'scope' => null,
             'scopeFilter' => null,
-            'filterView' => null
+            'filterView' => null,
+            'select' => null,
+            'joins' => null,
+            'aggregates' => null
         ], $subject);
     }
 }
