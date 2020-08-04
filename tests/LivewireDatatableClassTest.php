@@ -84,7 +84,7 @@ class LivewireDatatableClassTest extends TestCase
     {
         factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs']);
         factory(DummyModel::class)->create(['subject' => 'Advanced beet growing']);
-        // $this->markTestSkipped();
+
         $subject = Livewire::test(DummyTable::class)
             ->assertSee('Results 1 - 2')
             ->call('doTextFilter', 1, 'Advance')
@@ -106,7 +106,6 @@ class LivewireDatatableClassTest extends TestCase
     /** @test */
     public function it_can_filter_results_based_on_selects()
     {
-        $this->markTestSkipped();
         factory(DummyModel::class)->create(['category' => 'Schrute']);
         factory(DummyModel::class)->create(['category' => 'Scott']);
         $subject = Livewire::test(DummyTable::class)

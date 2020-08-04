@@ -169,11 +169,11 @@ class ColumnSet
             $selects = [];
 
             if ($column->raw) {
-                $selects[] = DB::raw($column->raw);
+                $column->select = DB::raw($column->raw);
                 return $column;
             }
-
-            foreach (array_merge([$column->name], $column->additionalSelects) as $name) {
+            // dd($column);
+            foreach (array_merge([$column->base ?? $column->name], $column->additionalSelects) as $name) {
 
                 if (!Str::contains($name, '.')) {
                     if (!Str::startsWith($name, 'callback_')) {
@@ -188,7 +188,8 @@ class ColumnSet
                 foreach (explode('.', Str::beforeLast($name, '.')) as $join) {
 
                     if (method_exists($parent->getModel(), $join)) {
-                        $relation = $builder->getRelation($join);
+                        $relation = $parent->getRelation($join);
+                        // dump($parent, $join, $relation);
                         if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
                             $column->joins[] = [
                                 $relation->getRelated()->getTable(),
@@ -198,9 +199,9 @@ class ColumnSet
 
                             $parent = $relation;
 
-                            $selects[] = $parent->getRelated()->getTable() . '.' . Str::afterLast($name, '.') . ($name === $column->name
+                            $selects = [$parent->getRelated()->getTable() . '.' . Str::afterLast($name, '.') . ($name === $column->name
                                 ? ' AS ' . $name
-                                : '');
+                                : '')];
                         }
 
                         if ($relation instanceof HasMany || $relation instanceof BelongsToMany) {
@@ -213,6 +214,8 @@ class ColumnSet
 
             if (count($selects) > 1) {
                 if ($column->callback && !$column->isEditable()) {
+
+                    $column->additionalSelects = [];
                     $column->select = DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' .
                         collect($selects)->map(function ($select) {
                             return "COALESCE($select, '')";
@@ -230,6 +233,7 @@ class ColumnSet
             return $column;
         });
 
+        // dd($this->columns);
         return $this;
     }
 }

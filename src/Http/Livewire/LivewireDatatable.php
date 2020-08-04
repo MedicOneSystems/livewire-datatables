@@ -167,6 +167,10 @@ class LivewireDatatable extends Component
                 return $column['base'];
                 break;
 
+            case $column['select']:
+                return Str::before($column['select'], ' AS ');
+                break;
+
             default:
                 return new Expression("`" . $column['name'] . "`");
                 break;
@@ -342,6 +346,7 @@ class LivewireDatatable extends Component
 
     public function getColumnField($index)
     {
+        // dd($this->columns[$index]);
         if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
             // dd($this->columns[$index]);
             return $this->columns[$index]['additionalSelects'];
@@ -351,7 +356,11 @@ class LivewireDatatable extends Component
             return 'scope';
         }
 
-        return [Str::before((string) $this->columns[$index]['select'], ' AS ')];
+        if ($this->columns[$index]['raw']) {
+            return [(string) $this->columns[$index]['sort']];
+        }
+        // dd($this->freshColumns[$index]);
+        return [Str::before((string) $this->freshColumns[$index]['select'], ' AS ')];
     }
 
     public function addSelectFilters($builder)
@@ -360,6 +369,7 @@ class LivewireDatatable extends Component
             foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
                 $query->where(function ($query) use ($index, $activeSelectFilter) {
                     foreach ($activeSelectFilter as $value) {
+                        // dd($this->columns[$index]);
                         if ($this->columnIsAggregateRelation($this->columns[$index])) {
                             $this->addAggregateFilter($query, $index, $activeSelectFilter);
                         } else {
@@ -456,7 +466,7 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) {
             foreach ($this->activeNumberFilters as $index => $filter) {
-                if ($this->columnIsRelation($this->columns[$index])) {
+                if ($this->columnIsAggregateRelation($this->columns[$index])) {
                     $this->addAggregateFilter($query, $index, $filter);
                 } else {
                     $this->addScopeNumberFilter($query, $index, [
@@ -476,7 +486,7 @@ class LivewireDatatable extends Component
     {
         return $builder->where(function ($query) {
             foreach ($this->activeDateFilters as $index => $filter) {
-                if (!($filter['start'] != '' || $filter['end'] != '')) {
+                if (!((isset($filter['start']) && $filter['start'] != '') || (isset($filter['end']) && $filter['end'] != ''))) {
                     break;
                 }
                 $query->whereBetween($this->getColumnField($index)[0], [
@@ -699,6 +709,13 @@ class LivewireDatatable extends Component
         });
 
         return $paginatedCollection;
+    }
+
+    public function getDisplayValue($index, $value)
+    {
+        return is_array($this->columns[$index]['filterable']) && is_numeric($value)
+            ? collect($this->columns[$index]['filterable'])->firstWhere('id', '=', $value)['name'] ?? $value
+            : $value;
     }
 
     public function highlight($value, $string)
