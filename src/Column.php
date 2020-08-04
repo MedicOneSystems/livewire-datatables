@@ -144,18 +144,13 @@ class Column
 
     public function additionalSelects($selects)
     {
-        $selects = is_array($selects) ? $selects : array_map('trim', explode(',', $selects));
-
-        $this->additionalSelects = $selects;
-
+        $this->additionalSelects = is_array($selects) ? $selects : array_map('trim', explode(',', $selects));
         return $this;
     }
 
     public function editable()
     {
         $this->type = 'editable';
-        // $this->additionalSelects = ['id'];
-
         return $this;
     }
 
@@ -186,22 +181,4 @@ class Column
             ? 'group_concat'
             : 'count';
     }
-
-    public function processForBuilder($builder)
-    {;
-    }
-
-    // public function columnIsRelation($column)
-    // {
-    //     return Str::contains($column['name'], '.') && method_exists($this->builder()->getModel(), Str::before($column['name'], '.'));
-    // }
-
-    // public function isAggregateRelation($column)
-    // {
-    //     if (! $this->columnIsRelation($column)) {
-    //         return;
-    //     }
-    //     $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
-    //     return $relation instanceof HasMany || $relation instanceof belongsToMany;
-    // }
 }

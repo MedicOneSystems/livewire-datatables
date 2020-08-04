@@ -173,14 +173,10 @@ class ColumnSet
                 return $column;
             }
 
-            // if ($column->editable) {
-            // }
-
             foreach (array_merge([$column->name], $column->additionalSelects) as $name) {
-                // dump($name);)
 
                 if (!Str::contains($name, '.')) {
-                    if (!Str::startsWith($name, 'callback_')) { // dump($builder->getModel()->getTable() . '.' . $column->name);
+                    if (!Str::startsWith($name, 'callback_')) {
                         $selects[] = $builder->getModel()->getTable() . '.' . $name;
                         if ($column->isEditable()) {
                             $selects[] = $builder->getModel()->getTable() . '.' . $builder->getModel()->getKeyName() . ' AS ' . $builder->getModel()->getTable() . '.' . $builder->getModel()->getKeyName();
@@ -188,14 +184,11 @@ class ColumnSet
                     }
                 }
 
-                // dump($name, $selects);
-
                 $parent = $builder;
                 foreach (explode('.', Str::beforeLast($name, '.')) as $join) {
 
                     if (method_exists($parent->getModel(), $join)) {
                         $relation = $builder->getRelation($join);
-                        // dump($relation);
                         if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
                             $column->joins[] = [
                                 $relation->getRelated()->getTable(),
@@ -222,7 +215,6 @@ class ColumnSet
                 if ($column->callback && !$column->isEditable()) {
                     $column->select = DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' .
                         collect($selects)->map(function ($select) {
-                            // return $select;
                             return "COALESCE($select, '')";
                         })->join(', ') . ')' . ' AS  `' . $column->name . '`');
                 } else {
