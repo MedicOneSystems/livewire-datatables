@@ -4,10 +4,17 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\Column;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ColumnSet
 {
+    const SEPARATOR = '|**lwdt**|';
+
     public $columns;
 
     public function __construct(Collection $columns)
@@ -149,5 +156,88 @@ class ColumnSet
     public function columnsArray()
     {
         return $this->columns()->map->toArray()->toArray();
+    }
+
+    public function processForBuilder($builder)
+    {
+
+        $this->columns = $this->columns->map(function ($column) use ($builder) {
+            if ($column->scope) {
+                return $column;
+            }
+
+            $selects = [];
+
+            if ($column->raw) {
+                $selects[] = DB::raw($column->raw);
+                return $column;
+            }
+
+            // if ($column->editable) {
+            // }
+
+            foreach (array_merge([$column->name], $column->additionalSelects) as $name) {
+                // dump($name);)
+
+                if (!Str::contains($name, '.')) {
+                    if (!Str::startsWith($name, 'callback_')) { // dump($builder->getModel()->getTable() . '.' . $column->name);
+                        $selects[] = $builder->getModel()->getTable() . '.' . $name;
+                        if ($column->isEditable()) {
+                            $selects[] = $builder->getModel()->getTable() . '.' . $builder->getModel()->getKeyName() . ' AS ' . $builder->getModel()->getTable() . '.' . $builder->getModel()->getKeyName();
+                        }
+                    }
+                }
+
+                // dump($name, $selects);
+
+                $parent = $builder;
+                foreach (explode('.', Str::beforeLast($name, '.')) as $join) {
+
+                    if (method_exists($parent->getModel(), $join)) {
+                        $relation = $builder->getRelation($join);
+                        // dump($relation);
+                        if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
+                            $column->joins[] = [
+                                $relation->getRelated()->getTable(),
+                                $relation instanceof HasOne ? $relation->getQualifiedForeignKeyName() : $relation->getQualifiedOwnerKeyName(),
+                                $relation instanceof HasOne ? $relation->getQualifiedParentKeyName() : $relation->getQualifiedForeignKeyName()
+                            ];
+
+                            $parent = $relation;
+
+                            $selects[] = $parent->getRelated()->getTable() . '.' . Str::afterLast($name, '.') . ($name === $column->name
+                                ? ' AS ' . $name
+                                : '');
+                        }
+
+                        if ($relation instanceof HasMany || $relation instanceof BelongsToMany) {
+                            $name = explode('.', $name);
+                            $column->aggregates[] = [$name[0], $column->aggregate(), $name[1]];
+                        }
+                    }
+                }
+            }
+
+            if (count($selects) > 1) {
+                if ($column->callback && !$column->isEditable()) {
+                    $column->select = DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' .
+                        collect($selects)->map(function ($select) {
+                            // return $select;
+                            return "COALESCE($select, '')";
+                        })->join(', ') . ')' . ' AS  `' . $column->name . '`');
+                } else {
+                    $column->select = array_shift($selects);
+                    $column->additionalSelects = $selects;
+                }
+            } else if (count($selects)) {
+                foreach ($selects as $select) {
+                    $column->select = $select . ($column->callback ? ' AS  ' . $column->name : '');
+                }
+            }
+
+            return $column;
+        });
+
+        return $this;
     }
 }

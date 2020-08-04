@@ -9,6 +9,9 @@ class Column
     public $type = 'string';
     public $label;
     public $name;
+    public $select;
+    public $joins;
+    public $aggregates;
     public $base;
     public $raw;
     public $searchable;
@@ -104,7 +107,7 @@ class Column
 
     public function linkTo($model, $pad = null)
     {
-        $this->callback = function($value) use ($model, $pad) {
+        $this->callback = function ($value) use ($model, $pad) {
             return view('datatables::link', [
                 'href' => "/$model/$value",
                 'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value
@@ -116,7 +119,7 @@ class Column
 
     public function truncate($length = 16)
     {
-        $this->callback = function($value) use ($length) {
+        $this->callback = function ($value) use ($length) {
             return view('datatables::tooltip', ['slot' => $value, 'length' => $length]);
         };
         return $this;
@@ -151,8 +154,14 @@ class Column
     public function editable()
     {
         $this->type = 'editable';
+        // $this->additionalSelects = ['id'];
 
         return $this;
+    }
+
+    public function isEditable()
+    {
+        return $this->type === 'editable';
     }
 
     public function hide()
@@ -169,6 +178,17 @@ class Column
     public function toArray()
     {
         return get_object_vars($this);
+    }
+
+    public function aggregate()
+    {
+        return $this->type === 'string'
+            ? 'group_concat'
+            : 'count';
+    }
+
+    public function processForBuilder($builder)
+    {;
     }
 
     // public function columnIsRelation($column)
