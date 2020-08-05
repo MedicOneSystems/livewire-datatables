@@ -3,6 +3,9 @@
 namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Column
 {
@@ -25,11 +28,13 @@ class Column
     public $params = [];
     public $additionalSelects = [];
     public $filterView;
+    public $query;
 
     public static function name($name)
     {
         $column = new static;
-        $column->name = $name;
+        $column->name = Str::before($name, ':');
+        $column->aggregate = Str::contains($name, ':') ? Str::before($name, ':') : $column->aggregate();
         $column->label = (string) Str::of($name)->after('.')->ucfirst();
 
         if (Str::contains(Str::lower($name), ' as ')) {
@@ -45,6 +50,7 @@ class Column
         $column = new static;
         $column->raw = $raw;
         $column->name = Str::after($raw, ' AS ');
+        $column->select = DB::raw(Str::before($raw, ' AS '));
         $column->label = (string) Str::of($raw)->afterLast(' AS ')->replace('`', '');
         $column->sort = (string) Str::of($raw)->beforeLast(' AS ');
 
@@ -180,5 +186,69 @@ class Column
         return $this->type === 'string'
             ? 'group_concat'
             : 'count';
+    }
+
+    public function isBaseColumn()
+    {
+        return !Str::contains($this->name, '.') && !$this->raw;
+    }
+
+    public function field()
+    {
+        return Str::afterLast($this->name, '.');
+    }
+
+    public function relations()
+    {
+        return $this->isBaseColumn() ? null : collect(explode('.', Str::beforeLast($this->name, '.')));
+    }
+
+    public function parseName($builder)
+    {
+        $this->query = $builder;
+
+        if ($this->scope || $this->callback) {
+            return $this;
+        }
+
+        if ($this->callback) {
+            return $this;
+        }
+
+
+        $this->select = $this->isBaseColumn()
+            ? $builder->getModel()->getTable() . '.' . $this->name
+            : $this->resolveRelationColumn();
+
+        return $this;
+    }
+
+
+
+
+
+    public function parseJoins($builder)
+    {
+        if (!$this->relations()) {
+            return;
+        }
+
+        $output = [];
+        $carry = $builder;
+
+        foreach ($this->relations()->toArray() as $join) {
+            $relation = $carry->getRelation($join);
+            if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
+                $output[] = [
+                    $relation->getRelated()->getTable(),
+                    $relation instanceof HasOne ? $relation->getQualifiedForeignKeyName() : $relation->getQualifiedOwnerKeyName(),
+                    $relation instanceof HasOne ? $relation->getQualifiedParentKeyName() : $relation->getQualifiedForeignKeyName()
+                ];
+            }
+            $carry = $relation;
+        }
+
+        $this->joins = $output;
+        return $this;
     }
 }

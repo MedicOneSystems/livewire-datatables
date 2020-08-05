@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ColumnSet
 {
-    const SEPARATOR = '|**lwdt**|';
+
 
     public $columns;
 
@@ -160,19 +160,8 @@ class ColumnSet
 
     public function processForBuilder($builder)
     {
-
         $this->columns = $this->columns->map(function ($column) use ($builder) {
-            if ($column->scope) {
-                return $column;
-            }
 
-            $selects = [];
-
-            if ($column->raw) {
-                $column->select = DB::raw($column->raw);
-                return $column;
-            }
-            // dd($column);
             foreach (array_merge([$column->base ?? $column->name], $column->additionalSelects) as $name) {
 
                 if (!Str::contains($name, '.')) {
@@ -188,8 +177,8 @@ class ColumnSet
                 foreach (explode('.', Str::beforeLast($name, '.')) as $join) {
 
                     if (method_exists($parent->getModel(), $join)) {
-                        $relation = $builder->getRelation($join);
-                        dump($join, $relation);
+                        $relation = $parent->getRelation($join);
+                        // dump($parent, $join, $relation);
                         if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
                             $column->joins[] = [
                                 $relation->getRelated()->getTable(),
@@ -199,9 +188,9 @@ class ColumnSet
 
                             $parent = $relation;
 
-                            $selects[] = $parent->getRelated()->getTable() . '.' . Str::afterLast($name, '.') . ($name === $column->name
+                            $selects = [$parent->getRelated()->getTable() . '.' . Str::afterLast($name, '.') . ($name === $column->name
                                 ? ' AS ' . $name
-                                : '');
+                                : '')];
                         }
 
                         if ($relation instanceof HasMany || $relation instanceof BelongsToMany) {
