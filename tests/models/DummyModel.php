@@ -16,4 +16,19 @@ class DummyModel extends Model
     protected $casts = [
         'expires_at' => 'datetime',
     ];
+
+    public function dummy_has_one()
+    {
+        return $this->hasOne(DummyHasOneModel::class);
+    }
+
+    public function dummy_has_many()
+    {
+        return $this->hasMany(DummyHasManyModel::class);
+    }
+
+    public function dummy_belongs_to_many()
+    {
+        return $this->belongsToMany(DummyBelongsToManyModel::class);
+    }
 }
