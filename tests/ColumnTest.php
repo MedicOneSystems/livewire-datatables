@@ -100,7 +100,7 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => null,
             'joins' => null,
-            'aggregates' => null
+            'aggregate' => 'group_concat'
         ], $subject);
     }
 
@@ -123,7 +123,7 @@ class ColumnTest extends TestCase
             'callback' => function () {
             },
             'raw' => 'SELECT column FROM table AS table_column',
-            'sort' => DB::raw('SELECT column FROM table'),
+            'sort' => 'SELECT column FROM table',
             'defaultSort' => 'asc',
             'searchable' => null,
             'params' => [],
@@ -131,9 +131,8 @@ class ColumnTest extends TestCase
             'scope' => null,
             'scopeFilter' => null,
             'filterView' => null,
-            'select' => null,
-            'joins' => null,
-            'aggregates' => null
+            'select' => DB::raw('SELECT column FROM table'),
+            'joins' => null
         ], $subject);
     }
 }

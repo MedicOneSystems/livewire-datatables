@@ -307,15 +307,6 @@ class LivewireDatatable extends Component
         }
     }
 
-
-
-
-    public function getAggregateStatements()
-    {
-        return $this->processedColumns->columns->map->aggregates->flatten(1)->filter();
-    }
-
-
     public function getFreshColumnsProperty()
     {
         $columns = $this->processedColumns->columnsArray();
@@ -325,8 +316,6 @@ class LivewireDatatable extends Component
         }
         return $columns;
     }
-
-
 
     public function initialiseSort()
     {

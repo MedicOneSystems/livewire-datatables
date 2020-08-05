@@ -14,7 +14,6 @@ class Column
     public $name;
     public $select;
     public $joins;
-    public $aggregates;
     public $base;
     public $raw;
     public $searchable;
@@ -28,7 +27,6 @@ class Column
     public $params = [];
     public $additionalSelects = [];
     public $filterView;
-    public $query;
 
     public static function name($name)
     {
@@ -201,54 +199,5 @@ class Column
     public function relations()
     {
         return $this->isBaseColumn() ? null : collect(explode('.', Str::beforeLast($this->name, '.')));
-    }
-
-    public function parseName($builder)
-    {
-        $this->query = $builder;
-
-        if ($this->scope || $this->callback) {
-            return $this;
-        }
-
-        if ($this->callback) {
-            return $this;
-        }
-
-
-        $this->select = $this->isBaseColumn()
-            ? $builder->getModel()->getTable() . '.' . $this->name
-            : $this->resolveRelationColumn();
-
-        return $this;
-    }
-
-
-
-
-
-    public function parseJoins($builder)
-    {
-        if (!$this->relations()) {
-            return;
-        }
-
-        $output = [];
-        $carry = $builder;
-
-        foreach ($this->relations()->toArray() as $join) {
-            $relation = $carry->getRelation($join);
-            if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
-                $output[] = [
-                    $relation->getRelated()->getTable(),
-                    $relation instanceof HasOne ? $relation->getQualifiedForeignKeyName() : $relation->getQualifiedOwnerKeyName(),
-                    $relation instanceof HasOne ? $relation->getQualifiedParentKeyName() : $relation->getQualifiedForeignKeyName()
-                ];
-            }
-            $carry = $relation;
-        }
-
-        $this->joins = $output;
-        return $this;
     }
 }
