@@ -34,7 +34,7 @@ class Column
     {
         $column = new static;
         $column->name = Str::before($name, ':');
-        $column->aggregate = Str::contains($name, ':') ? Str::before($name, ':') : $column->aggregate();
+        $column->aggregate = Str::contains($name, ':') ? Str::after($name, ':') : $column->aggregate();
         $column->label = (string) Str::of($name)->after('.')->ucfirst();
 
         if (Str::contains(Str::lower($name), ' as ')) {

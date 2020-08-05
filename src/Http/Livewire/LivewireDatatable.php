@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\DatatableQueryBuilder;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
@@ -113,7 +114,7 @@ class LivewireDatatable extends Component
 
     public function getSelectStatements($withAlias = false)
     {
-        return $this->processedColumns->columns->reject(function ($column) {
+        return $this->processedColumns->columns/* ->dump() */->reject(function ($column) {
             return $column->scope;
         })->map(function ($column) {
             if ($column->select) {
@@ -121,7 +122,6 @@ class LivewireDatatable extends Component
             }
 
             if (Str::startsWith($column->name, 'callback_')) {
-                // dd($column->additionalSelects);
                 $selects = collect($column->additionalSelects)->map(function ($select) {
                     if (!Str::contains($select, '.')) {
                         return $this->query->getModel()->getTable() . '.' . $select;
@@ -146,19 +146,42 @@ class LivewireDatatable extends Component
             } else {
                 $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
             }
+
+
+
+            if ($column->isEditable()) {
+                $column->select = [$column->select, $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName()];
+            }
+
+
             return $column;
-        })->flatten() //->dump() //->map->select->dd()
+        })->filter(function ($column) {
+            // dump($column->select);
+            return $column->select;
+        })/* ->dump() */ //->map->select->dd()
             ->when($withAlias, function ($columns) {
                 return $columns->map(function ($column) {
-                    return /* $column->isBaseColumn()
-                        ? $column->select
-                        : ( */ $column->select instanceof Expression
-                        ? new Expression($column->select->getValue() . ' AS `' . $column->name . '`')
-                        : $column->select . ' AS ' . $column->name/* ) */;
+
+                    if ($column->select instanceof Expression) {
+                        return new Expression($column->select->getValue() . ' AS `' . $column->name . '`');
+                    }
+
+                    if (is_array($column->select)) {
+                        $selects = $column->select;
+                        // dump($selects);
+                        $first = array_shift($selects) . ' AS ' . $column->name;
+                        $others = array_map(function ($select) {
+                            return $select . ' AS ' . $select;
+                        }, $selects);
+                        // dump(array_merge([$first], $others));
+                        return array_merge([$first],  $others);
+                    }
+
+                    return $column->select . ' AS ' . $column->name;
                 });
             }, function ($columns) {
                 return $columns->map->select;
-            }) //->dd()
+            })->flatten() //->dd()/* ->dump() */ //->dd()
 
             // ->merge($this->processedColumns->columns->map->additionalSelects->flatten())
         ;
@@ -184,19 +207,21 @@ class LivewireDatatable extends Component
 
             switch (true) {
                 case $model instanceof BelongsToMany:
-                    $pivot   = $model->getTable();
-                    $pivotPK = $model->getExistenceCompareKey();
-                    $pivotFK = $model->getQualifiedParentKeyName();
-                    $this->performJoin($pivot, $pivotPK, $pivotFK);
+                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
+                    $table = null;
+                    // $pivot   = $model->getTable();
+                    // $pivotPK = $model->getExistenceCompareKey();
+                    // $pivotFK = $model->getQualifiedParentKeyName();
+                    // $this->performJoin($pivot, $pivotPK, $pivotFK);
 
-                    $related = $model->getRelated();
-                    $table   = $related->getTable();
-                    $tablePK = $related->getForeignKey();
-                    $foreign = $pivot . '.' . $tablePK;
-                    $other   = $related->getQualifiedKeyName();
+                    // $related = $model->getRelated();
+                    // $table   = $related->getTable();
+                    // $tablePK = $related->getForeignKey();
+                    // $foreign = $pivot . '.' . $tablePK;
+                    // $other   = $related->getQualifiedKeyName();
 
-                    $this->performJoin($table, $foreign, $other);
-                    $this->query->groupBy($pivotFK);
+                    // $this->performJoin($table, $foreign, $other);
+                    // $this->query->groupBy($pivotFK);
 
                     break;
 
@@ -221,9 +246,11 @@ class LivewireDatatable extends Component
                     break;
 
                 case $model instanceof HasMany:
-                    $table     = $model->getRelated()->getTable();
-                    $foreign   = $model->getQualifiedForeignKeyName();
-                    $other     = $model->getQualifiedParentKeyName();
+                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
+                    $table = null;
+                    // $table     = $model->getRelated()->getTable();
+                    // $foreign   = $model->getQualifiedForeignKeyName();
+                    // $other     = $model->getQualifiedParentKeyName();
                     break;
 
                 case $model instanceof BelongsTo:
@@ -233,30 +260,39 @@ class LivewireDatatable extends Component
                     break;
 
                 default:
-                    throw new Exception('Relation ' . get_class($model) . ' is not yet supported.');
+                    // $this->query->withCount($relation);
+                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
+                    // throw new Exception('Relation ' . get_class($model) . ' is not yet supported.');
             }
-            $this->performJoin($table, $foreign, $other);
+            if ($table) {
+                $this->performJoin($table, $foreign, $other);
+            }
             $lastQuery = $model->getQuery();
         }
 
-        if ($model instanceof HasOne) {
-            if (count(collect($this->query->getQuery()->joins)->reject(function ($join) use ($model) {
-                return $join->table === $model->getRelated()->getTable();
-            }))) {
-                $this->query->groupBy($model->getQualifiedParentKeyName());
-                return new Expression('max(' . $table . '.' . $relationColumn . ')');
-            }
+
+        if ($model instanceof HasOne || $model instanceof BelongsTo) {
+            return $table . '.' . $relationColumn;
+
+            // if (count(collect($this->query->getQuery()->joins)->reject(function ($join) use ($model) {
+            //     return $join->table === $model->getRelated()->getTable();
+            // }))) {
+            //     $this->query->groupBy($model->getQualifiedParentKeyName());
+            //     return new Expression('max(' . $table . '.' . $relationColumn . ')');
+            // }
         }
 
-        if ($model instanceof HasMany || $model instanceof BelongsToMany) {
-            return $aggregate
+        if ($model instanceof HasMany) {
+            return;
+        }
+
+        if ($model instanceof BelongsToMany) {
+            return /* $aggregate
                 ? ($aggregate === 'group_concat'
                     ? new Expression('group_concat(distinct ' . $table . '.' . $relationColumn . ' separator ", ")')
                     : new Expression($aggregate . '(' . $table . '.' . $relationColumn . ')'))
-                : new Expression('count(' . $table . '.' . $relationColumn . ')');
+                : new Expression('count(' . $table . '.' . $relationColumn . ')') */;
         }
-
-        return $table . '.' . $relationColumn;
     }
 
     protected function performJoin($table, $foreign, $other, $type = 'left')
@@ -511,9 +547,7 @@ class LivewireDatatable extends Component
 
     public function getColumnField($index)
     {
-        // dd($this->columns[$index]);
         if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
-            // dd($this->columns[$index]);
             return $this->columns[$index]['additionalSelects'];
         }
 
@@ -524,7 +558,6 @@ class LivewireDatatable extends Component
         if ($this->columns[$index]['raw']) {
             return [(string) $this->columns[$index]['sort']];
         }
-        // dd($this->freshColumns[$index]);
         return [$this->freshColumns[$index]['select']];
     }
 
@@ -608,6 +641,7 @@ class LivewireDatatable extends Component
 
     public function addAggregateFilter($query, $index, $filter)
     {
+        // dd('yo');
         $column = $this->columns[$index];
         $relation = Str::before($column['name'], '.');
         $aggregate = $this->columnAggregateType($column);
@@ -757,8 +791,7 @@ class LivewireDatatable extends Component
             return;
         }
         $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
-        // dd($this->builder()->toSql());
-        return $relation instanceof HasOne || $relation instanceof HasMany || $relation instanceof belongsToMany;
+        return $relation instanceof HasOne || $relation instanceof HasManyThrough || $relation instanceof HasMany || $relation instanceof belongsToMany;
     }
 
 
@@ -772,6 +805,8 @@ class LivewireDatatable extends Component
     public function buildDatabaseQuery()
     {
         $this->query = $this->builder();
+
+        // dd($this->columns);
 
         return $this->query
 

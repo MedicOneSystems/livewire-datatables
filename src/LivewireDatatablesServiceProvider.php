@@ -49,8 +49,8 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         }
 
         Route::get('/datatables/{filename}', [FileExportController::class, 'handle'])
-        ->middleware(config('livewire.middleware_group', 'web'))
-        ->name('livewire.preview-file');
+            ->middleware(config('livewire.middleware_group', 'web'))
+            ->name('livewire.preview-file');
 
         $this->loadBuilderMacros();
         $this->loadEloquentBuilderMacros();
@@ -59,18 +59,19 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
     public function loadBuilderMacros()
     {
-        Builder::macro('leftJoinIfNotJoined', function(...$params) {
+        Builder::macro('leftJoinIfNotJoined', function (...$params) {
             $isJoined = collect($this->joins)->pluck('table')->contains($params[0]);
-            return $isJoined ? $this : call_user_func_array([ $this, 'leftJoin' ], $params);
+            return $isJoined ? $this : call_user_func_array([$this, 'leftJoin'], $params);
         });
 
-        Builder::macro('groupIfNotGrouped', function(...$params) {
+        Builder::macro('groupIfNotGrouped', function (...$params) {
             $isGrouped = collect($this->groups)->contains($params[0]);
-            return $isGrouped ? $this : call_user_func_array([ $this, 'groupBy' ], $params);
+            return $isGrouped ? $this : call_user_func_array([$this, 'groupBy'], $params);
         });
     }
 
-    public function loadEloquentBuilderMacros() {
+    public function loadEloquentBuilderMacros()
+    {
         EloquentBuilder::macro('withAggregate', function ($relations, $aggregate, $column) {
 
             if (empty($relations)) {
@@ -93,7 +94,10 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                     : $relation->getRelated()->getTable();
 
                 $query = $relation->getRelationExistenceAggregatesQuery(
-                    $relation->getRelated()->newQuery(), $this, $aggregate, $table . '.' . ($column ?? 'id')
+                    $relation->getRelated()->newQuery(),
+                    $this,
+                    $aggregate,
+                    $table . '.' . ($column ?? 'id')
                 );
 
                 $query->callScope($constraints);
@@ -104,25 +108,27 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                     $query->columns = [$query->columns[0]];
                 }
                 $columnAlias = new Expression("`" . collect([$relations, $column])->filter()->flatten()->join('.') . "`");
-
+                // dd($columnAlias);
                 $this->selectSub($query, $columnAlias);
             }
             // $this->groupIfNotGrouped($this->getModel()->getTable() . '.' . $this->getModel()->getKeyName());
             return $this;
         });
 
-        EloquentBuilder::macro('hasAggregate', function ($relation, $column, $aggregate, $operator = '>=', $count = 1)
-        {
+        EloquentBuilder::macro('hasAggregate', function ($relation, $column, $aggregate, $operator = '>=', $count = 1) {
             if (is_string($relation)) {
                 $relation = $this->getRelationWithoutConstraints($relation);
             }
 
             $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
-            ? $relation->getRelationCountHashWithoutIncrementing()
-            : $relation->getRelated()->getTable();
+                ? $relation->getRelationCountHashWithoutIncrementing()
+                : $relation->getRelated()->getTable();
 
             $hasQuery = $relation->getRelationExistenceAggregatesQuery(
-                $relation->getRelated()->newQueryWithoutRelationships(), $this, $aggregate, $table . '.' . $column
+                $relation->getRelated()->newQueryWithoutRelationships(),
+                $this,
+                $aggregate,
+                $table . '.' . $column
             );
 
             $hasQuery->mergeConstraintsFrom($relation->getQuery());
@@ -131,19 +137,22 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         });
     }
 
-    public function loadRelationMacros() {
+    public function loadRelationMacros()
+    {
         Relation::macro('getRelationExistenceAggregatesQuery', function (EloquentBuilder $query, EloquentBuilder $parentQuery, $aggregate, $column) {
             $expression = $aggregate === 'group_concat'
-                ? new Expression($aggregate."(distinct {$column} separator ', ')")
-                : new Expression($aggregate."({$column})");
+                ? new Expression($aggregate . "(distinct {$column} separator ', ')")
+                : new Expression($aggregate . "({$column})");
 
             return $this->getRelationExistenceQuery(
-                $query, $parentQuery, $expression
+                $query,
+                $parentQuery,
+                $expression
             )->setBindings([], 'select');
         });
 
         Relation::macro('getRelationCountHashWithoutIncrementing', function () {
-            return 'laravel_reserved_'.static::$selfJoinCount;
+            return 'laravel_reserved_' . static::$selfJoinCount;
         });
     }
 
