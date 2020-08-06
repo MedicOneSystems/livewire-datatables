@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
-use Mediconesystems\LivewireDatatables\DatatableQueryBuilder;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
@@ -27,9 +26,9 @@ use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
 class LivewireDatatable extends Component
 {
     use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters;
+
     const SEPARATOR = '|**lwdt**|';
     public $model;
-    protected $query;
     public $columns;
     public $search;
     public $sort;
@@ -52,7 +51,8 @@ class LivewireDatatable extends Component
     public $exportable;
     public $hideable;
     public $params;
-    public $ors;
+
+    protected $query;
 
     public function mount(
         $model = null,
@@ -77,8 +77,6 @@ class LivewireDatatable extends Component
         $this->params = $params;
 
         $this->columns = $this->freshColumns;
-
-        $this->query = $this->builder();
 
         $this->initialiseSort();
     }
@@ -107,9 +105,7 @@ class LivewireDatatable extends Component
             ->formatDates($this->dates)
             ->formatTimes($this->times)
             ->search($this->searchable)
-            ->sort($this->sort)
-            // ->processForBuilder($this->builder())
-        ;
+            ->sort($this->sort);
     }
 
     public function getSelectStatements($withAlias = false)
@@ -140,19 +136,15 @@ class LivewireDatatable extends Component
                 return $column;
             }
 
-
             if ($column->isBaseColumn()) {
                 $column->select = $this->query->getModel()->getTable() . '.' . ($column->base ?? $column->name);
             } else {
                 $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
             }
 
-
-
             if ($column->isEditable()) {
                 $column->select = [$column->select, $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName()];
             }
-
 
             return $column;
         })->filter(function ($column) {
@@ -191,7 +183,6 @@ class LivewireDatatable extends Component
 
     protected function joinEagerLoadedColumn($relation, $relationColumn, $aggregate = null)
     {
-        // dd($this->query);
         $table     = '';
         $model     = '';
         $lastQuery = $this->query;
@@ -208,9 +199,6 @@ class LivewireDatatable extends Component
                 case $model instanceof HasMany:
                     $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
                     $table = null;
-                    // $table     = $model->getRelated()->getTable();
-                    // $foreign   = $model->getQualifiedForeignKeyName();
-                    // $other     = $model->getQualifiedParentKeyName();
                     break;
 
                 case $model instanceof BelongsTo:
@@ -222,24 +210,10 @@ class LivewireDatatable extends Component
                 case $model instanceof BelongsToMany:
                     $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
                     $table = null;
-                    // $pivot   = $model->getTable();
-                    // $pivotPK = $model->getExistenceCompareKey();
-                    // $pivotFK = $model->getQualifiedParentKeyName();
-                    // $this->performJoin($pivot, $pivotPK, $pivotFK);
-
-                    // $related = $model->getRelated();
-                    // $table   = $related->getTable();
-                    // $tablePK = $related->getForeignKey();
-                    // $foreign = $pivot . '.' . $tablePK;
-                    // $other   = $related->getQualifiedKeyName();
-
-                    // $this->performJoin($table, $foreign, $other);
-                    // $this->query->groupBy($pivotFK);
-
                     break;
 
                 case $model instanceof HasOneThrough:
-                    $pivot    = explode('.', $model->getQualifiedParentKeyName())[0]; // extract pivot table from key
+                    $pivot    = explode('.', $model->getQualifiedParentKeyName())[0];
                     $pivotPK  = $pivot . '.' . $model->getLocalKeyName();
                     $pivotFK  = $model->getQualifiedLocalKeyName();
                     $this->performJoin($pivot, $pivotPK, $pivotFK);
@@ -249,35 +223,20 @@ class LivewireDatatable extends Component
                     $tablePK = $related->getForeignKey();
                     $foreign = $pivot . '.' . $tablePK;
                     $other   = $related->getQualifiedKeyName();
-
                     break;
 
-
-
-
-
-
                 default:
-                    // $this->query->withCount($relation);
                     $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
-                    // throw new Exception('Relation ' . get_class($model) . ' is not yet supported.');
             }
             if ($table) {
                 $this->performJoin($table, $foreign, $other);
             }
-            $lastQuery = $model->getQuery();
+            $lastQuery = $model->toBase();
         }
 
 
         if ($model instanceof HasOne || $model instanceof BelongsTo) {
             return $table . '.' . $relationColumn;
-
-            // if (count(collect($this->query->getQuery()->joins)->reject(function ($join) use ($model) {
-            //     return $join->table === $model->getRelated()->getTable();
-            // }))) {
-            //     $this->query->groupBy($model->getQualifiedParentKeyName());
-            //     return new Expression('max(' . $table . '.' . $relationColumn . ')');
-            // }
         }
 
         if ($model instanceof HasMany) {
@@ -285,11 +244,7 @@ class LivewireDatatable extends Component
         }
 
         if ($model instanceof BelongsToMany) {
-            return /* $aggregate
-                ? ($aggregate === 'group_concat'
-                    ? new Expression('group_concat(distinct ' . $table . '.' . $relationColumn . ' separator ", ")')
-                    : new Expression($aggregate . '(' . $table . '.' . $relationColumn . ')'))
-                : new Expression('count(' . $table . '.' . $relationColumn . ')') */;
+            return;
         }
     }
 
@@ -303,7 +258,6 @@ class LivewireDatatable extends Component
         if (!in_array($table, $joins)) {
             $this->query->join($table, $foreign, '=', $other, $type);
         }
-        // dd($this->query->toSql());
     }
 
     public function getFreshColumnsProperty()
@@ -508,31 +462,6 @@ class LivewireDatatable extends Component
         return collect($this->columns)->reject->hidden;
     }
 
-    // public function getSelectStatementFromName($name, $alias = false)
-    // {
-    //     if (Str::contains($name, '_count')) {
-    //         return $name;
-    //     }
-
-    //     if (Str::contains($column['name'], '.')) {
-    //         if (method_exists($this->builder()->getModel(), Str::before($column['name'], '.'))) {
-    //             $col = Str::before(Str::afterLast($column['name'], '.'), ':');
-
-    //             $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
-
-    //             if ($relation instanceof HasMany || $relation instanceof belongsToMany) {
-    //                 return false;
-    //             }
-
-    //             return $relation->getRelated()->getTable() . '.' . $col . ' AS ' . $column['name'];
-    //         }
-    //         return $column['name'] . ' AS ' . $column['name'];
-    //     }
-
-
-    //     return $this->builder()->getModel()->getTable() . '.' . $name;
-    // }
-
     public function getColumnField($index)
     {
         if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
@@ -547,29 +476,6 @@ class LivewireDatatable extends Component
             return [(string) $this->columns[$index]['sort']];
         }
         return [$this->freshColumns[$index]['select']];
-    }
-
-    public function addSelectFilters()
-    {
-        $this->query->where(function ($query) {
-            foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
-                $query->where(function ($query) use ($index, $activeSelectFilter) {
-                    foreach ($activeSelectFilter as $value) {
-                        if ($this->columnIsAggregateRelation($this->columns[$index])) {
-                            $this->addAggregateFilter($query, $index, $activeSelectFilter);
-                        } else {
-                            if (!$this->addScopeSelectFilter($query, $index, $value)) {
-                                $query->orWhere(function ($query) use ($value, $index) {
-                                    foreach ($this->getColumnField($index) as $column) {
-                                        $query->orWhere($column, $value);
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            }
-        });
     }
 
     public function addScopeSelectFilter($query, $index, $value)
@@ -590,46 +496,8 @@ class LivewireDatatable extends Component
         return $query->{$this->columns[$index]['scopeFilter']}($value);
     }
 
-    public function addBooleanFilters()
-    {
-        $this->query->where(function ($query) {
-            foreach ($this->activeBooleanFilters as $index => $value) {
-                if ($this->getColumnField($index) === 'scope') {
-                    $this->addScopeSelectFilter($query, $index, $value);
-                } else if ($value == 1) {
-                    $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
-                } else if (strlen($value)) {
-                    $query->whereNull(DB::raw($this->getColumnField($index)[0]))
-                        ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
-                }
-            }
-        });
-    }
-
-    public function addTextFilters()
-    {
-        $this->query->where(function ($query) {
-            foreach ($this->activeTextFilters as $index => $activeTextFilter) {
-                $query->where(function ($query) use ($index, $activeTextFilter) {
-                    foreach ($activeTextFilter as $value) {
-                        if ($this->columnIsRelation($this->columns[$index])) {
-                            $this->addAggregateFilter($query, $index, $activeTextFilter);
-                        } else {
-                            $query->orWhere(function ($query) use ($index, $value) {
-                                foreach ($this->getColumnField($index) as $column) {
-                                    $query->orWhereRaw("LOWER(" . $column . ") like ?", [strtolower("%$value%")]);
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        });
-    }
-
     public function addAggregateFilter($query, $index, $filter)
     {
-        // dd('yo');
         $column = $this->columns[$index];
         $relation = Str::before($column['name'], '.');
         $aggregate = $this->columnAggregateType($column);
@@ -648,59 +516,7 @@ class LivewireDatatable extends Component
         });
     }
 
-    public function addNumberFilters()
-    {
-        $this->query->where(function ($query) {
-            foreach ($this->activeNumberFilters as $index => $filter) {
-                if ($this->columnIsAggregateRelation($this->columns[$index])) {
-                    $this->addAggregateFilter($query, $index, $filter);
-                } else {
-                    $this->addScopeNumberFilter($query, $index, [
-                        isset($filter['start']) ? $filter['start'] : 0,
-                        isset($filter['end']) ? $filter['end'] : 9999999
-                    ])
-                        ?? $query->whereRaw($this->getColumnField($index)[0] . " BETWEEN ? AND ?", [
-                            isset($filter['start']) ? $filter['start'] : 0,
-                            isset($filter['end']) ? $filter['end'] : 9999999
-                        ]);
-                }
-            }
-        });
-    }
 
-    public function addDateRangeFilter()
-    {
-        $this->query->where(function ($query) {
-            foreach ($this->activeDateFilters as $index => $filter) {
-                if (!((isset($filter['start']) && $filter['start'] != '') || (isset($filter['end']) && $filter['end'] != ''))) {
-                    break;
-                }
-                $query->whereBetween($this->getColumnField($index)[0], [
-                    isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '0000-00-00',
-                    isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : now()->format('Y-m-d')
-                ]);
-            }
-        });
-    }
-
-    public function addTimeRangeFilter()
-    {
-        $this->query->where(function ($query) {
-            foreach ($this->activeTimeFilters as $index => $filter) {
-                $start = isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '00:00:00';
-                $end = isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : '23:59:59';
-
-                if ($end < $start) {
-                    $query->where(function ($subQuery) use ($index, $start, $end) {
-                        $subQuery->whereBetween($this->getColumnField($index)[0], [$start, '23:59'])
-                            ->orWhereBetween($this->getColumnField($index)[0], ['00:00', $end]);
-                    });
-                } else {
-                    $query->whereBetween($this->getColumnField($index)[0], [$start, $end]);
-                }
-            }
-        });
-    }
 
     public function searchableColumns()
     {
@@ -733,10 +549,8 @@ class LivewireDatatable extends Component
 
     public function getResultsProperty()
     {
-        $this->buildDatabaseQuery();
-
         return $this->mapCallbacks(
-            $this->query->toBase()->paginate($this->perPage)
+            $this->getQuery()->paginate($this->perPage)
         );
     }
 
@@ -798,53 +612,205 @@ class LivewireDatatable extends Component
 
         $this->query->addSelect($this->getSelectStatements(true)->toArray());
 
-        if ($this->search) {
-            $this->query->where(function ($query) {
-                foreach (explode(' ', $this->search) as $search) {
-                    $query->where(function ($query) use ($search) {
-                        $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
-                            $query->orWhere(function ($query) use ($i, $search) {
-                                foreach ($this->getColumnField($i) as $column) {
-                                    $query->orWhereRaw("LOWER(" . $column . ") like ?", "%$search%");
-                                }
-                            });
+        $this->addGlobalSearch()
+            ->addScopeColumns()
+            ->addSelectFilters()
+            ->addBooleanFilters()
+            ->addTextFilters()
+            ->addNumberFilters()
+            ->addDateRangeFilter()
+            ->addTimeRangeFilter()
+            ->addSort();
+    }
+
+    public function addGlobalSearch()
+    {
+        if (!$this->search) {
+            return $this;
+        }
+
+        $this->query->where(function ($query) {
+            foreach (explode(' ', $this->search) as $search) {
+                $query->where(function ($query) use ($search) {
+                    $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
+                        $query->orWhere(function ($query) use ($i, $search) {
+                            foreach ($this->getColumnField($i) as $column) {
+                                $query->orWhereRaw("LOWER(" . $column . ") like ?", "%$search%");
+                            }
                         });
                     });
+                });
+            }
+        });
+
+        return $this;
+    }
+
+    public function addScopeColumns()
+    {
+        $this->scopeColumns()->each(function ($column) {
+            $this->query->{$column['scope']}($column['label']);
+        });
+
+        return $this;
+    }
+
+    public function addSelectFilters()
+    {
+        if (count($this->activeSelectFilters) < 1) {
+            return $this;
+        }
+
+        $this->query->where(function ($query) {
+            foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
+                $query->where(function ($query) use ($index, $activeSelectFilter) {
+                    foreach ($activeSelectFilter as $value) {
+                        if ($this->columnIsAggregateRelation($this->columns[$index])) {
+                            $this->addAggregateFilter($query, $index, $activeSelectFilter);
+                        } else {
+                            if (!$this->addScopeSelectFilter($query, $index, $value)) {
+                                $query->orWhere(function ($query) use ($value, $index) {
+                                    foreach ($this->getColumnField($index) as $column) {
+                                        $query->orWhere($column, $value);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        return $this;
+    }
+
+    public function addBooleanFilters()
+    {
+        if (count($this->activeBooleanFilters) < 1) {
+            return $this;
+        }
+        $this->query->where(function ($query) {
+            foreach ($this->activeBooleanFilters as $index => $value) {
+                if ($this->getColumnField($index) === 'scope') {
+                    $this->addScopeSelectFilter($query, $index, $value);
+                } else if ($value == 1) {
+                    $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
+                } else if (strlen($value)) {
+                    $query->whereNull(DB::raw($this->getColumnField($index)[0]))
+                        ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
                 }
-            });
+            }
+        });
+
+        return $this;
+    }
+
+    public function addTextFilters()
+    {
+        if (!count($this->activeTextFilters)) {
+            return $this;
         }
 
-        if (count($this->scopeColumns())) {
-            $this->scopeColumns()->each(function ($column) {
-                $this->query->{$column['scope']}($column['label']);
-            });
+        $this->query->where(function ($query) {
+            foreach ($this->activeTextFilters as $index => $activeTextFilter) {
+                $query->where(function ($query) use ($index, $activeTextFilter) {
+                    foreach ($activeTextFilter as $value) {
+                        if ($this->columnIsRelation($this->columns[$index])) {
+                            $this->addAggregateFilter($query, $index, $activeTextFilter);
+                        } else {
+                            $query->orWhere(function ($query) use ($index, $value) {
+                                foreach ($this->getColumnField($index) as $column) {
+                                    $query->orWhereRaw("LOWER(" . $column . ") like ?", [strtolower("%$value%")]);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        return $this;
+    }
+
+    public function addNumberFilters()
+    {
+        if (!count($this->activeNumberFilters)) {
+            return $this;
         }
-        if (count($this->activeSelectFilters) > 0) {
-            $this->addSelectFilters();
-        }
-        if (count($this->activeBooleanFilters) > 0) {
-            $this->addBooleanFilters();
+        $this->query->where(function ($query) {
+            foreach ($this->activeNumberFilters as $index => $filter) {
+                if ($this->columnIsAggregateRelation($this->columns[$index])) {
+                    $this->addAggregateFilter($query, $index, $filter);
+                } else {
+                    $this->addScopeNumberFilter($query, $index, [
+                        isset($filter['start']) ? $filter['start'] : 0,
+                        isset($filter['end']) ? $filter['end'] : 9999999
+                    ])
+                        ?? $query->whereRaw($this->getColumnField($index)[0] . " BETWEEN ? AND ?", [
+                            isset($filter['start']) ? $filter['start'] : 0,
+                            isset($filter['end']) ? $filter['end'] : 9999999
+                        ]);
+                }
+            }
+        });
+
+        return $this;
+    }
+
+    public function addDateRangeFilter()
+    {
+        if (!count($this->activeDateFilters)) {
+            return $this;
         }
 
-        if (count($this->activeTextFilters) > 0) {
-            $this->addTextFilters();
+        $this->query->where(function ($query) {
+            foreach ($this->activeDateFilters as $index => $filter) {
+                if (!((isset($filter['start']) && $filter['start'] != '') || (isset($filter['end']) && $filter['end'] != ''))) {
+                    break;
+                }
+                $query->whereBetween($this->getColumnField($index)[0], [
+                    isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '0000-00-00',
+                    isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : now()->format('Y-m-d')
+                ]);
+            }
+        });
+
+        return $this;
+    }
+
+    public function addTimeRangeFilter()
+    {
+        if (!count($this->activeTimeFilters)) {
+            return $this;
         }
 
-        if (count($this->activeNumberFilters) > 0) {
-            $this->addNumberFilters();
-        }
+        $this->query->where(function ($query) {
+            foreach ($this->activeTimeFilters as $index => $filter) {
+                $start = isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '00:00:00';
+                $end = isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : '23:59:59';
 
-        if (count($this->activeDateFilters) > 0) {
-            $this->addDateRangeFilter();
-        }
+                if ($end < $start) {
+                    $query->where(function ($subQuery) use ($index, $start, $end) {
+                        $subQuery->whereBetween($this->getColumnField($index)[0], [$start, '23:59'])
+                            ->orWhereBetween($this->getColumnField($index)[0], ['00:00', $end]);
+                    });
+                } else {
+                    $query->whereBetween($this->getColumnField($index)[0], [$start, $end]);
+                }
+            }
+        });
 
-        if (count($this->activeTimeFilters) > 0) {
-            $this->addTimeRangeFilter();
-        }
+        return $this;
+    }
+
+    public function addSort()
+    {
         if (isset($this->sort)) {
             $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
         }
+
+        return $this;
     }
+
 
     public function getCallbacksProperty()
     {
@@ -919,15 +885,16 @@ class LivewireDatatable extends Component
     public function export()
     {
         $path = 'datatables/export-' . now()->timestamp . '.xlsx';
-        (new DatatableExport($this->buildDatabaseQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
+        (new DatatableExport($this->getQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
         Storage::setVisibility($path, 'public');
         $this->exportFile = $path;
         $this->emit('startDownload', $path);
+        $this->forgetComputed();
     }
 
     public function getQuery()
     {
         $this->buildDatabaseQuery();
-        return $this->query;
+        return $this->query->toBase();
     }
 }

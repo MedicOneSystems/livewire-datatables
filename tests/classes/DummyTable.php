@@ -39,6 +39,9 @@ class DummyTable extends LivewireDatatable
                 ->label('Expiry')
                 ->format('jS F Y')
                 ->hide(),
+
+            Column::name('dummy_has_one.name')
+                ->label('Relation'),
         ];
     }
 }

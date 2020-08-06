@@ -29,6 +29,7 @@ class LivewireDatatableClassTest extends TestCase
             3 => 'Body',
             4 => 'Flag',
             5 => 'Expiry',
+            6 => 'Relation',
         ], collect($subject->columns)->map->label->toArray());
     }
 

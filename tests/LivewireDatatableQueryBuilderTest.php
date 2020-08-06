@@ -10,21 +10,6 @@ use Mediconesystems\LivewireDatatables\Tests\Models\DummyBelongsToManyModel;
 
 class LivewireDatatableQueryBuilderTest extends TestCase
 {
-    // /** @test */
-    // public function it_creates_a_default_query_builder()
-    // {
-    //     $this->markTestSkipped();
-
-    //     factory(DummyModel::class)->create();
-
-    //     $subject = new LivewireDatatable(1);
-    //     $subject->mount(DummyModel::class);
-
-    //     // dd($subject->getQuery()->toSql());
-
-    //     $this->assertEquals('select "dummy_models"."id" as "id", "dummy_models"."relation_id" as "relation_id", "dummy_models"."subject" as "subject", "dummy_models"."category" as "category", "dummy_models"."body" as "body", "dummy_models"."flag" as "flag", "dummy_models"."expires_at" as "expires_at", "dummy_models"."created_at" as "created_at", "dummy_models"."updated_at" as "updated_at" from "dummy_models" order by `id` desc', $subject->getQuery()->toSql());
-    // }
-
     /** @test */
     public function it_creates_a_query_builder_for_base_columns()
     {
@@ -171,15 +156,15 @@ class LivewireDatatableQueryBuilderTest extends TestCase
         $subject = new LivewireDatatable(1);
         $subject->mount(DummyModel::class, ['id', 'dummy_belongs_to_many.name']);
 
-        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id") as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" order by `id` desc', $subject->getQuery()->toSql());
+        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id" and "dummy_belongs_to_many_models"."deleted_at" is null) as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" order by `id` desc', $subject->getQuery()->toSql());
 
         $subject->sort(1);
 
-        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id") as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" order by `dummy_belongs_to_many.name` desc', $subject->getQuery()->toSql());
+        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id" and "dummy_belongs_to_many_models"."deleted_at" is null) as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" order by `dummy_belongs_to_many.name` desc', $subject->getQuery()->toSql());
 
         $subject->sort(1);
 
-        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id") as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" order by `dummy_belongs_to_many.name` asc', $subject->getQuery()->toSql());
+        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id" and "dummy_belongs_to_many_models"."deleted_at" is null) as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" order by `dummy_belongs_to_many.name` asc', $subject->getQuery()->toSql());
     }
 
     /** @test */
@@ -192,6 +177,6 @@ class LivewireDatatableQueryBuilderTest extends TestCase
 
         $subject->doSelectFilter(1, 'Michael Scott');
 
-        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id") as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" where ((((select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id") like ?))) order by `id` desc', $subject->getQuery()->toSql());
+        $this->assertEquals('select (select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id" and "dummy_belongs_to_many_models"."deleted_at" is null) as `dummy_belongs_to_many.name`, "dummy_models"."id" as "id" from "dummy_models" where ((((select group_concat(distinct dummy_belongs_to_many_models.name separator \', \') from "dummy_belongs_to_many_models" inner join "dummy_belongs_to_many_model_dummy_model" on "dummy_belongs_to_many_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_belongs_to_many_model_id" where "dummy_models"."id" = "dummy_belongs_to_many_model_dummy_model"."dummy_model_id" and "dummy_belongs_to_many_models"."deleted_at" is null) like ?))) order by `id` desc', $subject->getQuery()->toSql());
     }
 }
