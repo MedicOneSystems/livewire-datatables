@@ -14,7 +14,6 @@ use Mediconesystems\LivewireDatatables\ColumnSet;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -74,6 +73,7 @@ class LivewireDatatable extends Component
             $this->$property = $this->$property ?? $$property;
         }
 
+
         $this->params = $params;
 
         $this->columns = $this->freshColumns;
@@ -110,6 +110,7 @@ class LivewireDatatable extends Component
 
     public function getSelectStatements($withAlias = false)
     {
+
         return $this->processedColumns->columns->reject(function ($column) {
             return $column->scope;
         })->map(function ($column) {
@@ -137,9 +138,9 @@ class LivewireDatatable extends Component
             }
 
             if ($column->isBaseColumn()) {
-                $column->select = $this->query->getModel()->getTable() . '.' . ($column->base ?? $column->name);
+                $column->select = $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
             } else {
-                $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
+                $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate,);
             }
 
             if ($column->isEditable()) {
@@ -147,11 +148,11 @@ class LivewireDatatable extends Component
             }
 
             return $column;
-        })->filter(function ($column) {
-            return $column->select;
         })->when($withAlias, function ($columns) {
             return $columns->map(function ($column) {
-
+                if (!$column->select) {
+                    return null;
+                }
                 if ($column->select instanceof Expression) {
                     return new Expression($column->select->getValue() . ' AS `' . $column->name . '`');
                 }
@@ -169,19 +170,21 @@ class LivewireDatatable extends Component
             });
         }, function ($columns) {
             return $columns->map->select;
-        })->flatten();
+        });
     }
 
     protected function resolveRelationColumn($name, $aggregate = null)
     {
-        $parts      = explode('.', $name);
+        $parts      = explode('.', Str::before($name, ':'));
         $columnName = array_pop($parts);
         $relation   = implode('.', $parts);
 
-        return $this->joinEagerLoadedColumn($relation, $columnName, $aggregate);
+        return  method_exists($this->query->getModel(), $parts[0])
+            ? $this->joinRelation($relation, $columnName, $aggregate, $name)
+            : $name;
     }
 
-    protected function joinEagerLoadedColumn($relation, $relationColumn, $aggregate = null)
+    protected function joinRelation($relation, $relationColumn, $aggregate = null, $alias = null)
     {
         $table     = '';
         $model     = '';
@@ -197,7 +200,7 @@ class LivewireDatatable extends Component
                     break;
 
                 case $model instanceof HasMany:
-                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
+                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
                     $table = null;
                     break;
 
@@ -208,13 +211,14 @@ class LivewireDatatable extends Component
                     break;
 
                 case $model instanceof BelongsToMany:
-                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
+                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
                     $table = null;
                     break;
 
                 case $model instanceof HasOneThrough:
                     $pivot    = explode('.', $model->getQualifiedParentKeyName())[0];
-                    $pivotPK  = $pivot . '.' . $model->getLocalKeyName();
+                    // $pivotPK  = $pivot . '.' . $model->getLocalKeyName();
+                    $pivotPK  = $model->getQualifiedFirstKeyName();
                     $pivotFK  = $model->getQualifiedLocalKeyName();
                     $this->performJoin($pivot, $pivotPK, $pivotFK);
 
@@ -223,19 +227,22 @@ class LivewireDatatable extends Component
                     $tablePK = $related->getForeignKey();
                     $foreign = $pivot . '.' . $tablePK;
                     $other   = $related->getQualifiedKeyName();
+
+                    // dd($model, $pivot, $pivotPK, $pivotFK, $related, $table, $tablePK, $foreign, $other);
+
                     break;
 
                 default:
-                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn);
+                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
             }
             if ($table) {
                 $this->performJoin($table, $foreign, $other);
             }
-            $lastQuery = $model->toBase();
+            $lastQuery = $model->getQuery();
         }
 
 
-        if ($model instanceof HasOne || $model instanceof BelongsTo) {
+        if ($model instanceof HasOne || $model instanceof BelongsTo || $model instanceof HasOneThrough) {
             return $table . '.' . $relationColumn;
         }
 
@@ -299,6 +306,10 @@ class LivewireDatatable extends Component
 
             case $column['base']:
                 return $column['base'];
+                break;
+
+            case is_array($column['select']):
+                return Str::before($column['select'][0], ' AS ');
                 break;
 
             case $column['select']:
@@ -464,9 +475,10 @@ class LivewireDatatable extends Component
 
     public function getColumnField($index)
     {
-        if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
-            return $this->columns[$index]['additionalSelects'];
-        }
+        // dd($index, $this->columns[$index], $this->getSelectStatements()[$index]);
+        // if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
+        //     return $this->columns[$index]['additionalSelects'];
+        // }
 
         if ($this->columns[$index]['scope']) {
             return 'scope';
@@ -475,7 +487,7 @@ class LivewireDatatable extends Component
         if ($this->columns[$index]['raw']) {
             return [(string) $this->columns[$index]['sort']];
         }
-        return [$this->freshColumns[$index]['select']];
+        return [$this->getSelectStatements()[$index]];
     }
 
     public function addScopeSelectFilter($query, $index, $value)
@@ -501,9 +513,17 @@ class LivewireDatatable extends Component
         $column = $this->columns[$index];
         $relation = Str::before($column['name'], '.');
         $aggregate = $this->columnAggregateType($column);
-        $field = explode('.', $column['name'])[1];
+        $field = Str::before(explode('.', $column['name'])[1], ':');
 
-        $query->when($aggregate === 'group_concat' && count($filter), function ($query) use ($filter, $relation, $field, $aggregate) {
+        $query->when($column['type'] === 'boolean', function ($query) use ($filter, $relation, $field, $aggregate) {
+            $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
+                if ($filter) {
+                    $query->hasAggregate($relation, $field, $aggregate);
+                } else {
+                    $query->hasAggregate($relation, $field, $aggregate, '<');
+                }
+            });
+        })->when($aggregate === 'group_concat' && count($filter), function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
                 foreach ($filter as $value) {
                     $query->hasAggregate($relation, $field, $aggregate, 'like', '%' . $value . '%');
@@ -595,7 +615,7 @@ class LivewireDatatable extends Component
             return;
         }
         $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
-        return $relation instanceof HasOne || $relation instanceof HasManyThrough || $relation instanceof HasMany || $relation instanceof belongsToMany;
+        return /* $relation instanceof HasOne || */ $relation instanceof HasManyThrough || $relation instanceof HasMany || $relation instanceof belongsToMany;
     }
 
 
@@ -609,8 +629,7 @@ class LivewireDatatable extends Component
     public function buildDatabaseQuery()
     {
         $this->query = $this->builder();
-
-        $this->query->addSelect($this->getSelectStatements(true)->toArray());
+        $this->query->addSelect($this->getSelectStatements(true)->filter()->flatten()->toArray());
 
         $this->addGlobalSearch()
             ->addScopeColumns()
@@ -692,7 +711,10 @@ class LivewireDatatable extends Component
             foreach ($this->activeBooleanFilters as $index => $value) {
                 if ($this->getColumnField($index) === 'scope') {
                     $this->addScopeSelectFilter($query, $index, $value);
+                } else if ($this->columnIsAggregateRelation($this->columns[$index])) {
+                    $this->addAggregateFilter($query, $index, $value);
                 } else if ($value == 1) {
+                    // dd($index);
                     $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
                 } else if (strlen($value)) {
                     $query->whereNull(DB::raw($this->getColumnField($index)[0]))
@@ -719,6 +741,7 @@ class LivewireDatatable extends Component
                         } else {
                             $query->orWhere(function ($query) use ($index, $value) {
                                 foreach ($this->getColumnField($index) as $column) {
+                                    $column = is_array($column) ? $column[0] : $column;
                                     $query->orWhereRaw("LOWER(" . $column . ") like ?", [strtolower("%$value%")]);
                                 }
                             });
@@ -842,7 +865,7 @@ class LivewireDatatable extends Component
                 } else if (isset($this->callbacks[$name]) && is_string($this->callbacks[$name])) {
                     $row->$name = $this->{$this->callbacks[$name]}($value, $row);
                 } else if (Str::startsWith($name, 'callback_')) {
-                    $row->$name = $this->callbacks[$name](...explode(ColumnSet::SEPARATOR, $value));
+                    $row->$name = $this->callbacks[$name](...explode(static::SEPARATOR, $value));
                 } else if (isset($this->callbacks[$name]) && is_callable($this->callbacks[$name])) {
                     $row->$name = $this->callbacks[$name]($value, $row);
                 }

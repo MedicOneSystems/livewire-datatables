@@ -13,8 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ColumnSet
 {
-    const SEPARATOR = '|**lwdt**|';
-
     public $columns;
 
     public function __construct(Collection $columns)

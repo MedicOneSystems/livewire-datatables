@@ -4,8 +4,6 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Column
 {
@@ -31,7 +29,7 @@ class Column
     public static function name($name)
     {
         $column = new static;
-        $column->name = Str::before($name, ':');
+        $column->name = $name;
         $column->aggregate = Str::contains($name, ':') ? Str::after($name, ':') : $column->aggregate();
         $column->label = (string) Str::of($name)->after('.')->ucfirst();
 
