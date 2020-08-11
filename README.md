@@ -64,11 +64,11 @@ This will enable you to modify the blade views and apply your own styling, the d
 |**model**|*String* full model name|Define the base model for the table| ```model="App\Post"```|
 |**include**|*String\|Array* of column definitions|specify columns to be shown in table, label can be specified by using \| delimter | ```include="name, email, dob|Birth Date, role"```|
 |**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exlcude="['created_at', 'updated_at']"```|
-|**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```:hidden="email_verified_at"```|
-|**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob\|lS F y', 'created_at']"```|
-|**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime\|g:i A'```|
+|**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```hidden="email_verified_at"```|
+|**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob|lS F y', 'created_at']"```|
+|**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime|g:i A'```|
 |**searchable**|*String\|Array* of column names | Defines columns to be included in global search | ```searchable="name, email"```|
-|**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name\|asc"```|
+|**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name|asc"```|
 |**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
 |**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
 |**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
@@ -89,14 +89,14 @@ To get full control over your datatable:
 
 - Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
 > ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
-- Declare a public method ```columns``` that returns a ```Mediconesystems\LivewireDatatables\Columnset``` containing one or more ```Mediconesystems\LivewireDatatables\Column```
+- Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
 - Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
-There are different types of Column, using the correct one for your datatype will enable type-specific formatting and filtering:
+There are additional specific types of Column; ```NumberColumn```, ```DateColumn```, ```TimeColumn```, using the correct one for your datatype will enable type-specific formatting and filtering:
 
 | Class | Description |
 |---|---|
 |Column|Generic string-based column. Filter will be a text input|
-|NumericColumn| Number-based column. Filters will be a numeric range|
+|NumberColumn| Number-based column. Filters will be a numeric range|
 |BooleanColumn| Values will be automatically formatted to a yes/no icon, filters will be yes/no|
 |DateColumn| Values will be automatically formatted to the default date format. Filters will be a date range|
 |TimeColumn| Values will be automatically formatted to the default time format. Filters will be a time range|
@@ -107,33 +107,32 @@ class ComplexDemoTable extends LivewireDatatable
 
     public function builder()
     {
-        return User::query()
-            ->leftJoin('planets', 'planets.id', 'users.planet_id');
+        return User::query();
     }
 
     public function columns()
     {
         return Columnset::fromArray([
-            NumericColumn::name('users.id')
+            NumberColumn::name('id')
                 ->label('ID')
                 ->linkTo('job', 6),
 
-            BooleanColumn::name('users.email_verified_at')
+            BooleanColumn::name('email_verified_at')
                 ->label('Email Verified')
                 ->format()
                 ->filterable(),
 
-            Column::name('users.name')
+            Column::name('name')
                 ->defaultSort('asc')
                 ->searchable()
                 ->filterable(),
 
-            Column::name('planets.name')
+            Column::name('planet.name')
                 ->label('Planet')
                 ->searchable()
                 ->filterable($this->planets),
 
-            DateColumn::name('users.dob')
+            DateColumn::name('dob')
                 ->label('DOB')
                 ->filterable()
                 ->hide()
@@ -145,7 +144,7 @@ class ComplexDemoTable extends LivewireDatatable
 ### Column Methods
 | Method | Arguments | Result | Example |
 |----|----|----|----|
-|_static_ **name**| *String* $column |Builds a column from column definition|```Column::name('name')```|
+|_static_ **name**| *String* $column |Builds a column from column definition, which can be eith Eloquent or SQL dot notation (see below) |```Column::name('name')```|
 |_static_ **raw**| *String* $rawSqlStatement|Builds a column from raw SQL statement. Must include "... AS _alias_"|```Column::raw("CONCAT(ROUND(DATEDIFF(NOW(), users.dob) / planets.orbital_period, 1) AS `Native Age`")```|
 |_static_ **callback**|*Array\|String* $columns, *Closure\|String* $callback| Passes the columns from the first argument into the callback to allow custom mutations. The callback can be a method on the table class, or inline | _(see below)_|
 |_static_ **scope**|*String* $scope, *String* $alias|Builds a column from a scope on the parent model|```Column::scope('selectLastLogin', 'Last Login')```|
@@ -162,11 +161,54 @@ class ComplexDemoTable extends LivewireDatatable
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
 
+### Eloquent Column Names
+Columns from Eloquent relations can be included using the normal eloquent dot notation, eg. ```planet.name```, Livewire Datatables will automatically add the necessary table joins to include the column. If the relationship is of a 'many' type (```HasMany```, ```BelongsToMany```, ```HasManyThrough```) then Livewire Datatables will create an aggregated subquery (which is much more efficient than a join and group. Thanks [@reinink](https://eloquent-course.reinink.ca/)). By default, the aggregate type will be ```count``` for a numeric column and ```group_concat``` for a string column, but this can be over-ridden using a colon delimeter;
+
+```php
+NumberColumn::name('students.age:sum')->label('Student Sum'),
+
+NumberColumn::name('students.age:avg')->label('Student Avg'),
+
+NumberColumn::name('students.age:min')->label('Student Min'),
+
+NumberColumn::name('students.age:max')->label('Student Max'),
+```
+
+### Custom column names
+It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
+
+```php
+
+public function builder()
+{
+    return User::query()
+        ->leftJoin('planets', 'planets.id', 'users.planet_id')
+        ->leftJoin('moons', 'moons.id', 'planets.moon_id')
+        ->groupBy('users.id');
+}
+
+public function columns()
+{
+    return [
+        NumberColumn::name('id')
+            ->filterable(),
+
+        Column::name('planets.name')
+            ->label('Planet'),
+
+        Column::raw('GROUP_CONCAT(planets.name SEPARATOR " | ") AS `Moon`'),
+
+        ...
+}
+
+```
+
 
 ### Callbacks
 Callbacks give you the freedom to perform any mutations you like on the data before displaying in the table.
 - The callbacks are performed on the paginated results of the database query, so shouldn't use a ton of memory
 - Callbacks will receive the chosen columns as their arguments.
+- Callbacks can be defined inline as below, or as public methods on the Datatable class, referenced by passing the name as a string as the second argument to the callback method.
 
 ```php
 class CallbackDemoTable extends LivewireDatatable
@@ -175,21 +217,19 @@ class CallbackDemoTable extends LivewireDatatable
 
     public function columns()
     {
-        return Columnset::fromArray([
+        return [
             Column::name('users.id'),
 
             Column::name('users.dob')->format(),
 
-            Column::callback(['dob', 'signup_date'], 'ageAtSignup'),
-        ]);
-    }
+            Column::callback(['dob', 'signup_date'], function ($dob, $signupDate) {
+                $age = $signupDate->diffInYears($dob);
+                return $age > 18
+                    ? '<span class="text-red-500">' . $age . '</span>'
+                    : $age;
+            }),
 
-    public function ageAtSignup($dob, $signupDate)
-    {
-        $age = $signupDate->diffInYears($dob);
-        return age > 18
-            ? '<span class="text-red-500">' .$age . '</span>'
-            : $age;
+            ...
     }
 }
 ```
@@ -245,12 +285,17 @@ class EditableTable extends LivewireDatatable
         ]);
     }
 }
-````
+```
 
-## Credits
+### Styling
+I know it's not cool to provide a package with tons of opionated markup and styling. Most other packages seem to have gone down the route of passing optional classes around as arguments or config variables. My take is that because this is just blade with tailwind, you can publish the templates and do whatever you like to them - it should be obvious where the Livewire and Alpine moving parts are.
+
+
+## Credits and Influences
 - [Laravel](https://laravel.com/)
 - [Laravel Livewire](https://laravel-livewire.com/docs/quickstart/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [AlpineJS](https://github.com/alpinejs/alpine)
 - [livewire-tables by coryrose1](https://github.com/coryrose1/livewire-tables)
 - [laravel-livewire-datatables by kdion4891](https://github.com/kdion4891/laravel-livewire-tables)
+- [Jonathan Reinink\'s Eloquent course](https://eloquent-course.reinink.ca/)

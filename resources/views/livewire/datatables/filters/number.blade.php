@@ -2,8 +2,9 @@
     <div x-data class="relative flex">
         <input
             x-ref="input"
-            wire:change="doNumberFilterStart('{{ $index }}', $event.target.value)"
-            class="m-1 text-sm leading-4 flex-grow form-input"
+            type="number"
+            wire:input.debounce.500ms="doNumberFilterStart('{{ $index }}', $event.target.value)"
+            class="m-1 pr-6 text-sm leading-4 flex-grow form-input"
             placeholder="MIN"
         />
         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
@@ -16,8 +17,9 @@
     <div x-data class="relative flex">
         <input
             x-ref="input"
-            wire:change="doNumberFilterEnd('{{ $index }}', $event.target.value)"
-            class="m-1 text-sm leading-4 flex-grow form-input"
+            type="number"
+            wire:input.debounce.500ms="doNumberFilterEnd('{{ $index }}', $event.target.value)"
+            class="m-1 pr-6 text-sm leading-4 flex-grow form-input"
             placeholder="MAX"
         />
         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">

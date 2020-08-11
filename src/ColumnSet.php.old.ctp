@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ColumnSet
 {
+
+
     public $columns;
 
     public function __construct(Collection $columns)
@@ -154,5 +156,73 @@ class ColumnSet
     public function columnsArray()
     {
         return $this->columns()->map->toArray()->toArray();
+    }
+
+    public function processForBuilder($builder)
+    {
+        $this->columns = $this->columns->map(function ($column) use ($builder) {
+
+            foreach (array_merge([$column->base ?? $column->name], $column->additionalSelects) as $name) {
+
+                if (!Str::contains($name, '.')) {
+                    if (!Str::startsWith($name, 'callback_')) {
+                        $selects[] = $builder->getModel()->getTable() . '.' . $name;
+                        if ($column->isEditable()) {
+                            $selects[] = $builder->getModel()->getTable() . '.' . $builder->getModel()->getKeyName() . ' AS ' . $builder->getModel()->getTable() . '.' . $builder->getModel()->getKeyName();
+                        }
+                    }
+                }
+
+                $parent = $builder;
+                foreach (explode('.', Str::beforeLast($name, '.')) as $join) {
+
+                    if (method_exists($parent->getModel(), $join)) {
+                        $relation = $parent->getRelation($join);
+                        // dump($parent, $join, $relation);
+                        if ($relation instanceof HasOne || $relation instanceof BelongsTo) {
+                            $column->joins[] = [
+                                $relation->getRelated()->getTable(),
+                                $relation instanceof HasOne ? $relation->getQualifiedForeignKeyName() : $relation->getQualifiedOwnerKeyName(),
+                                $relation instanceof HasOne ? $relation->getQualifiedParentKeyName() : $relation->getQualifiedForeignKeyName()
+                            ];
+
+                            $parent = $relation;
+
+                            $selects = [$parent->getRelated()->getTable() . '.' . Str::afterLast($name, '.') . ($name === $column->name
+                                ? ' AS ' . $name
+                                : '')];
+                        }
+
+                        if ($relation instanceof HasMany || $relation instanceof BelongsToMany) {
+                            $name = explode('.', $name);
+                            $column->aggregates[] = [$name[0], $column->aggregate(), $name[1]];
+                        }
+                    }
+                }
+            }
+
+            if (count($selects) > 1) {
+                if ($column->callback && !$column->isEditable()) {
+
+                    $column->additionalSelects = [];
+                    $column->select = DB::raw('CONCAT_WS("' . static::SEPARATOR . '" ,' .
+                        collect($selects)->map(function ($select) {
+                            return "COALESCE($select, '')";
+                        })->join(', ') . ')' . ' AS  `' . $column->name . '`');
+                } else {
+                    $column->select = array_shift($selects);
+                    $column->additionalSelects = $selects;
+                }
+            } else if (count($selects)) {
+                foreach ($selects as $select) {
+                    $column->select = $select . ($column->callback ? ' AS  ' . $column->name : '');
+                }
+            }
+
+            return $column;
+        });
+
+        // dd($this->columns);
+        return $this;
     }
 }

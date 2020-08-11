@@ -5,6 +5,7 @@ namespace Mediconesystems\LivewireDatatables\Tests;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\View;
 use Livewire\LivewireServiceProvider;
+use Maatwebsite\Excel\ExcelServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider;
 
@@ -23,7 +24,8 @@ class TestCase extends Orchestra
     {
         return [
             LivewireServiceProvider::class,
-            LivewireDatatablesServiceProvider::class
+            LivewireDatatablesServiceProvider::class,
+            ExcelServiceProvider::class
         ];
     }
 

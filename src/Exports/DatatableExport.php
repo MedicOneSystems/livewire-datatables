@@ -24,6 +24,6 @@ class DatatableExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        return array_keys($this->collection->first()->getAttributes());
+        return array_keys((array) $this->collection->first());
     }
 }

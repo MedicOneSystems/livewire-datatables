@@ -21,14 +21,13 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'Id',
-            1 => 'Relation_id',
-            2 => 'Subject',
-            3 => 'Category',
-            4 => 'Body',
-            5 => 'Flag',
-            6 => 'Expires_at',
-            7 => 'Created_at',
-            8 => 'Updated_at'
+            1 => 'Subject',
+            2 => 'Category',
+            3 => 'Body',
+            4 => 'Flag',
+            5 => 'Expires_at',
+            6 => 'Created_at',
+            7 => 'Updated_at'
         ], collect($subject->columns)->map->label->toArray());
     }
 
@@ -94,19 +93,18 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'exclude' => ['relation_id']
+            'exclude' => ['subject']
         ]);
 
         $this->assertIsArray($subject->columns);
         $this->assertEquals([
             0 => 'Id',
-            2 => 'Subject',
-            3 => 'Category',
-            4 => 'Body',
-            5 => 'Flag',
-            6 => 'Expires_at',
-            7 => 'Created_at',
-            8 => 'Updated_at'
+            2 => 'Category',
+            3 => 'Body',
+            4 => 'Flag',
+            5 => 'Expires_at',
+            6 => 'Created_at',
+            7 => 'Updated_at'
         ], collect($subject->columns)->map->label->toArray());
     }
 
@@ -121,7 +119,7 @@ class LivewireDatatableTemplateTest extends TestCase
         ])->assertDontSee('HIDE-THIS');
 
         $this->assertIsArray($subject->columns);
-        $this->assertCount(9, $subject->columns);
+        $this->assertCount(8, $subject->columns);
     }
 
     /** @test */
@@ -168,7 +166,7 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
         $this->assertIsArray($subject->columns);
 
-        $this->assertEquals(2, $subject->sort);
+        $this->assertEquals(1, $subject->sort);
         $this->assertTrue($subject->direction);
     }
 }
