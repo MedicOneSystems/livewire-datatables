@@ -110,7 +110,6 @@ class LivewireDatatable extends Component
 
     public function getSelectStatements($withAlias = false)
     {
-
         return $this->processedColumns->columns->reject(function ($column) {
             return $column->scope;
         })->map(function ($column) {
@@ -140,7 +139,7 @@ class LivewireDatatable extends Component
             if ($column->isBaseColumn()) {
                 $column->select = $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
             } else {
-                $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate,);
+                $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
             }
 
             if ($column->isEditable()) {
@@ -163,7 +162,7 @@ class LivewireDatatable extends Component
                     $others = array_map(function ($select) {
                         return $select . ' AS ' . $select;
                     }, $selects);
-                    return array_merge([$first],  $others);
+                    return array_merge([$first], $others);
                 }
 
                 return $column->select . ' AS ' . $column->name;
@@ -320,6 +319,11 @@ class LivewireDatatable extends Component
                 return new Expression("`" . $column['name'] . "`");
                 break;
         }
+    }
+
+    public function updatingPerPage()
+    {
+        $this->page = 1;
     }
 
     public function sort($index)
@@ -711,12 +715,12 @@ class LivewireDatatable extends Component
             foreach ($this->activeBooleanFilters as $index => $value) {
                 if ($this->getColumnField($index) === 'scope') {
                     $this->addScopeSelectFilter($query, $index, $value);
-                } else if ($this->columnIsAggregateRelation($this->columns[$index])) {
+                } elseif ($this->columnIsAggregateRelation($this->columns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
-                } else if ($value == 1) {
+                } elseif ($value == 1) {
                     // dd($index);
                     $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
-                } else if (strlen($value)) {
+                } elseif (strlen($value)) {
                     $query->whereNull(DB::raw($this->getColumnField($index)[0]))
                         ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
                 }
@@ -862,11 +866,11 @@ class LivewireDatatable extends Component
                         'column' => Str::after($name, '.'),
                         'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()},
                     ]);
-                } else if (isset($this->callbacks[$name]) && is_string($this->callbacks[$name])) {
+                } elseif (isset($this->callbacks[$name]) && is_string($this->callbacks[$name])) {
                     $row->$name = $this->{$this->callbacks[$name]}($value, $row);
-                } else if (Str::startsWith($name, 'callback_')) {
+                } elseif (Str::startsWith($name, 'callback_')) {
                     $row->$name = $this->callbacks[$name](...explode(static::SEPARATOR, $value));
-                } else if (isset($this->callbacks[$name]) && is_callable($this->callbacks[$name])) {
+                } elseif (isset($this->callbacks[$name]) && is_callable($this->callbacks[$name])) {
                     $row->$name = $this->callbacks[$name]($value, $row);
                 }
 

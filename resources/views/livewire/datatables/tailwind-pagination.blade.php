@@ -15,24 +15,19 @@
     <div class="divide-x divide-gray-300">
         @foreach ($elements as $element)
         @if (is_string($element))
-        <button
-            class="-ml-px relative inline-flex items-center px-4 py-2 bg-white text-sm leading-5 font-medium text-gray-700"
-            disabled><span>{{ $element }}</span></button>
+        <button class="-ml-px relative inline-flex items-center px-4 py-2 bg-white text-sm leading-5 font-medium text-gray-700" disabled>
+            <span>{{ $element }}</span>
+        </button>
         @endif
 
         <!-- Array Of Links -->
 
         @if (is_array($element))
         @foreach ($element as $page => $url)
-        @if ($page == $paginator->currentPage())
-        <button
-            class="-ml-px relative inline-flex items-center px-4 py-2 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"><span>{{ $page }}</span></button>
-        @else
         <button wire:click="gotoPage({{ $page }})"
-            class="-ml-px relative inline-flex items-center px-4 py-2 bg-white text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150">
+                class="-mx-1 relative inline-flex items-center px-4 py-2 text-sm leading-5 font-medium text-gray-700 hover:text-gray-500 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150 {{ $page === $paginator->currentPage() ? 'bg-gray-200' : 'bg-white' }}">
             {{ $page }}
-        </button>
-        @endif
+            </button>
         @endforeach
         @endif
         @endforeach
