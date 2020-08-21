@@ -5,7 +5,7 @@
 
 ### Features
 - Use a model or query builder to supply data
-- Mutate and format columns using preset or cutom callbacks
+- Mutate and format columns using preset or custom callbacks
 - Sort data using column or computed column
 - Filter using booleans, times, dates, selects or free text
 - Show / hide columns
