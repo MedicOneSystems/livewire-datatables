@@ -915,7 +915,7 @@ class LivewireDatatable extends Component
         (new DatatableExport($this->getQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
         Storage::setVisibility($path, 'public');
         $this->exportFile = $path;
-        $this->emit('startDownload', $path);
+        $this->emit('startDownload', url($path));
         $this->forgetComputed();
     }
 
