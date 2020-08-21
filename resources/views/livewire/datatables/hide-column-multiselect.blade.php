@@ -5,11 +5,11 @@
                 Show / Hide Columns
             </div>
         </button>
-        <div x-show="show" x-on:click.away="show = false" class="z-50 absolute mt-1 shadow-2xl top-100 bg-white z-40 w-96 right-0 rounded max-h-select overflow-y-auto" x-cloak>
+        <div x-show="show" x-on:click.away="show = false" class="z-50 absolute mt-16 -mr-4 shadow-2xl top-100 bg-white z-40 w-96 right-0 rounded max-h-select overflow-y-auto" x-cloak>
             <div class="flex flex-col w-full">
                 @foreach($this->columns as $index => $column)
                 <div>
-                    <div class="@unless($column['hidden']) hidden @endif cursor-pointer w-full border-gray-800 border-b bg-gray-700 text-gray-400 hover:bg-blue-600 hover:text-white" wire:click="toggle({{$index}})">
+                    <div class="@unless($column['hidden']) hidden @endif cursor-pointer w-full border-gray-800 border-b bg-gray-700 text-gray-500 hover:bg-blue-600 hover:text-white" wire:click="toggle({{$index}})">
                         <div class="relative flex w-full items-center p-2 group">
                             <div class=" w-full items-center flex">
                                 <div class="mx-2 leading-6">{{ $column['label'] }}</div>

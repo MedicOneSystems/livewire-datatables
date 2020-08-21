@@ -73,25 +73,29 @@ This will enable you to modify the blade views and apply your own styling, the d
 |**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
 |**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
 |**exportable**|*Boolean*  default: *false*|Allows tabel to bbe exported| ```<livewire:datatable model="App/Post" exportable />``` |
-
+|**hideable**| _String_ | gives ability to show/hide columns, accepts strings 'inline', 'buttons', or 'select'| ```<livewire:datatable model="App/Post" hideable="inline" />``` |
 
 ---
 
 
 ## Component Syntax
 
-To get full control over your datatable:
-
-- create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
+### Preate a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
 > ```php artisan livewire:datatable foo``` --> 'app/Http/Livewire/Foo.php'
 
 > ```php artisan livewire:datatable tables.bar``` --> 'app/Http/Livewire/Tables/Bar.php'
 
-- Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
+### Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
 > ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
-- Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
-- Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
+
+
+### Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
+
+
+## Columns
+Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
 There are additional specific types of Column; ```NumberColumn```, ```DateColumn```, ```TimeColumn```, using the correct one for your datatype will enable type-specific formatting and filtering:
+
 
 | Class | Description |
 |---|---|
@@ -287,8 +291,10 @@ class EditableTable extends LivewireDatatable
 }
 ```
 
-### Styling
+## Styling
 I know it's not cool to provide a package with tons of opionated markup and styling. Most other packages seem to have gone down the route of passing optional classes around as arguments or config variables. My take is that because this is just blade with tailwind, you can publish the templates and do whatever you like to them - it should be obvious where the Livewire and Alpine moving parts are.
+
+You could also override the render method in your table's class to provide different templates for different tables.
 
 
 ## Credits and Influences

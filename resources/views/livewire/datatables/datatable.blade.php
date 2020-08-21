@@ -21,7 +21,7 @@
         </div>
 
         <div class="flex items-center space-x-1">
-            <x-icons.cog wire:loading class="h-9 w-9 spinner text-gray-400" />
+            <x-icons.cog wire:loading class="h-9 w-9 animate-spin text-gray-400" />
 
             @if($exportable)
             <div x-data="{ init() {

@@ -11,7 +11,6 @@
             <x-icons.chevron-down wire:loading.remove class="h-6 w-6 text-green-600 stroke-current" />
             @endif
             @endif
-            <x-icons.cog wire:loading class="h-9 w-9 animate-spin text-gray-400" />
         </span>
     </button>
 </div>
