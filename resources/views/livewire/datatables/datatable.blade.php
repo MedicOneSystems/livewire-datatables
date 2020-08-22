@@ -93,16 +93,13 @@
                 @foreach($this->results as $result)
                 <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
                     @foreach($this->columns as $column)
-                    @if($column['hidden'])
-                    @if($hideable === 'inline')
-                    <div class="table-cell w-5 overflow-hidden align-top">
-                    </div>
-                    @endif
-                    @else
-                    <div class="px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900 @if($column['align'] !== 'left') flex @if($column['align'] === 'right') justify-end @else justify-center @endif @else table-cell @endif">
-                        {!! $result->{$column['name']} !!}
-                    </div>
-                    @endif
+                        @if($column['hidden'])
+                            @if($hideable === 'inline')
+                            <div class="table-cell w-5 overflow-hidden align-top"></div>
+                            @endif
+                        @else
+                            <div class="px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900 table-cell @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif">{!! $result->{$column['name']} !!}</div>
+                        @endif
                     @endforeach
                 </div>
                 @endforeach
