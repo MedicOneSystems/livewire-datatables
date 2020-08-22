@@ -52,6 +52,7 @@ class LivewireDatatable extends Component
     public $params;
 
     protected $query;
+    protected $listeners = ['refreshLivewireDatatable'];
 
     public function mount(
         $model = null,
@@ -73,7 +74,6 @@ class LivewireDatatable extends Component
             $this->$property = $this->$property ?? $$property;
         }
 
-
         $this->params = $params;
 
         $this->columns = $this->freshColumns;
@@ -94,6 +94,11 @@ class LivewireDatatable extends Component
     public function builder()
     {
         return $this->model::query();
+    }
+
+    public function delete($id)
+    {
+        $this->model::destroy($id);
     }
 
     public function getProcessedColumnsProperty()
@@ -322,6 +327,11 @@ class LivewireDatatable extends Component
     }
 
     public function updatingPerPage()
+    {
+        $this->refreshLivewireDatatable();
+    }
+
+    public function refreshLivewireDatatable()
     {
         $this->page = 1;
     }

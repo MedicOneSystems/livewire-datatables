@@ -27,6 +27,16 @@ class ColumnTest extends TestCase
         $this->assertEquals('Alias', $subject->label);
     }
 
+    /** @test */
+    public function it_can_generate_a_delete_column()
+    {
+        $subject = Column::delete();
+
+        $this->assertEquals(['id'], $subject->additionalSelects);
+        $this->assertEquals('', $subject->label);
+        $this->assertIsCallable($subject->callback);
+    }
+
     /**
      * @test
      * @dataProvider settersDataProvider
@@ -48,27 +58,6 @@ class ColumnTest extends TestCase
             ['additionalSelects', ['hello world'], 'additionalSelects'],
         ];
     }
-
-    // /**
-    //  * @test
-    //  * @dataProvider presetCallbacksDataProvider
-    //  */
-    // public function it_sets_preset_callbacks($method, $value, $attribute)
-    // {
-    //     $subject = DateColumn::name('table.column')->$method(...$value);
-
-    //     $this->assertEquals($value, $subject->$attribute);
-    // }
-
-    // public function presetCallbacksDataProvider()
-    // {
-    //     return [
-    //         ['linkTo', ['model', 'pad'], 'params'],
-    //         ['format', ['d/m/Y'], 'params'],
-    //         ['round', [2], 'params'],
-    //         ['truncate', [2], 'params'],
-    //     ];
-    // }
 
     /** @test */
     public function it_returns_an_array_from_column()
@@ -100,7 +89,8 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => null,
             'joins' => null,
-            'aggregate' => 'group_concat'
+            'aggregate' => 'group_concat',
+            'align' => 'left'
         ], $subject);
     }
 
@@ -132,7 +122,8 @@ class ColumnTest extends TestCase
             'scopeFilter' => null,
             'filterView' => null,
             'select' => DB::raw('SELECT column FROM table'),
-            'joins' => null
+            'joins' => null,
+            'align' => 'left'
         ], $subject);
     }
 }

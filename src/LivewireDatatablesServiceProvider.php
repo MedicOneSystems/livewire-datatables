@@ -15,7 +15,6 @@ use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 
-
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {
     public function boot()
@@ -31,6 +30,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         Blade::component('icons::chevron-up', 'icons.chevron-up');
         Blade::component('icons::chevron-down', 'icons.chevron-down');
         Blade::component('icons::cog', 'icons.cog');
+        Blade::component('icons::trash', 'icons.trash');
         Blade::component('icons::excel', 'icons.excel');
         Blade::component('icons::x-circle', 'icons.x-circle');
         Blade::component('icons::check-circle', 'icons.check-circle');

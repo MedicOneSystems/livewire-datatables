@@ -25,6 +25,7 @@ class Column
     public $params = [];
     public $additionalSelects = [];
     public $filterView;
+    public $align = 'left';
 
     public static function name($name)
     {
@@ -35,6 +36,7 @@ class Column
 
         if (Str::contains(Str::lower($name), ' as ')) {
             $column->name = array_reverse(preg_split("/ as /i", $name))[0];
+            $column->label = array_reverse(preg_split("/ as /i", $name))[1];
             $column->base = preg_split("/ as /i", $name)[0];
         }
 
@@ -74,6 +76,17 @@ class Column
         $column->sortBy("`$alias`");
 
         return $column;
+    }
+
+    public static function delete($name = 'id')
+    {
+        return static::callback($name, function ($value) {
+            return view('datatables::delete', ['value' => $value]);
+        });
+        // $column->name = $name;
+        // $column->label = 'Delete';
+        // $column->callback = ;
+        // return $column;
     }
 
     public function label($label)
@@ -164,6 +177,18 @@ class Column
     public function hide()
     {
         $this->hidden = true;
+        return $this;
+    }
+
+    public function alignRight()
+    {
+        $this->align = 'right';
+        return $this;
+    }
+
+    public function alignCenter()
+    {
+        $this->align = 'center';
         return $this;
     }
 

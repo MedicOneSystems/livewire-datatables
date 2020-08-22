@@ -99,7 +99,7 @@
                     </div>
                     @endif
                     @else
-                    <div class="table-cell px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900">
+                    <div class="px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900 @if($column['align'] !== 'left') flex @if($column['align'] === 'right') justify-end @else justify-center @endif @else table-cell @endif">
                         {!! $result->{$column['name']} !!}
                     </div>
                     @endif

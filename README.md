@@ -74,7 +74,6 @@ This will enable you to modify the blade views and apply your own styling, the d
 |**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
 |**exportable**|*Boolean*  default: *false*|Allows tabel to bbe exported| ```<livewire:datatable model="App/Post" exportable />``` |
 |**hideable**| _String_ | gives ability to show/hide columns, accepts strings 'inline', 'buttons', or 'select'| ```<livewire:datatable model="App/Post" hideable="inline" />``` |
-
 ---
 
 
@@ -104,6 +103,7 @@ There are additional specific types of Column; ```NumberColumn```, ```DateColumn
 |BooleanColumn| Values will be automatically formatted to a yes/no icon, filters will be yes/no|
 |DateColumn| Values will be automatically formatted to the default date format. Filters will be a date range|
 |TimeColumn| Values will be automatically formatted to the default time format. Filters will be a time range|
+___
 
 ```php
 class ComplexDemoTable extends LivewireDatatable
@@ -152,6 +152,7 @@ class ComplexDemoTable extends LivewireDatatable
 |_static_ **raw**| *String* $rawSqlStatement|Builds a column from raw SQL statement. Must include "... AS _alias_"|```Column::raw("CONCAT(ROUND(DATEDIFF(NOW(), users.dob) / planets.orbital_period, 1) AS `Native Age`")```|
 |_static_ **callback**|*Array\|String* $columns, *Closure\|String* $callback| Passes the columns from the first argument into the callback to allow custom mutations. The callback can be a method on the table class, or inline | _(see below)_|
 |_static_ **scope**|*String* $scope, *String* $alias|Builds a column from a scope on the parent model|```Column::scope('selectLastLogin', 'Last Login')```|
+|_static_ **delete**|[*String* $primaryKey default: 'id']|Adds a column with a delete button, which will call ```$this->model::destroy($primaryKey)```|```Column::delete()```|
 |**label**|*String* $name|Changes the display name of a column|```Column::name('id')->label('ID)```|
 |**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::name('email_verified_at')->filterable(),```|
 |**hide**| |Marks column to start as hidden|```Column::name('id')->hidden()```|
@@ -164,6 +165,13 @@ class ComplexDemoTable extends LivewireDatatable
 |**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
+|**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
+|**alignCenter**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
+|**editable**| | Marks the column as editable | _(see below)_|
+___
+
+### Listener
+The component will listen for the ```refreshLivewireDatatable``` event, which allows you to refresh the table from external components.
 
 ### Eloquent Column Names
 Columns from Eloquent relations can be included using the normal eloquent dot notation, eg. ```planet.name```, Livewire Datatables will automatically add the necessary table joins to include the column. If the relationship is of a 'many' type (```HasMany```, ```BelongsToMany```, ```HasManyThrough```) then Livewire Datatables will create an aggregated subquery (which is much more efficient than a join and group. Thanks [@reinink](https://eloquent-course.reinink.ca/)). By default, the aggregate type will be ```count``` for a numeric column and ```group_concat``` for a string column, but this can be over-ridden using a colon delimeter;
