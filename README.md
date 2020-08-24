@@ -116,7 +116,7 @@ class ComplexDemoTable extends LivewireDatatable
 
     public function columns()
     {
-        return Columnset::fromArray([
+        return [
             NumberColumn::name('id')
                 ->label('ID')
                 ->linkTo('job', 6),
@@ -140,7 +140,7 @@ class ComplexDemoTable extends LivewireDatatable
                 ->label('DOB')
                 ->filterable()
                 ->hide()
-        ]);
+        ];
     }
 }
 ```
@@ -153,6 +153,7 @@ class ComplexDemoTable extends LivewireDatatable
 |_static_ **callback**|*Array\|String* $columns, *Closure\|String* $callback| Passes the columns from the first argument into the callback to allow custom mutations. The callback can be a method on the table class, or inline | _(see below)_|
 |_static_ **scope**|*String* $scope, *String* $alias|Builds a column from a scope on the parent model|```Column::scope('selectLastLogin', 'Last Login')```|
 |_static_ **delete**|[*String* $primaryKey default: 'id']|Adds a column with a delete button, which will call ```$this->model::destroy($primaryKey)```|```Column::delete()```|
+|_static_ **checkbox**|[*String* $column default: 'id']|Adds a column with a checkbox. The component public property ```$selected``` will contain an array of the named column from checked rows, |```Column::checkbox()```|
 |**label**|*String* $name|Changes the display name of a column|```Column::name('id')->label('ID)```|
 |**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::name('email_verified_at')->filterable(),```|
 |**hide**| |Marks column to start as hidden|```Column::name('id')->hidden()```|
