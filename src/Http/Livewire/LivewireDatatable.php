@@ -50,6 +50,7 @@ class LivewireDatatable extends Component
     public $exportable;
     public $hideable;
     public $params;
+    public $selected = [];
 
     protected $query;
     protected $listeners = ['refreshLivewireDatatable'];
@@ -113,6 +114,48 @@ class LivewireDatatable extends Component
             ->sort($this->sort);
     }
 
+    public function resolveColumnName($column)
+    {
+        return $column->isBaseColumn()
+            ? $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'))
+            : $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
+    }
+
+    public function resolveCheckboxColumnName($column)
+    {
+        $column = is_object($column)
+            ? $column->toArray()
+            : $column;
+
+        return Str::contains($column['base'], '.')
+            ? $this->resolveRelationColumn($column['base'], $column['aggregate'])
+            : $this->query->getModel()->getTable() . '.' . $column['base'];
+    }
+
+    public function resolveAdditionalSelects($column)
+    {
+        $selects = collect($column->additionalSelects)->map(function ($select) {
+            return Str::contains($select, '.')
+                ? $this->resolveRelationColumn($select, Str::contains($select, ':') ? Str::before($select, ':') : null)
+                : $this->query->getModel()->getTable() . '.' . $select;
+        });
+
+        return $selects->count() > 1
+            ? new Expression('CONCAT_WS("' . static::SEPARATOR . '" ,' .
+                collect($selects)->map(function ($select) {
+                    return "COALESCE($select, '')";
+                })->join(', ') . ')')
+            : $selects->first();
+    }
+
+    public function resolveEditableColumnName($column)
+    {
+        return [
+            $column->select,
+            $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName()
+        ];
+    }
+
     public function getSelectStatements($withAlias = false)
     {
         return $this->processedColumns->columns->reject(function ($column) {
@@ -122,33 +165,20 @@ class LivewireDatatable extends Component
                 return $column;
             }
 
-            if (Str::startsWith($column->name, 'callback_')) {
-                $selects = collect($column->additionalSelects)->map(function ($select) {
-                    if (!Str::contains($select, '.')) {
-                        return $this->query->getModel()->getTable() . '.' . $select;
-                    } else {
-                        return $this->resolveRelationColumn($select, Str::contains($select, ':') ? Str::before($select, ':') : null);
-                    }
-                });
-
-                $column->select = $selects->count() > 1
-                    ? new Expression('CONCAT_WS("' . static::SEPARATOR . '" ,' .
-                        collect($selects)->map(function ($select) {
-                            return "COALESCE($select, '')";
-                        })->join(', ') . ')')
-                    : $selects->first();
-
+            if ($column->isType('checkbox')) {
+                $column->select = $this->resolveCheckboxColumnName($column);
                 return $column;
             }
 
-            if ($column->isBaseColumn()) {
-                $column->select = $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
-            } else {
-                $column->select = $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
+            if (Str::startsWith($column->name, 'callback_')) {
+                $column->select = $this->resolveAdditionalSelects($column);
+                return $column;
             }
 
+            $column->select = $this->resolveColumnName($column);
+
             if ($column->isEditable()) {
-                $column->select = [$column->select, $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName()];
+                $column->select = $this->resolveEditableColumnName($column);
             }
 
             return $column;
@@ -221,7 +251,6 @@ class LivewireDatatable extends Component
 
                 case $model instanceof HasOneThrough:
                     $pivot    = explode('.', $model->getQualifiedParentKeyName())[0];
-                    // $pivotPK  = $pivot . '.' . $model->getLocalKeyName();
                     $pivotPK  = $model->getQualifiedFirstKeyName();
                     $pivotFK  = $model->getQualifiedLocalKeyName();
                     $this->performJoin($pivot, $pivotPK, $pivotFK);
@@ -231,8 +260,6 @@ class LivewireDatatable extends Component
                     $tablePK = $related->getForeignKey();
                     $foreign = $pivot . '.' . $tablePK;
                     $other   = $related->getQualifiedKeyName();
-
-                    // dd($model, $pivot, $pivotPK, $pivotFK, $related, $table, $tablePK, $foreign, $other);
 
                     break;
 
@@ -283,7 +310,9 @@ class LivewireDatatable extends Component
 
     public function initialiseSort()
     {
-        $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleColumns->keys()->first();
+        $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleColumns->reject(function ($column) {
+            return $column['type'] === 'checkbox';
+        })->keys()->first();
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
@@ -489,11 +518,6 @@ class LivewireDatatable extends Component
 
     public function getColumnField($index)
     {
-        // dd($index, $this->columns[$index], $this->getSelectStatements()[$index]);
-        // if (isset($this->columns[$index]['callback']) && count($this->columns[$index]['additionalSelects'])) {
-        //     return $this->columns[$index]['additionalSelects'];
-        // }
-
         if ($this->columns[$index]['scope']) {
             return 'scope';
         }
@@ -728,7 +752,6 @@ class LivewireDatatable extends Component
                 } elseif ($this->columnIsAggregateRelation($this->columns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
                 } elseif ($value == 1) {
-                    // dd($index);
                     $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
                 } elseif (strlen($value)) {
                     $query->whereNull(DB::raw($this->getColumnField($index)[0]))
@@ -933,5 +956,24 @@ class LivewireDatatable extends Component
     {
         $this->buildDatabaseQuery();
         return $this->query->toBase();
+    }
+
+    public function checkboxQuery()
+    {
+        $select = $this->resolveCheckboxColumnName(collect($this->columns)->firstWhere('type', 'checkbox'));
+
+        return $this->query->reorder()->get()->map(function ($row) {
+            return (string) $row->checkbox_attribute;
+        });
+    }
+
+    public function toggleSelectAll()
+    {
+        if (count($this->selected) === $this->getQuery()->count()) {
+            $this->selected = [];
+        } else {
+            $this->selected = $this->checkboxQuery()->values()->toArray();
+        }
+        $this->forgetComputed();
     }
 }

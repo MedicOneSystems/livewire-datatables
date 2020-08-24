@@ -67,6 +67,11 @@ class Column
         return $column;
     }
 
+    public static function checkbox($attribute = 'id')
+    {
+        return static::name($attribute . ' as checkbox_attribute')->setType('checkbox');
+    }
+
     public static function scope($scope, $alias)
     {
         $column = new static;
@@ -83,10 +88,6 @@ class Column
         return static::callback($name, function ($value) {
             return view('datatables::delete', ['value' => $value]);
         });
-        // $column->name = $name;
-        // $column->label = 'Delete';
-        // $column->callback = ;
-        // return $column;
     }
 
     public function label($label)
@@ -165,8 +166,7 @@ class Column
 
     public function editable()
     {
-        $this->type = 'editable';
-        return $this;
+        return $this->setType('editable');
     }
 
     public function isEditable()
@@ -211,7 +211,7 @@ class Column
 
     public function isBaseColumn()
     {
-        return !Str::contains($this->name, '.') && !$this->raw;
+        return ! Str::contains($this->name, '.') && !$this->raw;
     }
 
     public function field()
@@ -222,5 +222,16 @@ class Column
     public function relations()
     {
         return $this->isBaseColumn() ? null : collect(explode('.', Str::beforeLast($this->name, '.')));
+    }
+
+    public function isType($type)
+    {
+        return $type === $this->type;
+    }
+
+    public function setType($type)
+    {
+        $this->type = $type;
+        return $this;
     }
 }

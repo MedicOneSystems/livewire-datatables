@@ -2,7 +2,7 @@
     <div class="flex justify-between items-center mb-1">
         <div class="flex-grow h-10 flex items-center">
             @if($this->searchableColumns()->count())
-            <div class="w-full sm:w-2/3 md:w-2/5 flex rounded-lg shadow-sm">
+            <div class="w-96 flex rounded-lg shadow-sm">
                 <div class="relative flex-grow focus-within:z-10">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
@@ -55,50 +55,64 @@
                 @unless($this->hideHeader)
                 <div class="table-row divide-x divide-gray-200">
                     @foreach($this->columns as $index => $column)
-                    @if($hideable === 'inline')
-                    @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
-                    @else
-                    @include('datatables::header-no-hide', ['column' => $column, 'sort' => $sort])
-                    @endif
+                        @if($hideable === 'inline')
+                            @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
+                        @elseif($column['type'] === 'checkbox')
+                        <div class="relative table-cell h-12 w-48 overflow-hidden align-top px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex items-center focus:outline-none">
+                            <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
+                                {{ count($selected) }}
+                            </div>
+                        </div>
+                        @else
+                            @include('datatables::header-no-hide', ['column' => $column, 'sort' => $sort])
+                        @endif
                     @endforeach
                 </div>
 
                 <div class="table-row divide-x divide-blue-200 bg-blue-100">
                     @foreach($this->columns as $index => $column)
-                    @if($column['hidden'])
-                    @if($hideable === 'inline')
-                    <div class="table-cell w-5 overflow-hidden align-top bg-blue-100">
-                    </div>
-                    @endif
-                    @else
-                    <div class="table-cell overflow-hidden align-top">
-                        @isset($column['filterable'])
-                        @if( is_iterable($column['filterable']) )
-                        <div wire:key="{{ $index }}">
-                            @include('datatables::filters.select', ['index' => $index, 'name' =>
-                            $column['label'], 'options' => $column['filterable']])
-                        </div>
+                        @if($column['hidden'])
+                            @if($hideable === 'inline')
+                                <div class="table-cell w-5 overflow-hidden align-top bg-blue-100"></div>
+                            @endif
+                        @elseif($column['type'] === 'checkbox')
+                            <div class="w-32 overflow-hidden align-top bg-blue-100 px-6 py-5 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex h-full flex-col items-center space-y-2 focus:outline-none">
+                                <div>SELECT ALL</div>
+                                <div>
+                                    <input type="checkbox" wire:click="toggleSelectAll" @if(count($selected) === $this->results->total()) checked @endif class="form-checkbox mt-1 h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
+                                </div>
+                            </div>
                         @else
-                        <div wire:key="{{ $index }}">
-                            @include('datatables::filters.' . ($column['filterView'] ?? $column['type']), ['index' => $index, 'name' =>
-                            $column['label']])
-                        </div>
+                            <div class="table-cell overflow-hidden align-top">
+                                @isset($column['filterable'])
+                                    @if( is_iterable($column['filterable']) )
+                                        <div wire:key="{{ $index }}">
+                                            @include('datatables::filters.select', ['index' => $index, 'name' => $column['label'], 'options' => $column['filterable']])
+                                        </div>
+                                    @else
+                                        <div wire:key="{{ $index }}">
+                                            @include('datatables::filters.' . ($column['filterView'] ?? $column['type']), ['index' => $index, 'name' => $column['label']])
+                                        </div>
+                                    @endif
+                                @endisset
+                            </div>
                         @endif
-                        @endisset
-                    </div>
-                    @endif
                     @endforeach
                 </div>
                 @endif
                 @foreach($this->results as $result)
-                <div class="table-row p-1 divide-x divide-gray-100 {{ $loop->even ? 'bg-gray-100' : 'bg-gray-50' }}">
+                <div class="table-row p-1 divide-x divide-gray-100 {{ isset($result->checkbox_attribute) && in_array($result->checkbox_attribute, $selected) ? 'bg-orange-100' : ($loop->even ? 'bg-gray-100' : 'bg-gray-50') }}">
                     @foreach($this->columns as $column)
                         @if($column['hidden'])
                             @if($hideable === 'inline')
                             <div class="table-cell w-5 overflow-hidden align-top"></div>
                             @endif
+                        @elseif($column['type'] === 'checkbox')
+                            @include('datatables::checkbox', ['value' => $result->checkbox_attribute])
                         @else
-                            <div class="px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900 table-cell @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif">{!! $result->{$column['name']} !!}</div>
+                            <div class="px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900 table-cell @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif">
+                                {!! $result->{$column['name']} !!}
+                            </div>
                         @endif
                     @endforeach
                 </div>
