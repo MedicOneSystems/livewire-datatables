@@ -51,6 +51,8 @@ class LivewireDatatable extends Component
     public $hideable;
     public $params;
     public $selected = [];
+    public $beforeTableSlot;
+    public $afterTableSlot;
 
     protected $query;
     protected $listeners = ['refreshLivewireDatatable'];
@@ -69,9 +71,11 @@ class LivewireDatatable extends Component
         $perPage = 10,
         $exportable = false,
         $hideable = false,
+        $beforeTableSlot = false,
+        $afterTableSlot = false,
         $params = []
     ) {
-        foreach (['model', 'include', 'exclude', 'hide', 'dates', 'times', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable'] as $property) {
+        foreach (['model', 'include', 'exclude', 'hide', 'dates', 'times', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable', 'beforeTableSlot', 'afterTableSlot'] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
 
