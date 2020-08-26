@@ -49,8 +49,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         }
 
         Route::get('/datatables/{filename}', [FileExportController::class, 'handle'])
-            ->middleware(config('livewire.middleware_group', 'web'))
-            ->name('livewire.preview-file');
+            ->middleware(config('livewire.middleware_group', 'web'));
 
         $this->loadBuilderMacros();
         $this->loadEloquentBuilderMacros();
