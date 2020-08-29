@@ -166,7 +166,7 @@ class ComplexDemoTable extends LivewireDatatable
 |**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::name('name')->defaultSort('asc')```|
 |**searchable**| |Includes the column in the global search|```Column::name('name')->searchable()```|
 |**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
-|**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
+|**view**|*String* $viewName| Passes the column value to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
 |**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
 |**alignCenter**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|

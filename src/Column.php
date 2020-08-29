@@ -151,8 +151,8 @@ class Column
 
     public function view($view)
     {
-        $this->callback = function ($value, $row) use ($view) {
-            return view($view, ['value' => $value, 'row' => $row]);
+        $this->callback = function ($value) use ($view) {
+            return view($view, ['value' => $value]);
         };
 
         return $this;
