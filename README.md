@@ -81,7 +81,7 @@ This will enable you to modify the blade views and apply your own styling, the d
 
 ## Component Syntax
 
-### Preate a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
+### Create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
 > ```php artisan livewire:datatable foo``` --> 'app/Http/Livewire/Foo.php'
 
 > ```php artisan livewire:datatable tables.bar``` --> 'app/Http/Livewire/Tables/Bar.php'
