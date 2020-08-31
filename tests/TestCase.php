@@ -2,12 +2,12 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 use Livewire\LivewireServiceProvider;
 use Maatwebsite\Excel\ExcelServiceProvider;
-use Orchestra\Testbench\TestCase as Orchestra;
 use Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {
@@ -15,8 +15,8 @@ class TestCase extends Orchestra
     {
         parent::setUp();
 
-        $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
-        $this->withFactories(__DIR__ . '/database/factories');
+        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
+        $this->withFactories(__DIR__.'/database/factories');
         $this->artisan('migrate', ['--database' => 'sqlite'])->run();
     }
 
@@ -25,7 +25,7 @@ class TestCase extends Orchestra
         return [
             LivewireServiceProvider::class,
             LivewireDatatablesServiceProvider::class,
-            ExcelServiceProvider::class
+            ExcelServiceProvider::class,
         ];
     }
 
@@ -44,11 +44,11 @@ class TestCase extends Orchestra
     {
         $temporaryDirectory = sys_get_temp_dir();
 
-        if (!in_array($temporaryDirectory, View::getFinder()->getPaths())) {
+        if (! in_array($temporaryDirectory, View::getFinder()->getPaths())) {
             View::addLocation(sys_get_temp_dir());
         }
 
-        $tempFilePath = tempnam($temporaryDirectory, 'tests') . '.blade.php';
+        $tempFilePath = tempnam($temporaryDirectory, 'tests').'.blade.php';
 
         file_put_contents($tempFilePath, $bladeContent);
 
