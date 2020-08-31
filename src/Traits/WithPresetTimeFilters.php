@@ -4,7 +4,6 @@ namespace Mediconesystems\LivewireDatatables\Traits;
 
 trait WithPresetTimeFilters
 {
-
     public function nineToFive()
     {
         $this->times['start'] = '09:00:00';

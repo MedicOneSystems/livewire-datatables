@@ -2,8 +2,8 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Mediconesystems\LivewireDatatables\Tests\TestCase as BaseTestCase;
 
 class LivewireTestCase extends BaseTestCase

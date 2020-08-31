@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class DummyHasManyModel extends Model
 {
-
     protected $guarded = ['id'];
 
     public function dummy_model()
