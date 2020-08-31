@@ -3,8 +3,8 @@
 namespace Mediconesystems\LivewireDatatables\Exports;
 
 use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class DatatableExport implements FromCollection, WithHeadings
 {

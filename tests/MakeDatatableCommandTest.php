@@ -2,10 +2,10 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
-use Mediconesystems\LivewireDatatables\Tests\LivewireTestCase as TestCase;
+use Illuminate\Support\Facades\File;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
+use Mediconesystems\LivewireDatatables\Tests\LivewireTestCase as TestCase;
 
 class MakeDatatableCommandTest extends TestCase
 {

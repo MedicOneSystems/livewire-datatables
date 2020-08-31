@@ -2,14 +2,8 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Mediconesystems\LivewireDatatables\Column;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class ColumnSet
 {
@@ -32,7 +26,7 @@ class ColumnSet
         return new static(
             collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
                 return in_array($name, $model->getHidden());
-            })->map(function ($attribute) use ($model) {
+            })->map(function ($attribute) {
                 return Column::name($attribute);
             })
         );
@@ -45,7 +39,7 @@ class ColumnSet
 
     public function include($include)
     {
-        if (!$include) {
+        if (! $include) {
             return $this;
         }
 
@@ -61,7 +55,7 @@ class ColumnSet
 
     public function exclude($exclude)
     {
-        if (!$exclude) {
+        if (! $exclude) {
             return $this;
         }
 
@@ -76,7 +70,7 @@ class ColumnSet
 
     public function hide($hidden)
     {
-        if (!$hidden) {
+        if (! $hidden) {
             return $this;
         }
         $hidden = is_array($hidden) ? $hidden : array_map('trim', explode(',', $hidden));
@@ -99,6 +93,7 @@ class ColumnSet
                     return DateColumn::name($column->name)->format($format);
                 }
             }
+
             return $column;
         });
 
@@ -113,9 +108,11 @@ class ColumnSet
             foreach ($times as $time) {
                 if (Str::after($column->name, '.') === Str::before($time, '|')) {
                     $format = Str::of($time)->contains('|') ? Str::after($time, '|') : null;
+
                     return TimeColumn::name($column->name)->format($format);
                 }
             }
+
             return $column;
         });
 
@@ -124,7 +121,7 @@ class ColumnSet
 
     public function search($searchable)
     {
-        if (!$searchable) {
+        if (! $searchable) {
             return $this;
         }
 
@@ -143,6 +140,7 @@ class ColumnSet
         })) {
             $column->defaultSort(Str::of($sort)->contains('|') ? Str::after($sort, '|') : null);
         }
+
         return $this;
     }
 
