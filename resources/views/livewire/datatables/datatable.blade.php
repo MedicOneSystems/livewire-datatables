@@ -1,4 +1,6 @@
 <div>
+    <livewire:query-builder :columns="collect($columns)->reject(function ($col) { return in_array($col['type'], ['checkbox', 'editable']); })->toArray()" />
+
     @if($beforeTableSlot)
         <div class="mt-8">
             @include($beforeTableSlot)
@@ -82,7 +84,7 @@
                                     <div class="table-cell w-5 overflow-hidden align-top bg-blue-100"></div>
                                 @endif
                             @elseif($column['type'] === 'checkbox')
-                                <div class="mx-auto w-32 overflow-hidden align-top bg-blue-100 px-6 py-5 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex h-full flex-col items-center space-y-2 focus:outline-none">
+                                <div class="w-32 overflow-hidden align-top bg-blue-100 px-6 py-5 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex h-full flex-col items-center space-y-2 focus:outline-none">
                                     <div>SELECT ALL</div>
                                     <div>
                                         <input type="checkbox" wire:click="toggleSelectAll" @if(count($selected) === $this->results->total()) checked @endif class="form-checkbox mt-1 h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
@@ -127,8 +129,8 @@
             </div>
             @unless($this->hidePagination)
             <div class="rounded-lg rounded-t-none max-w-screen rounded-lg border-b border-gray-200 bg-white">
-                <div class="p-2 flex items-center justify-between">
-                    <div class="flex items-center">
+                <div class="p-2 sm:flex items-center justify-between">
+                    <div class="my-2 sm:my-0 flex items-center">
                         <select name="perPage" class="mt-1 form-select block w-full pl-3 pr-10 py-2 text-base leading-6 border-gray-300 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5" wire:model="perPage">
                             <option value="10">10</option>
                             <option value="25">25</option>
@@ -138,9 +140,9 @@
                         </select>
                     </div>
 
-                    <div>
-                        <div class="flex lg:hidden justify-center">
-                            <span class="flex items-center space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
+                    <div class="my-4 sm:my-0">
+                        <div class="lg:hidden">
+                            <span class="space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
                         </div>
 
                         <div class="hidden lg:flex justify-center">
@@ -148,7 +150,7 @@
                         </div>
                     </div>
 
-                    <div class="text-gray-600">
+                    <div class="flex justify-end text-gray-600">
                         Results {{ $this->results->firstItem() }} - {{ $this->results->lastItem() }} of
                         {{ $this->results->total() }}
                     </div>

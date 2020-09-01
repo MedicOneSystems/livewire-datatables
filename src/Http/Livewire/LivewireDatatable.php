@@ -53,9 +53,26 @@ class LivewireDatatable extends Component
     public $selected = [];
     public $beforeTableSlot;
     public $afterTableSlot;
+    public $complexQuery;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable'];
+    protected $listeners = ['refreshLivewireDatatable', 'applyQuery'];
+
+    protected $operators = [
+        '=' => '=',
+        '>' => '>',
+        '<' => '<',
+        '<>' => '<>',
+        '>=' => '>=',
+        '<=' => '<=',
+        'equals' => '=',
+        'contains' => 'LIKE',
+        'does not contain' => 'NOT LIKE',
+        'begins with' => 'LIKE',
+        'ends with' => 'LIKE',
+        'is empty' => '=',
+        'is not empty' => '<>',
+    ];
 
     public function mount(
         $model = null,
@@ -681,6 +698,7 @@ class LivewireDatatable extends Component
             ->addNumberFilters()
             ->addDateRangeFilter()
             ->addTimeRangeFilter()
+            ->addComplexQuery()
             ->addSort();
     }
 
@@ -866,6 +884,77 @@ class LivewireDatatable extends Component
         return $this;
     }
 
+    public function addComplexQuery()
+    {
+        if (!$this->complexQuery) {
+            return $this;
+        }
+
+        $this->query->where(function ($query) {
+            $this->processNested($this->complexQuery, $query);
+        });
+
+
+
+        return $this;
+    }
+
+    private function processNested($rules, $query)
+    {
+        // dd($rules);
+
+        // $query = $query ?? $this->query;
+
+
+        collect($rules)->each(function ($rule) use ($query) {
+            $andOr = 'and';
+            if (is_string($rule)) {
+                $andOr = $rule;
+                return;
+            }
+
+            if (count(array_filter(array_keys($rule), 'is_string')) > 0) {
+                //rule
+                $query->where(function ($query) use ($rule) {
+                    foreach ($this->getColumnField($rule['field']) as $column) {
+                        $column = is_array($column) ? $column[0] : $column;
+                        $query->orWhere($column, $this->operators[$rule['operand']], $rule['value']);
+                    }
+                }, null, null, $andOr);
+            } else {
+                // group
+                $query->where(function ($q) use ($rule) {
+                    $this->processNested($rule, $q);
+                }, null, null, $andOr);
+            }
+
+
+            //     if ($c['type'] === 'query-builder-rule') {
+        //         if (isset($c['query']['selectedOperator']) && $c['query']['selectedOperator'] === 'is empty') {
+        //             $query->where(function ($q) use ($c) {
+        //                 $q->where($this->getRule($c), '')
+        //                     ->orWhereNull($this->getRule($c));
+        //             }, null, null, $rules['logicalOperator']);
+        //         } elseif (isset($c['query']['selectedOperator']) && $c['query']['selectedOperator'] === 'is not empty') {
+        //             $query->where(function ($q) use ($c) {
+        //                 $q->where($this->getRule($c), '<>', '')
+        //                     ->orWhereNotNull($this->getRule($c));
+        //             }, null, null, $rules['logicalOperator']);
+        //         } else {
+        //             $query->where($this->getRule($c), $this->getOperator($c), $this->getValue($c), $rules['logicalOperator']);
+        //         }
+        //     } elseif ($c['type'] === 'query-builder-group') {
+        //         $query->where(function ($q) use ($c) {
+        //             $this->processNested($q, $c['query']);
+        //         }, null, null, $rules['logicalOperator']);
+        //     }
+        });
+
+        // $this->query = $query;
+
+        return $query;
+    }
+
     public function addSort()
     {
         if (isset($this->sort)) {
@@ -979,5 +1068,10 @@ class LivewireDatatable extends Component
             $this->selected = $this->checkboxQuery()->values()->toArray();
         }
         $this->forgetComputed();
+    }
+
+    public function applyQuery($rules)
+    {
+        $this->complexQuery = $rules;
     }
 }
