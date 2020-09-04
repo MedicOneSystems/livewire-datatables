@@ -3,6 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Illuminate\Support\Facades\DB;
+use Mediconesystems\LivewireDatatables\ActionsColumn;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Tests\TestCase;
@@ -35,6 +36,23 @@ class ColumnTest extends TestCase
         $this->assertEquals(['id'], $subject->additionalSelects);
         $this->assertEquals('', $subject->label);
         $this->assertIsCallable($subject->callback);
+    }
+
+    /** @test */
+    public function it_can_generate_a_actions_column()
+    {
+        $subject =  ActionsColumn::actions()->with([
+            'view'  => ['users.show'],
+            'edit'  => ['users.edit'],
+            'delete'    =>  ['users.delete']
+        ]);
+
+
+        $this->assertIsArray($subject->buttons);
+        $this->assertEquals('actions', $subject->label);
+        $this->assertArrayHasKey('view', $subject->buttons);
+        $this->assertArrayHasKey('edit', $subject->buttons);
+        $this->assertArrayHasKey('delete', $subject->buttons);
     }
 
     /**

@@ -40,6 +40,7 @@ class Column
             $column->base = preg_split("/ as /i", $name)[0];
         }
 
+
         return $column;
     }
 
@@ -71,6 +72,9 @@ class Column
     {
         return static::name($attribute . ' as checkbox_attribute')->setType('checkbox');
     }
+
+
+
 
     public static function scope($scope, $alias)
     {
@@ -211,7 +215,7 @@ class Column
 
     public function isBaseColumn()
     {
-        return ! Str::contains($this->name, '.') && !$this->raw;
+        return !Str::contains($this->name, '.') && !$this->raw;
     }
 
     public function field()

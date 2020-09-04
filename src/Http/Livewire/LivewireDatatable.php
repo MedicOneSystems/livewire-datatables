@@ -81,7 +81,11 @@ class LivewireDatatable extends Component
 
         $this->params = $params;
 
+
+
         $this->columns = $this->freshColumns;
+
+
 
         $this->initialiseSort();
     }
@@ -125,6 +129,7 @@ class LivewireDatatable extends Component
             : $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
     }
 
+
     public function resolveCheckboxColumnName($column)
     {
         $column = is_object($column)
@@ -162,12 +167,16 @@ class LivewireDatatable extends Component
 
     public function getSelectStatements($withAlias = false)
     {
+
+
         return $this->processedColumns->columns->reject(function ($column) {
             return $column->scope;
-        })->map(function ($column) {
+        })->where('type', '!=', 'actions')->map(function ($column) {
             if ($column->select) {
                 return $column;
             }
+
+
 
             if ($column->isType('checkbox')) {
                 $column->select = $this->resolveCheckboxColumnName($column);
@@ -178,6 +187,7 @@ class LivewireDatatable extends Component
                 $column->select = $this->resolveAdditionalSelects($column);
                 return $column;
             }
+
 
             $column->select = $this->resolveColumnName($column);
 
@@ -304,7 +314,9 @@ class LivewireDatatable extends Component
 
     public function getFreshColumnsProperty()
     {
+
         $columns = $this->processedColumns->columnsArray();
+
 
         if (($name = collect($columns)->pluck('name')->duplicates()) && collect($columns)->pluck('name')->duplicates()->count()) {
             throw new Exception('Duplicate Column Name: ' . $name->first());
@@ -371,6 +383,7 @@ class LivewireDatatable extends Component
 
     public function sort($index)
     {
+
         if ($this->sort === (int) $index) {
             $this->direction = !$this->direction;
         } else {

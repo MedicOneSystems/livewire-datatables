@@ -19,6 +19,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 {
     public function boot()
     {
+
         Livewire::component('datatable', LivewireDatatable::class);
 
         $this->loadViewsFrom(__DIR__ . '/../resources/views/livewire/datatables', 'datatables');
@@ -30,6 +31,8 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         Blade::component('icons::chevron-up', 'icons.chevron-up');
         Blade::component('icons::chevron-down', 'icons.chevron-down');
         Blade::component('icons::cog', 'icons.cog');
+        Blade::component('icons::eye', 'icons.eye');
+        Blade::component('icons::edit', 'icons.edit');
         Blade::component('icons::trash', 'icons.trash');
         Blade::component('icons::excel', 'icons.excel');
         Blade::component('icons::x-circle', 'icons.x-circle');
