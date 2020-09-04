@@ -24,11 +24,6 @@ class ActionsColumn extends Column
         return static::name('actions as actions_attribute');
     }
 
-    public static function all()
-    {
-        $buttons = config('livewire-datatables.default_buttons');
-        return static::name('actions as actions_attribute')->with($buttons);
-    }
 
     public function viewRoute($route_name, $params = null)
     {
