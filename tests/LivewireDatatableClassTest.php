@@ -3,11 +3,8 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Livewire\Livewire;
-use Livewire\LivewireManager;
-use Mediconesystems\LivewireDatatables\Tests\TestCase;
-use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class LivewireDatatableClassTest extends TestCase
 {
@@ -15,7 +12,7 @@ class LivewireDatatableClassTest extends TestCase
     public function it_can_mount_using_the_class()
     {
         factory(DummyModel::class)->create([
-            'subject' => 'How to sell paper in Scranton PA'
+            'subject' => 'How to sell paper in Scranton PA',
         ]);
 
         $subject = Livewire::test(DummyTable::class)
@@ -100,7 +97,7 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject = Livewire::test(DummyTable::class)
             ->assertSee('Results 1 - 2')
-            ->call('doBooleanFilter', 4, "1")
+            ->call('doBooleanFilter', 4, '1')
             ->assertSee('Results 1 - 1');
     }
 

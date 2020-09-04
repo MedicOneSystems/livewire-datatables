@@ -2,9 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables\Commands;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\File;
 
 class ComponentParser
 {
@@ -76,28 +74,28 @@ class ComponentParser
 
     public function classContents()
     {
-        if($this->model) {
-
+        if ($this->model) {
             $template = file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'datatable-model.stub');
+
             return preg_replace_array(
-                ['/\[namespace\]/','/\[use\]/', '/\[class\]/', '/\[model\]/'],
+                ['/\[namespace\]/', '/\[use\]/', '/\[class\]/', '/\[model\]/'],
                 [
                     $this->classNamespace(),
-                    config('livewire-datatables.model_namespace', 'App') . '\\' . Str::studly($this->model),
+                    config('livewire-datatables.model_namespace', 'App').'\\'.Str::studly($this->model),
                     $this->className(),
-                    Str::studly($this->model)
+                    Str::studly($this->model),
                 ],
                 $template
             );
         } else {
             $template = file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'datatable.stub');
+
             return preg_replace_array(
                 ['/\[namespace\]/', '/\[class\]/'],
                 [$this->classNamespace(), $this->className()],
                 $template
             );
         }
-
     }
 
     public static function generatePathFromNamespace($namespace)

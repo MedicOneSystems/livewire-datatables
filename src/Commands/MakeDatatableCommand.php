@@ -3,12 +3,11 @@
 namespace Mediconesystems\LivewireDatatables\Commands;
 
 use Illuminate\Support\Facades\File;
-use Livewire\LivewireComponentsFinder;
 use Livewire\Commands\FileManipulationCommand;
+use Livewire\LivewireComponentsFinder;
 
 class MakeDatatableCommand extends FileManipulationCommand
 {
-
     protected $signature = 'livewire:datatable {name} {--model=}';
 
     protected $desciption = 'Create a new Livewire Datatable';
@@ -21,9 +20,10 @@ class MakeDatatableCommand extends FileManipulationCommand
             $this->option('model')
         );
 
-        if($this->isReservedClassName($name = $this->parser->className())) {
+        if ($this->isReservedClassName($name = $this->parser->className())) {
             $this->line("<options=bold,reverse;fg=red> WHOOPS! </> 😳 \n");
             $this->line("<fg=red;options=bold>Class is reserved:</> {$name}");
+
             return;
         }
 
@@ -33,7 +33,6 @@ class MakeDatatableCommand extends FileManipulationCommand
 
         $this->line("<options=bold,reverse;fg=green> COMPONENT CREATED </> 🤙\n");
         $class && $this->line("<options=bold;fg=green>CLASS:</> {$this->parser->relativeClassPath()}");
-
     }
 
     protected function createClass()

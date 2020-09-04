@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\ActionsColumn;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
-use Mediconesystems\LivewireDatatables\Tests\TestCase;
 
 class ColumnTest extends TestCase
 {
@@ -108,7 +107,7 @@ class ColumnTest extends TestCase
             'select' => null,
             'joins' => null,
             'aggregate' => 'group_concat',
-            'align' => 'left'
+            'align' => 'left',
         ], $subject);
     }
 
@@ -141,7 +140,7 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => DB::raw('SELECT column FROM table'),
             'joins' => null,
-            'align' => 'left'
+            'align' => 'left',
         ], $subject);
     }
 }

@@ -260,13 +260,13 @@ class CallbackDemoTable extends LivewireDatatable
 
     public function columns()
     {
-        return Columnset::fromArray([
+        return [
             Column::name('users.id'),
 
             Column::name('users.dob')->view('tables.dateview'),
 
             Column::name('users.signup_date')->format(),
-        ]);
+        ];
     }
 ```
 ```html
@@ -288,7 +288,7 @@ class EditableTable extends LivewireDatatable
 
     public function columns()
     {
-        return Columnset::fromArray([
+        return [
             Column::name('id')
                 ->label('ID')
                 ->linkTo('job', 6),
@@ -297,7 +297,7 @@ class EditableTable extends LivewireDatatable
                 ->editable(),
 
             ...
-        ]);
+        ];
     }
 }
 ```

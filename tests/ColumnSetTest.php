@@ -4,7 +4,6 @@ namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
-use Mediconesystems\LivewireDatatables\Tests\TestCase;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class ColumnSetTest extends TestCase

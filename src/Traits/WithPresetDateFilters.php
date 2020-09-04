@@ -4,7 +4,6 @@ namespace Mediconesystems\LivewireDatatables\Traits;
 
 trait WithPresetDateFilters
 {
-
     public function lastMonth()
     {
         $this->dates['start'] = now()->subMonth()->startOfMonth()->format('Y-m-d');
