@@ -40,7 +40,6 @@ class Column
             $column->base = preg_split('/ as /i', $name)[0];
         }
 
-
         return $column;
     }
 

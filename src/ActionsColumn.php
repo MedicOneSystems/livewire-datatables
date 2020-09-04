@@ -2,7 +2,6 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-
 class ActionsColumn extends Column
 {
     public $type = 'actions';
@@ -10,11 +9,10 @@ class ActionsColumn extends Column
     public $buttons;
     public $routes = [];
 
-
-
     public function with($buttons)
     {
         $this->buttons = $buttons;
+
         return $this;
     }
 
@@ -22,7 +20,6 @@ class ActionsColumn extends Column
     {
         return static::name('actions as actions_attribute');
     }
-
 
     public function viewRoute($route_name, $params = null)
     {
