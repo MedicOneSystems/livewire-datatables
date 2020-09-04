@@ -2,7 +2,6 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use phpDocumentor\Reflection\Types\Self_;
 
 class ActionsColumn extends Column
 {
