@@ -20,7 +20,7 @@
 - [Laravel 7](https://laravel.com/docs/7.x)
 - [Livewire](https://laravel-livewire.com/)
 - [Tailwind](https://tailwindcss.com/)
-
+- [Alpine JS](https://github.com/alpinejs/alpine)
 
 ## Installation
 
@@ -36,6 +36,14 @@ php artisan vendor:publish
 ```
 This will enable you to modify the blade views and apply your own styling, the datatables views will be published to resources/livewire/datatables. The config file contains the default time and date formats used throughout
 > - This can be useful if you're using Purge CSS on your project, to make sure all the livewire-datatables classes get included
+
+Several of the built-in dynamic components use Alpine JS, so to remove flickers on page load, make sure you have
+```css
+[x-cloak] {
+    display: none;
+}
+```
+somewhere in your CSS
 
 ## Basic Usage
 
