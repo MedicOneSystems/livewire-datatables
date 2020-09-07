@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
@@ -81,7 +82,7 @@ class LivewireDatatable extends Component
 
         $this->params = $params;
 
-        $this->columns = $this->freshColumns;
+        $this->columns = $this->getViewColumns();
 
         $this->initialiseSort();
     }
@@ -89,6 +90,21 @@ class LivewireDatatable extends Component
     public function columns()
     {
         return $this->modelInstance;
+    }
+
+    public function getViewColumns()
+    {
+        return collect($this->freshColumns)->map(function ($column) {
+            return collect($column)->only([
+                'hidden',
+                'label',
+                'align',
+                'type',
+                'filterable',
+                'filterview',
+                'name',
+            ])->toArray();
+        })->toArray();
     }
 
     public function getModelInstanceProperty()
@@ -317,21 +333,23 @@ class LivewireDatatable extends Component
 
     public function initialiseSort()
     {
-        $this->sort = $this->defaultSort() ? $this->defaultSort()['key'] : $this->visibleColumns->reject(function ($column) {
-            return $column['type'] === 'checkbox';
-        })->keys()->first();
+        $this->sort = $this->defaultSort()
+            ? $this->defaultSort()['key']
+            : collect($this->freshColumns)->reject(function ($column) {
+                return $column['type'] === 'checkbox' || $column['hidden'];
+            })->keys()->first();
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
     public function defaultSort()
     {
-        $columnIndex = collect($this->columns)->search(function ($column) {
+        $columnIndex = collect($this->freshColumns)->search(function ($column) {
             return is_string($column['defaultSort']);
         });
 
         return is_numeric($columnIndex) ? [
             'key' => $columnIndex,
-            'direction' => $this->columns[$columnIndex]['defaultSort'],
+            'direction' => $this->freshColumns[$columnIndex]['defaultSort'],
         ] : null;
     }
 
@@ -518,19 +536,14 @@ class LivewireDatatable extends Component
         unset($this->activeNumberFilters[$column]);
     }
 
-    public function getVisibleColumnsProperty()
-    {
-        return collect($this->columns)->reject->hidden;
-    }
-
     public function getColumnField($index)
     {
-        if ($this->columns[$index]['scope']) {
+        if ($this->freshColumns[$index]['scope']) {
             return 'scope';
         }
 
-        if ($this->columns[$index]['raw']) {
-            return [(string) $this->columns[$index]['sort']];
+        if ($this->freshColumns[$index]['raw']) {
+            return [(string) $this->freshColumns[$index]['sort']];
         }
 
         return [$this->getSelectStatements()[$index]];
@@ -538,25 +551,25 @@ class LivewireDatatable extends Component
 
     public function addScopeSelectFilter($query, $index, $value)
     {
-        if (! isset($this->columns[$index]['scopeFilter'])) {
+        if (! isset($this->freshColumns[$index]['scopeFilter'])) {
             return;
         }
 
-        return $query->{$this->columns[$index]['scopeFilter']}($value);
+        return $query->{$this->freshColumns[$index]['scopeFilter']}($value);
     }
 
     public function addScopeNumberFilter($query, $index, $value)
     {
-        if (! isset($this->columns[$index]['scopeFilter'])) {
+        if (! isset($this->freshColumns[$index]['scopeFilter'])) {
             return;
         }
 
-        return $query->{$this->columns[$index]['scopeFilter']}($value);
+        return $query->{$this->freshColumns[$index]['scopeFilter']}($value);
     }
 
     public function addAggregateFilter($query, $index, $filter)
     {
-        $column = $this->columns[$index];
+        $column = $this->freshColumns[$index];
         $relation = Str::before($column['name'], '.');
         $aggregate = $this->columnAggregateType($column);
         $field = Str::before(explode('.', $column['name'])[1], ':');
@@ -584,14 +597,14 @@ class LivewireDatatable extends Component
 
     public function searchableColumns()
     {
-        return collect($this->columns)->filter(function ($column, $key) {
+        return collect($this->freshColumns)->filter(function ($column, $key) {
             return $column['searchable'];
         });
     }
 
     public function scopeColumns()
     {
-        return $this->visibleColumns->filter(function ($column, $key) {
+        return collect($this->freshColumns)->filter(function ($column, $key) {
             return isset($column['scope']);
         });
     }
@@ -620,22 +633,22 @@ class LivewireDatatable extends Component
 
     public function getSelectFiltersProperty()
     {
-        return collect($this->columns)->filter->selectFilter;
+        return collect($this->freshColumns)->filter->selectFilter;
     }
 
     public function getBooleanFiltersProperty()
     {
-        return collect($this->columns)->filter->booleanFilter;
+        return collect($this->freshColumns)->filter->booleanFilter;
     }
 
     public function getTextFiltersProperty()
     {
-        return collect($this->columns)->filter->textFilter;
+        return collect($this->freshColumns)->filter->textFilter;
     }
 
     public function getNumberFiltersProperty()
     {
-        return collect($this->columns)->filter->numberFilter;
+        return collect($this->freshColumns)->filter->numberFilter;
     }
 
     public function getActiveFiltersProperty()
@@ -728,7 +741,7 @@ class LivewireDatatable extends Component
             foreach ($this->activeSelectFilters as $index => $activeSelectFilter) {
                 $query->where(function ($query) use ($index, $activeSelectFilter) {
                     foreach ($activeSelectFilter as $value) {
-                        if ($this->columnIsAggregateRelation($this->columns[$index])) {
+                        if ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                             $this->addAggregateFilter($query, $index, $activeSelectFilter);
                         } else {
                             if (! $this->addScopeSelectFilter($query, $index, $value)) {
@@ -756,7 +769,7 @@ class LivewireDatatable extends Component
             foreach ($this->activeBooleanFilters as $index => $value) {
                 if ($this->getColumnField($index) === 'scope') {
                     $this->addScopeSelectFilter($query, $index, $value);
-                } elseif ($this->columnIsAggregateRelation($this->columns[$index])) {
+                } elseif ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
                 } elseif ($value == 1) {
                     $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
@@ -780,7 +793,7 @@ class LivewireDatatable extends Component
             foreach ($this->activeTextFilters as $index => $activeTextFilter) {
                 $query->where(function ($query) use ($index, $activeTextFilter) {
                     foreach ($activeTextFilter as $value) {
-                        if ($this->columnIsRelation($this->columns[$index])) {
+                        if ($this->columnIsRelation($this->freshColumns[$index])) {
                             $this->addAggregateFilter($query, $index, $activeTextFilter);
                         } else {
                             $query->orWhere(function ($query) use ($index, $value) {
@@ -805,7 +818,7 @@ class LivewireDatatable extends Component
         }
         $this->query->where(function ($query) {
             foreach ($this->activeNumberFilters as $index => $filter) {
-                if ($this->columnIsAggregateRelation($this->columns[$index])) {
+                if ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                     $this->addAggregateFilter($query, $index, $filter);
                 } else {
                     $this->addScopeNumberFilter($query, $index, [
@@ -926,8 +939,8 @@ class LivewireDatatable extends Component
 
     public function getDisplayValue($index, $value)
     {
-        return is_array($this->columns[$index]['filterable']) && is_numeric($value)
-            ? collect($this->columns[$index]['filterable'])->firstWhere('id', '=', $value)['name'] ?? $value
+        return is_array($this->freshColumns[$index]['filterable']) && is_numeric($value)
+            ? collect($this->freshColumns[$index]['filterable'])->firstWhere('id', '=', $value)['name'] ?? $value
             : $value;
     }
 
@@ -950,12 +963,8 @@ class LivewireDatatable extends Component
 
     public function export()
     {
-        $path = 'datatables/export-'.now()->timestamp.'.xlsx';
-        (new DatatableExport($this->getQuery()->get()))->store($path, config('livewire-datatables.file_export.disk') ?: config('filesystems.default'));
-        Storage::setVisibility($path, 'public');
-        $this->exportFile = $path;
-        $this->emit('startDownload', url($path));
         $this->forgetComputed();
+        return Excel::download(new DatatableExport($this->getQuery()->get()), 'DatatableExport.xlsx');
     }
 
     public function getQuery()
@@ -967,7 +976,7 @@ class LivewireDatatable extends Component
 
     public function checkboxQuery()
     {
-        $select = $this->resolveCheckboxColumnName(collect($this->columns)->firstWhere('type', 'checkbox'));
+        $select = $this->resolveCheckboxColumnName(collect($this->freshColumns)->firstWhere('type', 'checkbox'));
 
         return $this->query->reorder()->get()->map(function ($row) {
             return (string) $row->checkbox_attribute;
