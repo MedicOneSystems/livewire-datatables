@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -964,6 +963,7 @@ class LivewireDatatable extends Component
     public function export()
     {
         $this->forgetComputed();
+
         return Excel::download(new DatatableExport($this->getQuery()->get()), 'DatatableExport.xlsx');
     }
 
