@@ -698,7 +698,13 @@ class LivewireDatatable extends Component
                     $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
                         $query->orWhere(function ($query) use ($i, $search) {
                             foreach ($this->getColumnField($i) as $column) {
-                                $query->orWhereRaw('LOWER('.$column.') like ?', "%$search%");
+                                if (is_array($column)) {
+                                    foreach ($column as $col) {
+                                        $query->orWhereRaw("LOWER(" . $col . ") like ?", "%$search%");
+                                    }
+                                } else {
+                                    $query->orWhereRaw("LOWER(" . $column . ") like ?", "%$search%");
+                                }
                             }
                         });
                     });
