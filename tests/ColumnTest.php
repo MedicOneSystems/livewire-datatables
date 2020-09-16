@@ -40,12 +40,11 @@ class ColumnTest extends TestCase
     /** @test */
     public function it_can_generate_a_actions_column()
     {
-        $subject =  ActionsColumn::actions()->with([
+        $subject = ActionsColumn::actions()->with([
             'view'  => ['users.show'],
             'edit'  => ['users.edit'],
-            'delete'    =>  ['users.delete']
+            'delete'    =>  ['users.delete'],
         ]);
-
 
         $this->assertIsArray($subject->buttons);
         $this->assertEquals('actions', $subject->label);
