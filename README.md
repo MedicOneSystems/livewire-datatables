@@ -71,7 +71,7 @@ somewhere in your CSS
 |----|----|----|----|
 |**model**|*String* full model name|Define the base model for the table| ```model="App\Post"```|
 |**include**|*String\|Array* of column definitions|specify columns to be shown in table, label can be specified by using \| delimter | ```include="name, email, dob|Birth Date, role"```|
-|**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exlcude="['created_at', 'updated_at']"```|
+|**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exclude="['created_at', 'updated_at']"```|
 |**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```hidden="email_verified_at"```|
 |**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob|lS F y', 'created_at']"```|
 |**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime|g:i A'```|
