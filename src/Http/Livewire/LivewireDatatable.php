@@ -700,7 +700,7 @@ class LivewireDatatable extends Component
                             foreach ($this->getColumnField($i) as $column) {
                                 if (is_array($column)) {
                                     foreach ($column as $col) {
-                                        $query->orWhereRaw("LOWER(" . $col . ") like ?", "%$search%");
+                                        $query->orWhereRaw('LOWER('.$column.') like ?', "%$search%");
                                     }
                                 } else {
                                     $query->orWhereRaw("LOWER(" . $column . ") like ?", "%$search%");
