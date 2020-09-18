@@ -2,8 +2,8 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Column
 {
@@ -35,9 +35,9 @@ class Column
         $column->label = (string) Str::of($name)->after('.')->ucfirst();
 
         if (Str::contains(Str::lower($name), ' as ')) {
-            $column->name = array_reverse(preg_split("/ as /i", $name))[0];
-            $column->label = array_reverse(preg_split("/ as /i", $name))[1];
-            $column->base = preg_split("/ as /i", $name)[0];
+            $column->name = array_reverse(preg_split('/ as /i', $name))[0];
+            $column->label = array_reverse(preg_split('/ as /i', $name))[1];
+            $column->base = preg_split('/ as /i', $name)[0];
         }
 
         return $column;
@@ -59,7 +59,7 @@ class Column
     {
         $column = new static;
 
-        $column->name = "callback_" . crc32(json_encode(func_get_args()));
+        $column->name = 'callback_'.crc32(json_encode(func_get_args()));
         $column->callback = $callback;
         $column->additionalSelects = is_array($columns) ? $columns : array_map('trim', explode(',', $columns));
         $column->params = $params;
@@ -69,7 +69,7 @@ class Column
 
     public static function checkbox($attribute = 'id')
     {
-        return static::name($attribute . ' as checkbox_attribute')->setType('checkbox');
+        return static::name($attribute.' as checkbox_attribute')->setType('checkbox');
     }
 
     public static function scope($scope, $alias)
@@ -93,24 +93,28 @@ class Column
     public function label($label)
     {
         $this->label = $label;
+
         return $this;
     }
 
     public function sortBy($column)
     {
         $this->sort = $column;
+
         return $this;
     }
 
     public function defaultSort($direction = true)
     {
         $this->defaultSort = $direction;
+
         return $this;
     }
 
     public function searchable()
     {
         $this->searchable = true;
+
         return $this;
     }
 
@@ -118,6 +122,7 @@ class Column
     {
         $this->filterable = $options ?? true;
         $this->scopeFilter = $scopeFilter;
+
         return $this;
     }
 
@@ -126,7 +131,7 @@ class Column
         $this->callback = function ($value) use ($model, $pad) {
             return view('datatables::link', [
                 'href' => "/$model/$value",
-                'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value
+                'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value,
             ]);
         };
 
@@ -138,6 +143,7 @@ class Column
         $this->callback = function ($value) use ($length) {
             return view('datatables::tooltip', ['slot' => $value, 'length' => $length]);
         };
+
         return $this;
     }
 
@@ -146,6 +152,7 @@ class Column
         $this->callback = function ($value) use ($precision) {
             return $value ? round($value, $precision) : null;
         };
+
         return $this;
     }
 
@@ -161,6 +168,7 @@ class Column
     public function additionalSelects($selects)
     {
         $this->additionalSelects = is_array($selects) ? $selects : array_map('trim', explode(',', $selects));
+
         return $this;
     }
 
@@ -177,24 +185,27 @@ class Column
     public function hide()
     {
         $this->hidden = true;
+
         return $this;
     }
 
     public function alignRight()
     {
         $this->align = 'right';
+
         return $this;
     }
 
     public function alignCenter()
     {
         $this->align = 'center';
+
         return $this;
     }
 
     public function toggleHidden()
     {
-        $this->hidden = !$this->hidden;
+        $this->hidden = ! $this->hidden;
     }
 
     public function toArray()
@@ -211,7 +222,7 @@ class Column
 
     public function isBaseColumn()
     {
-        return ! Str::contains($this->name, '.') && !$this->raw;
+        return ! Str::contains($this->name, '.') && ! $this->raw;
     }
 
     public function field()
@@ -232,6 +243,7 @@ class Column
     public function setType($type)
     {
         $this->type = $type;
+
         return $this;
     }
 }

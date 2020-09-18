@@ -2,11 +2,11 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
-use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasOneModel;
-use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasManyModel;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyBelongsToManyModel;
+use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasManyModel;
+use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasOneModel;
+use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class LivewireDatatableQueryBuilderTest extends TestCase
 {
@@ -44,7 +44,6 @@ class LivewireDatatableQueryBuilderTest extends TestCase
 
         $this->assertEquals('select "dummy_models"."id" as "id", "dummy_has_one_models"."name" as "dummy_has_one.name" from "dummy_models" left join "dummy_has_one_models" on "dummy_has_one_models"."dummy_model_id" = "dummy_models"."id" order by dummy_has_one_models.name desc', $subject->getQuery()->toSql());
 
-
         $subject->sort(1);
         $subject->forgetComputed();
 
@@ -61,7 +60,7 @@ class LivewireDatatableQueryBuilderTest extends TestCase
         $subject->doSelectFilter(1, 'dwight');
 
         $this->assertEquals('select "dummy_models"."id" as "id", "dummy_has_one_models"."name" as "dummy_has_one.name" from "dummy_models" left join "dummy_has_one_models" on "dummy_has_one_models"."dummy_model_id" = "dummy_models"."id" where ((("dummy_has_one_models"."name" = ?))) order by `id` desc', $subject->getQuery()->toSql());
-        $this->assertEquals(["dwight"], $subject->getQuery()->getBindings());
+        $this->assertEquals(['dwight'], $subject->getQuery()->getBindings());
     }
 
     /** @test */
@@ -113,7 +112,7 @@ class LivewireDatatableQueryBuilderTest extends TestCase
 
         $this->assertEquals('select (select group_concat(distinct dummy_has_many_models.name separator \', \') from "dummy_has_many_models" where "dummy_models"."id" = "dummy_has_many_models"."dummy_model_id") as `dummy_has_many.name`, "dummy_models"."id" as "id" from "dummy_models" where ((((select group_concat(distinct dummy_has_many_models.name separator \', \') from "dummy_has_many_models" where "dummy_models"."id" = "dummy_has_many_models"."dummy_model_id") like ?))) order by `id` desc', $subject->getQuery()->toSql());
 
-        $this->assertEquals(["%Pam%"], $subject->getQuery()->getBindings());
+        $this->assertEquals(['%Pam%'], $subject->getQuery()->getBindings());
     }
 
     /** @test */

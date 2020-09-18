@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class DummyModel extends Model
 {
-
     protected $guarded = ['id'];
 
     protected $hidden = [

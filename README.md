@@ -20,7 +20,7 @@
 - [Laravel 7](https://laravel.com/docs/7.x)
 - [Livewire](https://laravel-livewire.com/)
 - [Tailwind](https://tailwindcss.com/)
-
+- [Alpine JS](https://github.com/alpinejs/alpine)
 
 ## Installation
 
@@ -36,6 +36,14 @@ php artisan vendor:publish
 ```
 This will enable you to modify the blade views and apply your own styling, the datatables views will be published to resources/livewire/datatables. The config file contains the default time and date formats used throughout
 > - This can be useful if you're using Purge CSS on your project, to make sure all the livewire-datatables classes get included
+
+Several of the built-in dynamic components use Alpine JS, so to remove flickers on page load, make sure you have
+```css
+[x-cloak] {
+    display: none;
+}
+```
+somewhere in your CSS
 
 ## Basic Usage
 
@@ -63,7 +71,7 @@ This will enable you to modify the blade views and apply your own styling, the d
 |----|----|----|----|
 |**model**|*String* full model name|Define the base model for the table| ```model="App\Post"```|
 |**include**|*String\|Array* of column definitions|specify columns to be shown in table, label can be specified by using \| delimter | ```include="name, email, dob|Birth Date, role"```|
-|**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exlcude="['created_at', 'updated_at']"```|
+|**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exclude="['created_at', 'updated_at']"```|
 |**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```hidden="email_verified_at"```|
 |**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob|lS F y', 'created_at']"```|
 |**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime|g:i A'```|
@@ -81,7 +89,7 @@ This will enable you to modify the blade views and apply your own styling, the d
 
 ## Component Syntax
 
-### Preate a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
+### Create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
 > ```php artisan livewire:datatable foo``` --> 'app/Http/Livewire/Foo.php'
 
 > ```php artisan livewire:datatable tables.bar``` --> 'app/Http/Livewire/Tables/Bar.php'
@@ -260,13 +268,13 @@ class CallbackDemoTable extends LivewireDatatable
 
     public function columns()
     {
-        return Columnset::fromArray([
+        return [
             Column::name('users.id'),
 
             Column::name('users.dob')->view('tables.dateview'),
 
             Column::name('users.signup_date')->format(),
-        ]);
+        ];
     }
 ```
 ```html
@@ -288,7 +296,7 @@ class EditableTable extends LivewireDatatable
 
     public function columns()
     {
-        return Columnset::fromArray([
+        return [
             Column::name('id')
                 ->label('ID')
                 ->linkTo('job', 6),
@@ -297,7 +305,7 @@ class EditableTable extends LivewireDatatable
                 ->editable(),
 
             ...
-        ]);
+        ];
     }
 }
 ```

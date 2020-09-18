@@ -3,10 +3,8 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Livewire\Livewire;
-use Mediconesystems\LivewireDatatables\Tests\TestCase;
-use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
-use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class LivewireDatatableTemplateTest extends TestCase
 {
@@ -27,7 +25,7 @@ class LivewireDatatableTemplateTest extends TestCase
             4 => 'Flag',
             5 => 'Expires_at',
             6 => 'Created_at',
-            7 => 'Updated_at'
+            7 => 'Updated_at',
         ], collect($subject->columns)->map->label->toArray());
     }
 
@@ -38,7 +36,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'hideHeader' => true
+            'hideHeader' => true,
         ])->assertDontSeeHtml('<button wire:click.prefetch="sort');
     }
 
@@ -49,7 +47,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'hidePagination' => true
+            'hidePagination' => true,
         ])->assertDontSeeHtml('<select name="perPage"');
     }
 
@@ -60,7 +58,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'perPage' => 20
+            'perPage' => 20,
         ])->assertSee('Results 1 - 20');
     }
 
@@ -75,7 +73,7 @@ class LivewireDatatableTemplateTest extends TestCase
                 'id',
                 'subject',
                 'body',
-            ]
+            ],
         ]);
 
         $this->assertIsArray($subject->columns);
@@ -93,7 +91,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'exclude' => ['subject']
+            'exclude' => ['subject'],
         ]);
 
         $this->assertIsArray($subject->columns);
@@ -104,7 +102,7 @@ class LivewireDatatableTemplateTest extends TestCase
             4 => 'Flag',
             5 => 'Expires_at',
             6 => 'Created_at',
-            7 => 'Updated_at'
+            7 => 'Updated_at',
         ], collect($subject->columns)->map->label->toArray());
     }
 
@@ -115,7 +113,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'hide' => ['subject']
+            'hide' => ['subject'],
         ])->assertDontSee('HIDE-THIS');
 
         $this->assertIsArray($subject->columns);
@@ -127,12 +125,12 @@ class LivewireDatatableTemplateTest extends TestCase
     {
         factory(DummyModel::class)->create([
             'expires_at' => '2020-12-31',
-            'created_at' => '1978-10-02'
+            'created_at' => '1978-10-02',
         ]);
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'dates' => ['expires_at', 'created_at|jS F Y']
+            'dates' => ['expires_at', 'created_at|jS F Y'],
         ])->assertSee('31/12/2020')
             ->assertSee('2nd October 1978');
     }
@@ -142,12 +140,12 @@ class LivewireDatatableTemplateTest extends TestCase
     {
         factory(DummyModel::class)->create([
             'expires_at' => '2020-12-31 2:34 PM',
-            'created_at' => '1978-10-02 13:45:56'
+            'created_at' => '1978-10-02 13:45:56',
         ]);
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'times' => ['expires_at', 'created_at|g:i A']
+            'times' => ['expires_at', 'created_at|g:i A'],
         ])
             ->assertSee('14:34')
             ->assertSee('1:45 PM');
@@ -160,7 +158,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'sort' => 'subject|asc'
+            'sort' => 'subject|asc',
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
