@@ -2,10 +2,9 @@
 
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
-use Livewire\Component;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Foundation\Auth\User;
+use Livewire\Component;
 
 class ComplexQuery extends Component
 {
@@ -16,8 +15,8 @@ class ComplexQuery extends Component
         [
             'type' => 'group',
             'logic' => 'and',
-            'content' => []
-        ]
+            'content' => [],
+        ],
     ];
 
     public function getRulesStringProperty($rules = null, $logic = 'and')
@@ -28,16 +27,14 @@ class ComplexQuery extends Component
         ->map(function ($rule) {
             return $rule['type'] === 'rule'
                 ? implode(' ', [$this->columns[$rule['content']['column']]['label'] ?? '', $rule['content']['operand'] ?? '', $rule['content']['value'] ?? ''])
-                : '(' . $this->getRulesStringProperty($rule['content'], $rule['logic']) . ')';
+                : '('.$this->getRulesStringProperty($rule['content'], $rule['logic']).')';
         })
         ->join(" $logic ")
 
         /*
          */
-        ;
+;
     }
-
-
 
     public function runQuery()
     {
@@ -53,8 +50,8 @@ class ComplexQuery extends Component
             'content' => [
                 'column' => null,
                 'operand' => null,
-                'value' => null
-            ]
+                'value' => null,
+            ],
         ];
 
         Arr::set($this->rules, $index, $temp);
@@ -67,7 +64,7 @@ class ComplexQuery extends Component
         $temp[] = [
             'type' => 'group',
             'logic' => 'and',
-            'content' => []
+            'content' => [],
         ];
 
         Arr::set($this->rules, $index, $temp);
@@ -100,7 +97,7 @@ class ComplexQuery extends Component
 
     public function getRuleColumn($key)
     {
-        return $this->columns[Arr::get($this->rules, $key . '.column')] ?? null;
+        return $this->columns[Arr::get($this->rules, $key.'.column')] ?? null;
     }
 
     public function getOperands($key)

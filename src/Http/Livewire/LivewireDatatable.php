@@ -922,7 +922,7 @@ class LivewireDatatable extends Component
 
     public function addComplexQuery()
     {
-        if (!$this->complexQuery) {
+        if (! $this->complexQuery) {
             return $this;
         }
         $this->query->where(function ($query) {
@@ -941,13 +941,13 @@ class LivewireDatatable extends Component
     {
         if (isset($rule['content']['operand'])) {
             if ($rule['content']['operand'] === 'contains') {
-                return '%' . $rule['content']['value'] . '%';
+                return '%'.$rule['content']['value'].'%';
             } elseif ($rule['content']['operand'] === 'does not contain') {
-                return '%' . $rule['content']['value'] . '%';
+                return '%'.$rule['content']['value'].'%';
             } elseif ($rule['content']['operand'] === 'begins with') {
-                return $rule['content']['value'] . '%';
+                return $rule['content']['value'].'%';
             } elseif ($rule['content']['operand'] === 'ends with') {
-                return '%' . $rule['content']['value'];
+                return '%'.$rule['content']['value'];
             } elseif ($rule['content']['operand'] === 'is empty' || $rule['content']['operand'] === 'is not empty') {
                 return '';
             }
@@ -1121,8 +1121,6 @@ class LivewireDatatable extends Component
     {
         $this->complexQuery = $rules;
     }
-
-
 
     public function render()
     {
