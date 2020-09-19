@@ -1,6 +1,4 @@
 <div>
-    <livewire:query-builder :columns="collect($columns)->reject(function ($col) { return in_array($col['type'], ['checkbox', 'editable']); })->toArray()" />
-
     @if($beforeTableSlot)
         <div class="mt-8">
             @include($beforeTableSlot)
@@ -159,6 +157,7 @@
             @endif
         </div>
     </div>
+    <livewire:complex-query :columns="$this->complexColumns" />
     @if($afterTableSlot)
     <div class="mt-8">
         @include($afterTableSlot)

@@ -56,7 +56,7 @@ class LivewireDatatable extends Component
     public $complexQuery;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'applyQuery'];
+    protected $listeners = ['refreshLivewireDatatable', 'applyQuery', 'complexQuery'];
 
     protected $operators = [
         '=' => '=',
@@ -66,12 +66,15 @@ class LivewireDatatable extends Component
         '>=' => '>=',
         '<=' => '<=',
         'equals' => '=',
+        'does not equal' => '<>',
         'contains' => 'LIKE',
         'does not contain' => 'NOT LIKE',
         'begins with' => 'LIKE',
         'ends with' => 'LIKE',
         'is empty' => '=',
         'is not empty' => '<>',
+        'includes' => '=',
+        'does not include' => '<>',
     ];
 
     public function mount(
@@ -117,8 +120,10 @@ class LivewireDatatable extends Component
                 'align',
                 'type',
                 'filterable',
+                'complex',
                 'filterview',
                 'name',
+                'scopeFilter',
             ])->toArray();
         })->toArray();
     }
@@ -148,6 +153,14 @@ class LivewireDatatable extends Component
             ->formatTimes($this->times)
             ->search($this->searchable)
             ->sort($this->sort);
+    }
+
+    public function getComplexColumnsProperty()
+    {
+        // return $this->columns;
+        return collect($this->columns)->filter(function ($column) {
+            return $column['complex'];
+        });
     }
 
     public function resolveColumnName($column)
@@ -562,7 +575,9 @@ class LivewireDatatable extends Component
             return [(string) $this->freshColumns[$index]['sort']];
         }
 
-        return [$this->getSelectStatements()[$index]];
+        return is_array($this->getSelectStatements()[$index])
+            ? $this->getSelectStatements()[$index]
+            : [$this->getSelectStatements()[$index]];
     }
 
     public function addScopeSelectFilter($query, $index, $value)
@@ -583,13 +598,12 @@ class LivewireDatatable extends Component
         return $query->{$this->freshColumns[$index]['scopeFilter']}($value);
     }
 
-    public function addAggregateFilter($query, $index, $filter)
+    public function addAggregateFilter($query, $index, $filter, $operand = null)
     {
         $column = $this->freshColumns[$index];
         $relation = Str::before($column['name'], '.');
         $aggregate = $this->columnAggregateType($column);
         $field = Str::before(explode('.', $column['name'])[1], ':');
-
         $query->when($column['type'] === 'boolean', function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
                 if ($filter) {
@@ -608,6 +622,8 @@ class LivewireDatatable extends Component
             $query->hasAggregate($relation, $field, $aggregate, '>=', $filter['start']);
         })->when(isset($filter['end']), function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->hasAggregate($relation, $field, $aggregate, '<=', $filter['end']);
+        })->when(isset($operand), function ($query) use ($filter, $relation, $field, $aggregate, $operand) {
+            $query->hasAggregate($relation, $field, $aggregate, $operand, $filter);
         });
     }
 
@@ -899,53 +915,80 @@ class LivewireDatatable extends Component
         return $this;
     }
 
+    public function complexQuery($rules)
+    {
+        $this->complexQuery = $rules;
+    }
+
     public function addComplexQuery()
     {
         if (!$this->complexQuery) {
             return $this;
         }
-
         $this->query->where(function ($query) {
             $this->processNested($this->complexQuery, $query);
         });
 
-
-
         return $this;
     }
 
-    private function processNested($rules, $query)
+    private function complexOperator($operand)
     {
-        // dd($rules);
+        return $operand ? $this->operators[$operand] : '=';
+    }
 
-        // $query = $query ?? $this->query;
-
-
-        collect($rules)->each(function ($rule) use ($query) {
-            $andOr = 'and';
-            if (is_string($rule)) {
-                $andOr = $rule;
-                return;
+    private function complexValue($rule)
+    {
+        if (isset($rule['content']['operand'])) {
+            if ($rule['content']['operand'] === 'contains') {
+                return '%' . $rule['content']['value'] . '%';
+            } elseif ($rule['content']['operand'] === 'does not contain') {
+                return '%' . $rule['content']['value'] . '%';
+            } elseif ($rule['content']['operand'] === 'begins with') {
+                return $rule['content']['value'] . '%';
+            } elseif ($rule['content']['operand'] === 'ends with') {
+                return '%' . $rule['content']['value'];
+            } elseif ($rule['content']['operand'] === 'is empty' || $rule['content']['operand'] === 'is not empty') {
+                return '';
             }
+        }
 
-            if (count(array_filter(array_keys($rule), 'is_string')) > 0) {
-                //rule
+        return $rule['content']['value'];
+    }
+
+    public function processNested($rules = null, $query = null, $logic = 'and')
+    {
+        collect($rules)->each(function ($rule) use ($query, $logic) {
+            if ($rule['type'] === 'rule' && isset($rule['content']['column'])) {
                 $query->where(function ($query) use ($rule) {
-                    foreach ($this->getColumnField($rule['field']) as $column) {
-                        $column = is_array($column) ? $column[0] : $column;
-                        $query->orWhere($column, $this->operators[$rule['operand']], $rule['value']);
+                    if (! $this->addScopeSelectFilter($query, $rule['content']['column'], $rule['content']['value'])) {
+                        foreach ($this->getColumnField($rule['content']['column']) as $column) {
+                            if ($this->columns[$rule['content']['column']]['type'] === 'boolean') {
+                                if ($rule['content']['value'] === 'true') {
+                                    $query->whereNotNull($column);
+                                } else {
+                                    $query->whereNull($column);
+                                }
+                            } elseif ($this->columnIsAggregateRelation($this->freshColumns[$rule['content']['column']])) {
+                                $query = $this->addAggregateFilter($query, $rule['content']['column'], $this->complexValue($rule), $this->complexOperator($rule['content']['operand']));
+                            } else {
+                                $query->orWhere(
+                                    Str::contains($column, '(') ? DB::raw($column) : $column,
+                                    $this->complexOperator($rule['content']['operand']),
+                                    $this->complexValue($rule)
+                                );
+                            }
+                        }
                     }
-                }, null, null, $andOr);
+                }, null, null, $logic);
             } else {
-                // group
                 $query->where(function ($q) use ($rule) {
-                    $this->processNested($rule, $q);
-                }, null, null, $andOr);
+                    $this->processNested($rule['content'], $q, $rule['logic']);
+                }, null, null, $logic);
             }
+        });
 
-
-            //     if ($c['type'] === 'query-builder-rule') {
-        //         if (isset($c['query']['selectedOperator']) && $c['query']['selectedOperator'] === 'is empty') {
+        // if (isset($c['query']['selectedOperator']) && $c['query']['selectedOperator'] === 'is empty') {
         //             $query->where(function ($q) use ($c) {
         //                 $q->where($this->getRule($c), '')
         //                     ->orWhereNull($this->getRule($c));
@@ -963,9 +1006,6 @@ class LivewireDatatable extends Component
         //             $this->processNested($q, $c['query']);
         //         }, null, null, $rules['logicalOperator']);
         //     }
-        });
-
-        // $this->query = $query;
 
         return $query;
     }
@@ -1044,11 +1084,6 @@ class LivewireDatatable extends Component
         return str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value);
     }
 
-    public function render()
-    {
-        return view('datatables::datatable');
-    }
-
     public function export()
     {
         $this->forgetComputed();
@@ -1085,5 +1120,12 @@ class LivewireDatatable extends Component
     public function applyQuery($rules)
     {
         $this->complexQuery = $rules;
+    }
+
+
+
+    public function render()
+    {
+        return view('datatables::datatable');
     }
 }

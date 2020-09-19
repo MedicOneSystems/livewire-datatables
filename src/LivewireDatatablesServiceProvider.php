@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
 use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
+use Mediconesystems\LivewireDatatables\Http\Livewire\ComplexQuery;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
@@ -20,8 +21,10 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
     public function boot()
     {
         Livewire::component('datatable', LivewireDatatable::class);
+        Livewire::component('complex-query', ComplexQuery::class);
 
         $this->loadViewsFrom(__DIR__.'/../resources/views/livewire/datatables', 'datatables');
+        $this->loadViewsFrom(__DIR__.'/../resources/views/components', 'datatables');
         $this->loadViewsFrom(__DIR__.'/../resources/views/icons', 'icons');
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');
