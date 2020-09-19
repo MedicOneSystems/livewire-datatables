@@ -57,7 +57,7 @@ class LivewireDatatable extends Component
     public $complexQuery;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'applyQuery', 'complexQuery'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery'];
 
     protected $operators = [
         '=' => '=',
@@ -1117,13 +1117,6 @@ class LivewireDatatable extends Component
         }
         $this->forgetComputed();
     }
-
-    public function applyQuery($rules)
-    {
-        $this->complexQuery = $rules;
-    }
-
-
 
     public function render()
     {
