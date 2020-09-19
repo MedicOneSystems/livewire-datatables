@@ -53,6 +53,7 @@ class LivewireDatatable extends Component
     public $selected = [];
     public $beforeTableSlot;
     public $afterTableSlot;
+    public $complex;
     public $complexQuery;
 
     protected $query;
