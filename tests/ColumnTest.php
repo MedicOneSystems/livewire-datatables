@@ -124,7 +124,7 @@ class ColumnTest extends TestCase
             'select' => DB::raw('SELECT column FROM table'),
             'joins' => null,
             'align' => 'left',
-            'complex' => null
+            'complex' => null,
         ], $subject);
     }
 }
