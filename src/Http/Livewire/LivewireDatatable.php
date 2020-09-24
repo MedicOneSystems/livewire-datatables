@@ -700,7 +700,7 @@ class LivewireDatatable extends Component
 
     public function addGlobalSearch()
     {
-        if (! $this->search) {
+        if (!$this->search) {
             return $this;
         }
 
@@ -710,7 +710,13 @@ class LivewireDatatable extends Component
                     $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
                         $query->orWhere(function ($query) use ($i, $search) {
                             foreach ($this->getColumnField($i) as $column) {
-                                $query->orWhereRaw('LOWER('.$column.') like ?', "%$search%");
+                                $query->when(is_array($column), function ($query) use ($search, $column) {
+                                    foreach ($column as $col) {
+                                        $query->orWhereRaw('LOWER(' . $col . ') like ?', "%$search%");
+                                    }
+                                }, function ($query) use ($search, $column) {
+                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', "%$search%");
+                                });
                             }
                         });
                     });
