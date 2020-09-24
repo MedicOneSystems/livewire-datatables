@@ -12,7 +12,6 @@ class Rule
     {
     }
 
-
     public function setColumn($column)
     {
         $this->column = $column;
