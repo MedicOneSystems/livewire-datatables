@@ -685,7 +685,7 @@ class LivewireDatatable extends Component
             ->addTimeRangeFilter()
             ->addSort();
     }
-    
+
     public function addGlobalSearch()
     {
         if (! $this->search) {
