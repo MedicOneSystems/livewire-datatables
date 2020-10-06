@@ -172,9 +172,9 @@ class Column
         return $this;
     }
 
-    public function editable()
+    public function editable($editable = true)
     {
-        return $this->setType('editable');
+        return $editable ? $this->setType('editable') : $this;
     }
 
     public function isEditable()
