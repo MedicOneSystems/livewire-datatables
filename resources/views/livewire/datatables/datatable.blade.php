@@ -55,8 +55,8 @@
         </div>
         @endif
 
-        <div class="rounded-lg shadow-lg bg-white">
-            <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif max-w-screen overflow-x-auto bg-white">
+        <div class="rounded-lg shadow-lg bg-white max-w-screen overflow-x-scroll">
+            <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif">
                 <div class="table align-middle min-w-full">
                     @unless($this->hideHeader)
                     <div class="table-row divide-x divide-gray-200">
