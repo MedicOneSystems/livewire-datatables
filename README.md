@@ -80,7 +80,7 @@ somewhere in your CSS
 |**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
 |**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
 |**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
-|**exportable**|*Boolean*  default: *false*|Allows tabel to bbe exported| ```<livewire:datatable model="App/Post" exportable />``` |
+|**exportable**|*Boolean*  default: *false*|Allows tabel to be exported| ```<livewire:datatable model="App/Post" exportable />``` |
 |**hideable**| _String_ | gives ability to show/hide columns, accepts strings 'inline', 'buttons', or 'select'| ```<livewire:datatable model="App/Post" hideable="inline" />``` |
 |**beforeTableSlot**| _String_ |blade view to be included immediately before the table in the component, which can therefore access public properties|  |
 |**afterTableSlot**| _String_ |blade view to be included immediately after the table in the component, which can therefore access public properties| [demo](https://livewire-datatables.com/complex) |
