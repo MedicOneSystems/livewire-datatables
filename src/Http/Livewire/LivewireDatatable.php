@@ -256,7 +256,7 @@ class LivewireDatatable extends Component
                     break;
 
                 case $model instanceof HasMany:
-                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
+                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
                     $table = null;
                     break;
 
@@ -267,7 +267,7 @@ class LivewireDatatable extends Component
                     break;
 
                 case $model instanceof BelongsToMany:
-                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
+                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
                     $table = null;
                     break;
 
@@ -286,7 +286,7 @@ class LivewireDatatable extends Component
                     break;
 
                 default:
-                    $this->query->withAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
+                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
             }
             if ($table) {
                 $this->performJoin($table, $foreign, $other);

@@ -73,7 +73,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
     public function loadEloquentBuilderMacros()
     {
-        EloquentBuilder::macro('withAggregate', function ($relations, $aggregate, $column, $alias = null) {
+        EloquentBuilder::macro('customWithAggregate', function ($relations, $aggregate, $column, $alias = null) {
             if (empty($relations)) {
                 return $this;
             }
