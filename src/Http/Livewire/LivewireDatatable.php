@@ -931,7 +931,7 @@ class LivewireDatatable extends Component
                     $row->$name = $this->callbacks[$name]($value, $row);
                 }
 
-                if ($this->search && $this->searchableColumns()->firstWhere('name', $name)) {
+                if ($this->search && ! config('livewire-datatables.suppress_search_highlights') && $this->searchableColumns()->firstWhere('name', $name)) {
                     $row->$name = $this->highlight($row->$name, $this->search);
                 }
             }
