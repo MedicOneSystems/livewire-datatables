@@ -949,7 +949,6 @@ class LivewireDatatable extends Component
             : $value;
     }
 
-
     /*  This can be called to apply highlting of the search term to some string.
      *  Motivation: Call this from your Column::Callback to apply highlight to a chosen section of the result.
      */
@@ -983,7 +982,7 @@ class LivewireDatatable extends Component
 
         if ($value instanceof View) {
             return $value
-                ->with(['value' => str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'])]);
+                ->with(['value' => str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'] ?? $value->gatherData()['slot'])]);
         }
 
         return str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value);
