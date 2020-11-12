@@ -375,7 +375,7 @@ class LivewireDatatable extends Component
                 break;
 
              default:
-                return $dbTable == "pgsql"
+                return $dbTable == 'pgsql'
                 ? new Expression('"'.$column['name'].'"')
                 : new Expression('`'.$column['name'].'`');
                 break;
