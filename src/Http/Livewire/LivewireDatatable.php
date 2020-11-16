@@ -355,6 +355,7 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
+        $dbTable = env('DB_CONNECTION');
 
         switch (true) {
             case $column['sort']:
@@ -373,8 +374,10 @@ class LivewireDatatable extends Component
                 return Str::before($column['select'], ' AS ');
                 break;
 
-            default:
-                return new Expression('`'.$column['name'].'`');
+             default:
+                return $dbTable == 'pgsql'
+                ? new Expression('"'.$column['name'].'"')
+                : new Expression('`'.$column['name'].'`');
                 break;
         }
     }
