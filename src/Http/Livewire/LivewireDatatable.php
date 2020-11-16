@@ -957,7 +957,7 @@ class LivewireDatatable extends Component
      */
     public function highlightStringWithCurrentSearchTerm(string $originalString)
     {
-        if (!$this->search) {
+        if (! $this->search) {
             return $originalString;
         } else {
             return static::highlightString($originalString, $this->search);
@@ -976,6 +976,7 @@ class LivewireDatatable extends Component
             $searchStringNicelyHighlightedWithHtml,
             $originalString
         );
+
         return $stringWithHighlightedSubstring;
     }
 
