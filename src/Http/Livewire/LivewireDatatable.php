@@ -934,7 +934,7 @@ class LivewireDatatable extends Component
                     $row->$name = $this->callbacks[$name]($value, $row);
                 }
 
-                if ($this->search && $this->searchableColumns()->firstWhere('name', $name)) {
+                if ($this->search && ! config('livewire-datatables.suppress_search_highlights') && $this->searchableColumns()->firstWhere('name', $name)) {
                     $row->$name = $this->highlight($row->$name, $this->search);
                 }
             }
@@ -952,13 +952,40 @@ class LivewireDatatable extends Component
             : $value;
     }
 
+    /*  This can be called to apply highlting of the search term to some string.
+     *  Motivation: Call this from your Column::Callback to apply highlight to a chosen section of the result.
+     */
+    public function highlightStringWithCurrentSearchTerm(string $originalString)
+    {
+        if (!$this->search) {
+            return $originalString;
+        } else {
+            return static::highlightString($originalString, $this->search);
+        }
+    }
+
+    /* Utility function for applying highlighting to given string */
+    public static function highlightString(string $originalString, string $searchingForThisSubstring)
+    {
+        $searchStringNicelyHighlightedWithHtml = view(
+            'datatables::highlight',
+            ['slot' => $searchingForThisSubstring]
+        )->render();
+        $stringWithHighlightedSubstring = str_ireplace(
+            $searchingForThisSubstring,
+            $searchStringNicelyHighlightedWithHtml,
+            $originalString
+        );
+        return $stringWithHighlightedSubstring;
+    }
+
     public function highlight($value, $string)
     {
         $output = substr($value, stripos($value, $string), strlen($string));
 
         if ($value instanceof View) {
             return $value
-                ->with(['value' => str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'])]);
+                ->with(['value' => str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'] ?? $value->gatherData()['slot'])]);
         }
 
         return str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value);
