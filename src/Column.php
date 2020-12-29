@@ -26,6 +26,7 @@ class Column
     public $additionalSelects = [];
     public $filterView;
     public $align = 'left';
+    public $exportable = true;
 
     public static function name($name)
     {
@@ -243,6 +244,13 @@ class Column
     public function setType($type)
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function notExportable()
+    {
+        $this->exportable = false;
 
         return $this;
     }

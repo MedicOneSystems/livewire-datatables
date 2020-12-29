@@ -100,6 +100,7 @@ class LivewireDatatable extends Component
                 'align',
                 'type',
                 'filterable',
+                'exportable',
                 'filterview',
                 'name',
             ])->toArray();
@@ -1001,7 +1002,19 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        return Excel::download(new DatatableExport($this->getQuery()->get()), 'DatatableExport.xlsx');
+        return Excel::download(new DatatableExport(
+            $this->getQuery()->select($this->getExportableFields())->get()),
+            'DatatableExport.xlsx'
+        );
+    }
+
+    public function getExportableFields()
+    {
+        $exportableFields = array_filter($this->columns, function ($column) {
+            return $column['exportable'];
+        });
+
+        return collect($exportableFields)->pluck('name')->toArray();
     }
 
     public function getQuery()
