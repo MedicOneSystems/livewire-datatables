@@ -160,7 +160,7 @@ class LivewireDatatable extends Component
         });
 
         return $selects->count() > 1
-            ? new Expression('CONCAT_WS("'.static::SEPARATOR.'" ,'.
+            ? new Expression("CONCAT_WS('".static::SEPARATOR."' ,".
                 collect($selects)->map(function ($select) {
                     return "COALESCE($select, '')";
                 })->join(', ').')')
@@ -209,7 +209,9 @@ class LivewireDatatable extends Component
                     return null;
                 }
                 if ($column->select instanceof Expression) {
-                    return new Expression($column->select->getValue().' AS `'.$column->name.'`');
+                    $sep_string = env('DB_CONNECTION') === 'pgsql' ? '"' : '`';
+
+                    return new Expression($column->select->getValue().' AS '.$sep_string.$column->name.$sep_string);
                 }
 
                 if (is_array($column->select)) {
