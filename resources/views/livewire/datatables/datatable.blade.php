@@ -15,7 +15,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
-                        <input wire:model.debounce.500ms="search" class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5" placeholder="Search in {{ $this->searchableColumns()->map->label->join(', ') }}" />
+                        <input wire:model.debounce.500ms="search" class="form-input block bg-gray-50 focus:bg-white w-full rounded-md pl-10 transition ease-in-out duration-150 sm:text-sm sm:leading-5" placeholder="{{__('Search in')}} {{ $this->searchableColumns()->map->label->join(', ') }}" />
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <button wire:click="$set('search', null)" class="text-gray-300 hover:text-red-600 focus:outline-none">
                                 <x-icons.x-circle class="h-5 w-5 stroke-current" />
@@ -33,7 +33,7 @@
                 <div x-data="{ init() {
                     window.livewire.on('startDownload', link => window.open(link,'_blank'))
                 } }" x-init="init">
-                    <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span>Export</span>
+                    <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span>{{ __('Export') }}</span>
                         <x-icons.excel class="m-2" /></button>
                 </div>
                 @endif
@@ -124,7 +124,7 @@
                         </div>
                     @empty
                         <p class="p-3 text-lg text-teal-600">
-                           There's Nothing to show at the moment
+                            {{ __("There's Nothing to show at the moment") }}
                         </p>
                     @endforelse
                 </div>
@@ -140,7 +140,7 @@
                                 <option value="25">25</option>
                                 <option value="50">50</option>
                                 <option value="100">100</option>
-                                <option value="99999999">All</option>
+                                <option value="99999999">{{__('All')}}</option>
                             </select>
                         </div>
 
@@ -155,7 +155,7 @@
                         </div>
 
                         <div class="flex justify-end text-gray-600">
-                            Results {{ $this->results->firstItem() }} - {{ $this->results->lastItem() }} of
+                            {{__('Results')}} {{ $this->results->firstItem() }} - {{ $this->results->lastItem() }} {{__('of')}}
                             {{ $this->results->total() }}
                         </div>
                     @endif
