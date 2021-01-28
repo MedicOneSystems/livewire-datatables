@@ -26,6 +26,7 @@ class Column
     public $additionalSelects = [];
     public $filterView;
     public $align = 'left';
+    public $preventExport;
 
     public static function name($name)
     {
@@ -122,6 +123,13 @@ class Column
     {
         $this->filterable = $options ?? true;
         $this->scopeFilter = $scopeFilter;
+
+        return $this;
+    }
+
+    public function excludeFromExport()
+    {
+        $this->preventExport = true;
 
         return $this;
     }
