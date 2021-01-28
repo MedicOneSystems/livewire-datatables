@@ -179,6 +179,7 @@ class ComplexDemoTable extends LivewireDatatable
 |**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
 |**alignCenter**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
 |**editable**| | Marks the column as editable | _(see below)_|
+|**excludeFromExport**| | Prevents the column as editable |```Column::name('email')->exclude```|
 ___
 
 ### Listener
