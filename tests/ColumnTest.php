@@ -90,6 +90,7 @@ class ColumnTest extends TestCase
             'joins' => null,
             'aggregate' => 'group_concat',
             'align' => 'left',
+            'preventExport' => null,
         ], $subject);
     }
 
@@ -123,6 +124,7 @@ class ColumnTest extends TestCase
             'select' => DB::raw('SELECT column FROM table'),
             'joins' => null,
             'align' => 'left',
+            'preventExport' => null,
         ], $subject);
     }
 }

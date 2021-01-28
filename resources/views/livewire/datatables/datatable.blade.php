@@ -133,7 +133,7 @@
             <div class="rounded-lg rounded-t-none max-w-screen rounded-lg border-b border-gray-200 bg-white">
                 <div class="p-2 sm:flex items-center justify-between">
                     {{-- check if there is any data --}}
-                    @if($this->results[1])
+                    @if(count($this->results))
                         <div class="my-2 sm:my-0 flex items-center">
                             <select name="perPage" class="mt-1 form-select block w-full pl-3 pr-10 py-2 text-base leading-6 border-gray-300 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5" wire:model="perPage">
                                 <option value="10">10</option>
