@@ -1001,7 +1001,7 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        return Excel::download(new DatatableExport($this->getQuery()->dd()->get()), 'DatatableExport.xlsx');
+        return Excel::download(new DatatableExport($this->getQuery()->get()), 'DatatableExport.xlsx');
     }
 
     public function getQuery()
