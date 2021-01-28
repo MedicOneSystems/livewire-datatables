@@ -793,8 +793,10 @@ class LivewireDatatable extends Component
                 } elseif ($value == 1) {
                     $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
                 } elseif (strlen($value)) {
-                    $query->whereNull(DB::raw($this->getColumnField($index)[0]))
-                        ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
+                    $query->where(function ($query) use ($index) {
+                        $query->whereNull(DB::raw($this->getColumnField($index)[0]))
+                            ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
+                    });
                 }
             }
         });
