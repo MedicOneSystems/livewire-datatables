@@ -6,7 +6,7 @@
     {{ __('Previous')}}
 </div>
 @else
-<button wire:click="previousPage" class="w-32 flex justify-between items-center relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150">
+<button wire:click="previousPage" id="pagination-mobile-page-previous" class="w-32 flex justify-between items-center relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150">
     <x-icons.arrow-left />
     {{ __('Previous')}}
 </button>
@@ -15,7 +15,7 @@
 
 <!-- Next Page pnk -->
 @if ($paginator->hasMorePages())
-<button wire:click="nextPage" class="w-32 flex justify-between items-center relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150">
+<button wire:click="nextPage" id="pagination-mobile-page-next" class="w-32 flex justify-between items-center relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm leading-5 font-medium rounded-md text-gray-700 bg-white hover:text-gray-500 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150">
     {{ __('Next')}}
     <x-icons.arrow-right />
 </button>
