@@ -86,6 +86,11 @@ class LivewireDatatable extends Component
         $this->initialiseSort();
     }
 
+    public function updatedSearch()
+    {
+        $this->page = 1;
+    }
+
     public function columns()
     {
         return $this->modelInstance;
@@ -735,8 +740,6 @@ class LivewireDatatable extends Component
                 });
             }
         });
-
-        $this->page = 1;
 
         return $this;
     }
