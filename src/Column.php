@@ -256,7 +256,7 @@ class Column
     }
     
 
-    public function params($params)
+    public function addParams($params)
     {
         $this->params = $params;
 
