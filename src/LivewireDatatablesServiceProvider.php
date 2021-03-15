@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -107,7 +108,9 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
-                $columnAlias = new Expression('`'.($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')).'`');
+                $columnAlias = new Expression(DB::connection()->getPdo()->quote(
+                    ($alias ?? collect([$relations, $column])->filter()->flatten()->join('.'))
+                ));
                 $this->selectSub($query, $columnAlias);
             }
             // $this->groupIfNotGrouped($this->getModel()->getTable() . '.' . $this->getModel()->getKeyName());

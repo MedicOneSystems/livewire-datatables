@@ -79,7 +79,7 @@ class Column
         $column->scope = $scope;
         $column->name = $alias;
         $column->label = $alias;
-        $column->sortBy("`$alias`");
+        $column->sortBy(DB::connection()->getPdo()->quote($alias));
 
         return $column;
     }

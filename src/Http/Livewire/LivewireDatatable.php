@@ -210,9 +210,7 @@ class LivewireDatatable extends Component
                     return null;
                 }
                 if ($column->select instanceof Expression) {
-                    $sep_string = env('DB_CONNECTION') === 'pgsql' ? '"' : '`';
-
-                    return new Expression($column->select->getValue().' AS '.$sep_string.$column->name.$sep_string);
+                    return new Expression($column->select->getValue().' AS '.DB::connection()->getPdo()->quote($column->name));
                 }
 
                 if (is_array($column->select)) {
@@ -258,6 +256,7 @@ class LivewireDatatable extends Component
                     $other = $model->getQualifiedParentKeyName();
                     break;
 
+                case $model instanceof BelongsToMany:
                 case $model instanceof HasMany:
                     $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
                     $table = null;
@@ -267,11 +266,6 @@ class LivewireDatatable extends Component
                     $table = $model->getRelated()->getTable();
                     $foreign = $model->getQualifiedForeignKeyName();
                     $other = $model->getQualifiedOwnerKeyName();
-                    break;
-
-                case $model instanceof BelongsToMany:
-                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
-                    $table = null;
                     break;
 
                 case $model instanceof HasOneThrough:
@@ -378,9 +372,7 @@ class LivewireDatatable extends Component
                 break;
 
              default:
-                return $dbTable == 'pgsql'
-                ? new Expression('"'.$column['name'].'"')
-                : new Expression('`'.$column['name'].'`');
+                return new Expression(DB::connection()->getPdo()->quote($column['name']));
                 break;
         }
     }
