@@ -75,7 +75,7 @@ class LivewireDatatable extends Component
         $afterTableSlot = false,
         $params = []
     ) {
-        foreach (['model', 'include', 'exclude', 'hide', 'dates', 'times', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'perPage', 'exportable', 'hideable', 'beforeTableSlot', 'afterTableSlot'] as $property) {
+        foreach (['model', 'include', 'exclude', 'hide', 'dates', 'times', 'searchable', 'sort', 'hideHeader', 'hidePagination', 'exportable', 'hideable', 'beforeTableSlot', 'afterTableSlot'] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
 
@@ -84,6 +84,8 @@ class LivewireDatatable extends Component
         $this->columns = $this->getViewColumns();
 
         $this->initialiseSort();
+
+        $this->perPage = config('livewire-datatables.default_per_page', 10);
     }
 
     public function columns()
