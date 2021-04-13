@@ -272,6 +272,4 @@ class Column
 
         return $this;
     }
-
-
 }

@@ -229,5 +229,4 @@ class ColumnTest extends TestCase
             'width' => '5px',
         ], $subject);
     }
-
 }
