@@ -177,7 +177,7 @@ class ComplexDemoTable extends LivewireDatatable
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
 |**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
-|**alignCenter**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
+|**alignRight**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
 |**editable**| | Marks the column as editable | _(see below)_|
 |**excludeFromExport**| | Prevents the column as editable |```Column::name('email')->exclude```|
 ___
