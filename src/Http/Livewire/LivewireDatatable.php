@@ -210,7 +210,8 @@ class LivewireDatatable extends Component
                     return null;
                 }
                 if ($column->select instanceof Expression) {
-                    $sep_string = env('DB_CONNECTION') === 'pgsql' ? '"' : '`';
+                    $dbDriver = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
+                    $sep_string = $dbDriver === 'pgsql' ? '"' : '`';
 
                     return new Expression($column->select->getValue().' AS '.$sep_string.$column->name.$sep_string);
                 }
@@ -358,7 +359,7 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        $dbTable = env('DB_CONNECTION');
+        $dbDriver = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
             case $column['sort']:
@@ -378,7 +379,7 @@ class LivewireDatatable extends Component
                 break;
 
              default:
-                return $dbTable == 'pgsql'
+                return $dbDriver == 'pgsql'
                 ? new Expression('"'.$column['name'].'"')
                 : new Expression('`'.$column['name'].'`');
                 break;
