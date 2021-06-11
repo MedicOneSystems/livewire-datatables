@@ -358,10 +358,10 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        
+
         // Read the $connection property off the model (this allows multiple DBMS usage per model)
         $dbTable = config(
-            "database.connections." . optional($this->modelInstance)->getConnectionName() . ".driver",
+            "database.connections.". optional($this->modelInstance)->getConnectionName() .".driver",
             config('database.default'),
         );
 
