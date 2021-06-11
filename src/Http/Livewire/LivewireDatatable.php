@@ -358,7 +358,12 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        $dbTable = env('DB_CONNECTION');
+        
+        // Read the $connection property off the model (this allows multiple DBMS usage per model)
+        $dbTable = config(
+            "database.connections." . optional($this->modelInstance)->getConnectionName() . ".driver",
+            config('database.default'),
+        );
 
         switch (true) {
             case $column['sort']:
@@ -378,9 +383,9 @@ class LivewireDatatable extends Component
                 break;
 
              default:
-                return $dbTable == 'pgsql'
-                ? new Expression('"'.$column['name'].'"')
-                : new Expression('`'.$column['name'].'`');
+                return $dbTable == 'pgsql' || $dbTable == 'sqlsrv'
+                    ? new Expression('"'.$column['name'].'"')
+                    : new Expression('`'.$column['name'].'`');
                 break;
         }
     }
