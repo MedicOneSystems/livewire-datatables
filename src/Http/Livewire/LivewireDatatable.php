@@ -107,6 +107,7 @@ class LivewireDatatable extends Component
                 'filterable',
                 'filterview',
                 'name',
+                'width',
             ])->toArray();
         })->toArray();
     }
