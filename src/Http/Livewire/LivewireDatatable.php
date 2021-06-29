@@ -736,9 +736,13 @@ class LivewireDatatable extends Component
             }
         });
 
-        $this->page = 1;
 
         return $this;
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
     }
 
     public function addScopeColumns()
