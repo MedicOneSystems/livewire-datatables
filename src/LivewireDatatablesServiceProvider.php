@@ -141,7 +141,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         Relation::macro('getRelationExistenceAggregatesQuery', function (EloquentBuilder $query, EloquentBuilder $parentQuery, $aggregate, $column) {
             $expression = $aggregate === 'group_concat'
                 ? new Expression($aggregate."(distinct {$column} separator ', ')")
-                : new Expression($aggregate."({$column})");
+                : new Expression("COALESCE(".$aggregate."({$column}),0)");
 
             return $this->getRelationExistenceQuery(
                 $query,

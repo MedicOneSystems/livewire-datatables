@@ -471,7 +471,7 @@ class LivewireDatatable extends Component
 
     public function doNumberFilterEnd($index, $end)
     {
-        $this->activeNumberFilters[$index]['end'] = $end ? (int) $end : null;
+        $this->activeNumberFilters[$index]['end'] = ($end !== '') ? (int) $end : null;
         $this->clearEmptyNumberFilter($index);
         $this->page = 1;
     }
@@ -683,9 +683,10 @@ class LivewireDatatable extends Component
 
     public function columnAggregateType($column)
     {
+        $custom_aggregate = Str::after(explode('.', $column['name'])[1], ':');
         return $column['type'] === 'string'
             ? 'group_concat'
-            : 'count';
+            : $custom_aggregate ?? 'count';
     }
 
     public function buildDatabaseQuery($export = false)
