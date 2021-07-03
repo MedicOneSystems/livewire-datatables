@@ -63,7 +63,7 @@ class LivewireDatatable extends Component
     {
         $this->page = 1;
     }
-    
+
 
     public function mount(
         $model = null,
@@ -76,7 +76,7 @@ class LivewireDatatable extends Component
         $sort = null,
         $hideHeader = null,
         $hidePagination = null,
-        $perPage = 10,
+        $perPage = null,
         $exportable = false,
         $hideable = false,
         $beforeTableSlot = false,
@@ -94,9 +94,9 @@ class LivewireDatatable extends Component
         $this->initialiseSort();
 
         // check if there are sorting vars in the session
-        $this->sort = request()->session()->get('dt_' . $this->name . '_sort', $this->sort);
-        $this->direction = request()->session()->get('dt_' . $this->name . '_direction', $this->direction);
-        $this->perPage = config('livewire-datatables.default_per_page', 10);
+        $this->sort = session()->get('dt_' . $this->name . '_sort', $this->sort);
+        $this->direction = session()->get('dt_' . $this->name . '_direction', $this->direction);
+        $this->perPage = $perPage ?? config('livewire-datatables.default_per_page', 10);
     }
 
     public function columns()
@@ -115,7 +115,7 @@ class LivewireDatatable extends Component
                 'filterable',
                 'filterview',
                 'name',
-                'params'
+                'params',
                 'width',
             ])->toArray();
         })->toArray();
@@ -221,6 +221,7 @@ class LivewireDatatable extends Component
                 if ($column->select instanceof Expression) {
                     $dbDriver = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
                     $sep_string = $dbDriver === 'pgsql' ? '"' : '`';
+                }
 
                 return $column;
             })->when($withAlias, function ($columns) {
@@ -428,7 +429,7 @@ class LivewireDatatable extends Component
         $this->page = 1;
 
         // put sorting info in the session
-        request()->session()->put(['dt_' . $this->name . '_sort' => $this->sort, 'dt_' . $this->name . '_direction' => $this->direction ]);
+        session()->put(['dt_' . $this->name . '_sort' => $this->sort, 'dt_' . $this->name . '_direction' => $this->direction ]);
     }
 
     public function toggle($index)
@@ -876,7 +877,6 @@ class LivewireDatatable extends Component
                         isset($filter['start']) ? $filter['start'] : 0,
                         isset($filter['end']) ? $filter['end'] : 9999999999,
                     ])
-                        // ?? 
                         ?? $query->when(isset($filter['start']), function ($query) use ($filter, $index) {
                             $query->whereRaw($this->getColumnField($index)[0] . ' >= ?', $filter['start']);
                         })->when(isset($filter['end']), function ($query) use ($filter, $index) {

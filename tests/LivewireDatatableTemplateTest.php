@@ -56,7 +56,7 @@ class LivewireDatatableTemplateTest extends TestCase
     {
         factory(DummyModel::class, 20)->create();
 
-        $subject = Livewire::test(LivewireDatatable::class, [
+        Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
             'perPage' => 20,
         ])->assertSee('Results 1 - 20');
@@ -128,7 +128,7 @@ class LivewireDatatableTemplateTest extends TestCase
             'created_at' => '1978-10-02',
         ]);
 
-        $subject = Livewire::test(LivewireDatatable::class, [
+        Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
             'dates' => ['expires_at', 'created_at|jS F Y'],
         ])->assertSee('31/12/2020')
