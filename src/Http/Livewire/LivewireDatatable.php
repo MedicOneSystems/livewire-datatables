@@ -53,6 +53,7 @@ class LivewireDatatable extends Component
     public $selected = [];
     public $beforeTableSlot;
     public $afterTableSlot;
+    public $name;
 
     protected $query;
     protected $listeners = ['refreshLivewireDatatable'];
@@ -92,6 +93,9 @@ class LivewireDatatable extends Component
 
         $this->initialiseSort();
 
+        // check if there are sorting vars in the session
+        $this->sort = request()->session()->get('dt_' . $this->name . '_sort', $this->sort);
+        $this->direction = request()->session()->get('dt_' . $this->name . '_direction', $this->direction);
         $this->perPage = config('livewire-datatables.default_per_page', 10);
     }
 
@@ -111,6 +115,7 @@ class LivewireDatatable extends Component
                 'filterable',
                 'filterview',
                 'name',
+                'width',
             ])->toArray();
         })->toArray();
     }
@@ -412,6 +417,9 @@ class LivewireDatatable extends Component
             $this->sort = (int) $index;
         }
         $this->page = 1;
+
+        // put sorting info in the session
+        request()->session()->put(['dt_' . $this->name . '_sort' => $this->sort, 'dt_' . $this->name . '_direction' => $this->direction ]);
     }
 
     public function toggle($index)

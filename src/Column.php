@@ -27,6 +27,7 @@ class Column
     public $filterView;
     public $align = 'left';
     public $preventExport;
+    public $width;
 
     public static function name($name)
     {
@@ -251,6 +252,23 @@ class Column
     public function setType($type)
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function width($width)
+    {
+        // only numbers? add the default px unit
+        if (preg_match('/^\\d*\\.?\\d+$/i', $width) === 1) {
+            $width .= 'px';
+        }
+
+        // check if the $with contains invalid units
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $width) === 0) {
+            return $this;
+        }
+
+        $this->width = $width;
 
         return $this;
     }
