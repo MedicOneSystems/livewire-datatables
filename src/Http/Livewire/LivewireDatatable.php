@@ -217,11 +217,6 @@ class LivewireDatatable extends Component
                     $column->select = $this->resolveEditableColumnName($column);
                 }
 
-                if ($column->select instanceof Expression) {
-                    $dbDriver = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
-                    $sep_string = $dbDriver === 'pgsql' ? '"' : '`';
-                }
-
                 return $column;
             })->when($withAlias, function ($columns) {
                 return $columns->map(function ($column) {
