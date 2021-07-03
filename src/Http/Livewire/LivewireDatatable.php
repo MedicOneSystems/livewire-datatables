@@ -229,7 +229,7 @@ class LivewireDatatable extends Component
                         return null;
                     }
                     if ($column->select instanceof Expression) {
-                        $sep_string = env('DB_CONNECTION') === 'pgsql' ? '"' : '`';
+                        $sep_string = config('livewire.datatable.db_connection') === 'pgsql' ? '"' : '`';
 
                         return new Expression($column->select->getValue().' AS '.$sep_string.$column->name.$sep_string);
                     }
