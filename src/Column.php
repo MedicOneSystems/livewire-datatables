@@ -254,6 +254,13 @@ class Column
         $this->type = $type;
 
         return $this;
+    }    
+
+    public function addParams($params)
+    {
+        $this->params = $params;
+
+        return $this;
     }
 
     public function width($width)
