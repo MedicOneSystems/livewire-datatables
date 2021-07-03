@@ -139,7 +139,7 @@ class Column
     {
         $this->callback = function ($value) use ($model, $pad) {
             return view('datatables::link', [
-                'href' => "/$model/$value",
+                'href' => url("/$model/$value"),
                 'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value,
             ]);
         };
