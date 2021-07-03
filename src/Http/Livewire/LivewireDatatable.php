@@ -765,6 +765,11 @@ class LivewireDatatable extends Component
         return $this;
     }
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public function addScopeColumns()
     {
         $this->scopeColumns()->each(function ($column) {
