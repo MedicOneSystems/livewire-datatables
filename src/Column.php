@@ -254,7 +254,7 @@ class Column
         $this->type = $type;
 
         return $this;
-    }    
+    }
 
     public function addParams($params)
     {
