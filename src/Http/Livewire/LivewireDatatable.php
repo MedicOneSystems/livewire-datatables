@@ -365,7 +365,7 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        $dbTable = env('DB_CONNECTION');
+        $dbDriver = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
             case $column['sort']:
@@ -384,10 +384,10 @@ class LivewireDatatable extends Component
                 return Str::before($column['select'], ' AS ');
                 break;
 
-            default:
-                return $dbTable == 'pgsql'
-                    ? new Expression('"' . $column['name'] . '"')
-                    : new Expression('`' . $column['name'] . '`');
+             default:
+                return $dbDriver == 'pgsql'
+                ? new Expression('"'.$column['name'].'"')
+                : new Expression('`'.$column['name'].'`');
                 break;
         }
     }
