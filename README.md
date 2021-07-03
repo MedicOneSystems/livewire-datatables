@@ -32,7 +32,7 @@ composer require mediconesystems/livewire-datatables
 ### Optional
 You don't need to, but if you like you can publish the config file and blade template assets:
 ```bash
-php artisan vendor:publish
+php artisan vendor:publish --provider="Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider"
 ```
 This will enable you to modify the blade views and apply your own styling, the datatables views will be published to resources/livewire/datatables. The config file contains the default time and date formats used throughout
 > - This can be useful if you're using Purge CSS on your project, to make sure all the livewire-datatables classes get included
