@@ -138,6 +138,7 @@ class LivewireDatatable extends Component
 
     public function getProcessedColumnsProperty()
     {
+        // dd($this->columns());
         return ColumnSet::build($this->columns())
             ->include($this->include)
             ->exclude($this->exclude)
@@ -378,11 +379,7 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        // Read the $connection property off the model (this allows multiple DBMS usage per model)
-        $dbTable = config(
-            "database.connections.". optional($this->modelInstance)->getConnectionName() .".driver",
-            config('database.default'),
-        );
+        $dbTable = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
             case $column['sort']:
