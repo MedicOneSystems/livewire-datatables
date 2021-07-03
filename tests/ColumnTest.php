@@ -91,6 +91,7 @@ class ColumnTest extends TestCase
             'aggregate' => 'group_concat',
             'align' => 'left',
             'preventExport' => null,
+            'width' => null,
         ], $subject);
     }
 
@@ -125,6 +126,107 @@ class ColumnTest extends TestCase
             'joins' => null,
             'align' => 'left',
             'preventExport' => null,
+            'width' => null,
+        ], $subject);
+    }
+
+    /** @test */
+    public function it_returns_width_property_from_column()
+    {
+        $subject = Column::name('table.column')
+            ->label('Column')
+            ->width('1em')
+            ->toArray();
+
+        $this->assertEquals([
+            'type' => 'string',
+            'name' => 'table.column',
+            'base' => null,
+            'label' => 'Column',
+            'filterable' => null,
+            'hidden' => null,
+            'callback' => null,
+            'raw' => null,
+            'sort' => null,
+            'defaultSort' => null,
+            'searchable' => null,
+            'params' => [],
+            'additionalSelects' => [],
+            'scope' => null,
+            'scopeFilter' => null,
+            'filterView' => null,
+            'select' => null,
+            'joins' => null,
+            'aggregate' => 'group_concat',
+            'align' => 'left',
+            'preventExport' => null,
+            'width' => '1em',
+        ], $subject);
+    }
+
+    public function check_invalid_width_unit_not_returning_value()
+    {
+        $subject = Column::name('table.column')
+            ->label('Column')
+            ->width('1laravel')
+            ->toArray();
+
+        $this->assertEquals([
+            'type' => 'string',
+            'name' => 'table.column',
+            'base' => null,
+            'label' => 'Column',
+            'filterable' => null,
+            'hidden' => null,
+            'callback' => null,
+            'raw' => null,
+            'sort' => null,
+            'defaultSort' => null,
+            'searchable' => null,
+            'params' => [],
+            'additionalSelects' => [],
+            'scope' => null,
+            'scopeFilter' => null,
+            'filterView' => null,
+            'select' => null,
+            'joins' => null,
+            'aggregate' => 'group_concat',
+            'align' => 'left',
+            'preventExport' => null,
+            'width' => null,
+        ], $subject);
+    }
+
+    public function check_adding_px_to_numeric_width_input()
+    {
+        $subject = Column::name('table.column')
+            ->label('Column')
+            ->width('5')
+            ->toArray();
+
+        $this->assertEquals([
+            'type' => 'string',
+            'name' => 'table.column',
+            'base' => null,
+            'label' => 'Column',
+            'filterable' => null,
+            'hidden' => null,
+            'callback' => null,
+            'raw' => null,
+            'sort' => null,
+            'defaultSort' => null,
+            'searchable' => null,
+            'params' => [],
+            'additionalSelects' => [],
+            'scope' => null,
+            'scopeFilter' => null,
+            'filterView' => null,
+            'select' => null,
+            'joins' => null,
+            'aggregate' => 'group_concat',
+            'align' => 'left',
+            'preventExport' => null,
+            'width' => '5px',
         ], $subject);
     }
 }
