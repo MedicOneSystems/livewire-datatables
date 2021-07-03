@@ -13,7 +13,7 @@
     </svg>
 </div>
 <div
-    class="@if($column['hidden']) hidden @else relative h-12 overflow-hidden align-top flex table-cell @endif">
+    class="@if($column['hidden']) hidden @else relative h-12 overflow-hidden align-top flex table-cell @endif" @if (isset($column['width']))style="width:{{ $column['width'] }}"@endif>
     <button wire:click.prefetch="sort('{{ $index }}')"
         class="w-full h-full px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex justify-between items-center focus:outline-none">
         <span class="inline flex-grow @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @endif"">{{ str_replace('_', ' ', $column['label']) }}</span>

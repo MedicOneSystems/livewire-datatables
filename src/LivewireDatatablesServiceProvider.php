@@ -139,8 +139,15 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
     public function loadRelationMacros()
     {
         Relation::macro('getRelationExistenceAggregatesQuery', function (EloquentBuilder $query, EloquentBuilder $parentQuery, $aggregate, $column) {
+            $distinct_aggregate = new Expression($aggregate."(distinct {$column} separator ', ')");
+
+            if ($query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                $distinct_aggregate = new Expression($aggregate."(REPLACE(DISTINCT({$column}), '', '') , ', ')");
+            }
+            
             $expression = $aggregate === 'group_concat'
-                ? new Expression($aggregate."(distinct {$column} separator ', ')")
+
+                ? $distinct_aggregate
                 : new Expression("COALESCE(".$aggregate."({$column}),0)");
 
             return $this->getRelationExistenceQuery(

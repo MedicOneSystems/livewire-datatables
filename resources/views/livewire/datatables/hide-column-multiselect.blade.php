@@ -5,7 +5,7 @@
                 {{ __('Show / Hide Columns')}}
             </div>
         </button>
-        <div x-show="show" x-on:click.away="show = false" class="z-50 absolute mt-16 -mr-4 shadow-2xl top-100 bg-white z-40 w-96 right-0 rounded max-h-select overflow-y-auto" x-cloak>
+        <div x-show="show" x-on:click.away="show = false" class="z-50 absolute mt-16 -mr-4 shadow-2xl top-100 bg-white w-96 right-0 rounded max-h-select overflow-y-auto" x-cloak>
             <div class="flex flex-col w-full">
                 @foreach($this->columns as $index => $column)
                 <div>
