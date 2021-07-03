@@ -526,7 +526,7 @@ class LivewireDatatable extends Component
 
     public function removeTextFilter($column, $key = null)
     {
-        if ($key) {
+        if (isset($key)) {
             unset($this->activeTextFilters[$column][$key]);
             if (count($this->activeTextFilters[$column]) < 1) {
                 unset($this->activeTextFilters[$column]);
