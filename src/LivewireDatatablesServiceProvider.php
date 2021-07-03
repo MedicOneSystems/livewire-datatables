@@ -144,7 +144,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             if ($query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite') {
                 $distinct_aggregate = new Expression($aggregate."(REPLACE(DISTINCT({$column}), '', '') , ', ')");
             }
-            
+
             $expression = $aggregate === 'group_concat'
                 ? $distinct_aggregate
                 : new Expression($aggregate."({$column})");
