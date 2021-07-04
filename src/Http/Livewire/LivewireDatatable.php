@@ -700,11 +700,13 @@ class LivewireDatatable extends Component
 
     public function columnAggregateType($column)
     {
-        $custom_aggregate = Str::after(explode('.', $column['name'])[1], ':');
-
-        return $column['type'] === 'string'
-            ? 'group_concat'
-            : $custom_aggregate ?? 'count';
+        return Str::contains($column['name'], ':')
+            ? Str::after(explode('.', $column['name'])[1], ':')
+            : (
+                $column['type'] === 'string'
+                    ? 'group_concat'
+                    : 'count'
+            );
     }
 
     public function buildDatabaseQuery($export = false)
