@@ -128,6 +128,14 @@ class Column
         return $this;
     }
 
+    public function booleanFilterable()
+    {
+        $this->filterable = true;
+        $this->filterView = 'boolean';
+
+        return $this;
+    }
+
     public function excludeFromExport()
     {
         $this->preventExport = true;
@@ -171,6 +179,12 @@ class Column
             return view($view, ['value' => $value, 'row' => $row]);
         };
 
+        return $this;
+    }
+
+    public function filterView($view)
+    {
+        $this->filterView = $view;
         return $this;
     }
 

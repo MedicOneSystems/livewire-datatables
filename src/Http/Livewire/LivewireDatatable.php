@@ -111,7 +111,7 @@ class LivewireDatatable extends Component
                 'align',
                 'type',
                 'filterable',
-                'filterview',
+                'filterView',
                 'name',
                 'params',
                 'width',
@@ -812,6 +812,17 @@ class LivewireDatatable extends Component
                     $this->addScopeSelectFilter($query, $index, $value);
                 } elseif ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
+                } elseif ($this->freshColumns[$index]['type'] === 'string') {
+                    if ($value == 1) {
+                        $query->whereNotNull($this->getColumnField($index)[0])
+                            ->where($this->getColumnField($index)[0], '<>', '')
+                            ;
+                    } elseif (strlen($value)) {
+                        $query->where(function ($query) use ($index) {
+                            $query->whereNull(DB::raw($this->getColumnField($index)[0]))
+                                ->orWhere(DB::raw($this->getColumnField($index)[0]), '');
+                        });
+                    }
                 } elseif ($value == 1) {
                     $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
                 } elseif (strlen($value)) {
