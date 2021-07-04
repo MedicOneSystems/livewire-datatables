@@ -34,7 +34,7 @@ class Column
         $column = new static;
         $column->name = $name;
         $column->aggregate = Str::contains($name, ':') ? Str::after($name, ':') : $column->aggregate();
-        $column->label = (string) Str::of($name)->after('.')->ucfirst();
+        $column->label = (string) Str::of($name)->after('.')->ucfirst()->replace('_', ' ');
 
         if (Str::contains(Str::lower($name), ' as ')) {
             $column->name = array_reverse(preg_split('/ as /i', $name))[0];

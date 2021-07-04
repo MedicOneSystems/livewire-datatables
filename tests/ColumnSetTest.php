@@ -48,9 +48,9 @@ class ColumnSetTest extends TestCase
             ['Category', 1, 'category'],
             ['Body', 2, 'body'],
             ['Flag', 3, 'flag'],
-            ['Expires_at', 4, 'expires_at'],
-            ['Updated_at', 5, 'updated_at'],
-            ['Created_at', 6, 'created_at'],
+            ['Expires at', 4, 'expires_at'],
+            ['Updated at', 5, 'updated_at'],
+            ['Created at', 6, 'created_at'],
             ['Id', 7, 'id'],
         ];
     }
