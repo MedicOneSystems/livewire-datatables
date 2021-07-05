@@ -146,7 +146,6 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             }
 
             $expression = $aggregate === 'group_concat'
-
                 ? $distinct_aggregate
                 : new Expression('COALESCE('.$aggregate."({$column}),0)");
 

@@ -34,7 +34,7 @@ class Column
         $column = new static;
         $column->name = $name;
         $column->aggregate = Str::contains($name, ':') ? Str::after($name, ':') : $column->aggregate();
-        $column->label = (string) Str::of($name)->after('.')->ucfirst();
+        $column->label = (string) Str::of($name)->after('.')->ucfirst()->replace('_', ' ');
 
         if (Str::contains(Str::lower($name), ' as ')) {
             $column->name = array_reverse(preg_split('/ as /i', $name))[0];
@@ -128,6 +128,14 @@ class Column
         return $this;
     }
 
+    public function booleanFilterable()
+    {
+        $this->filterable = true;
+        $this->filterView = 'boolean';
+
+        return $this;
+    }
+
     public function excludeFromExport()
     {
         $this->preventExport = true;
@@ -170,6 +178,13 @@ class Column
         $this->callback = function ($value, $row) use ($view) {
             return view($view, ['value' => $value, 'row' => $row]);
         };
+
+        return $this;
+    }
+
+    public function filterView($view)
+    {
+        $this->filterView = $view;
 
         return $this;
     }

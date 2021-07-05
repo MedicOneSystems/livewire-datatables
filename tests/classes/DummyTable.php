@@ -41,6 +41,11 @@ class DummyTable extends LivewireDatatable
 
             Column::name('dummy_has_one.name')
                 ->label('Relation'),
+
+            Column::name('subject AS string')
+                    ->label('BooleanFilterableSubject')
+                    ->booleanFilterable()
+                    ->hide(),
         ];
     }
 }

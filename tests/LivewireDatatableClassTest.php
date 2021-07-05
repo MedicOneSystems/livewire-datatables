@@ -27,6 +27,7 @@ class LivewireDatatableClassTest extends TestCase
             4 => 'Flag',
             5 => 'Expiry',
             6 => 'Relation',
+            7 => 'BooleanFilterableSubject',
         ], collect($subject->columns)->map->label->toArray());
     }
 
@@ -98,6 +99,18 @@ class LivewireDatatableClassTest extends TestCase
         $subject = Livewire::test(DummyTable::class)
             ->assertSee('Results 1 - 2')
             ->call('doBooleanFilter', 4, '1')
+            ->assertSee('Results 1 - 1');
+    }
+
+    /** @test */
+    public function it_can_filter_strings_as_a_boolean()
+    {
+        factory(DummyModel::class)->create(['subject' => 'has contents']);
+        factory(DummyModel::class)->create(['subject' => '']);
+
+        $subject = Livewire::test(DummyTable::class)
+            ->assertSee('Results 1 - 2')
+            ->call('doBooleanFilter', 7, '1')
             ->assertSee('Results 1 - 1');
     }
 
