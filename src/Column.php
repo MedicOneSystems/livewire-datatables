@@ -185,6 +185,7 @@ class Column
     public function filterView($view)
     {
         $this->filterView = $view;
+
         return $this;
     }
 
