@@ -167,9 +167,9 @@ class LivewireDatatable extends Component
 
     public function resolveAdditionalSelects($column)
     {
-        $selects = collect($column->additionalSelects)->map(function ($select) {
+        $selects = collect($column->additionalSelects)->map(function ($select) use ($column) {
             return Str::contains($select, '.')
-                ? $this->resolveRelationColumn($select, Str::contains($select, ':') ? Str::before($select, ':') : null)
+                ? $this->resolveRelationColumn($select, Str::contains($select, ':') ? Str::after($select, ':') : null, $column->name)
                 : $this->query->getModel()->getTable().'.'.$select;
         });
 
@@ -246,14 +246,14 @@ class LivewireDatatable extends Component
             });
     }
 
-    protected function resolveRelationColumn($name, $aggregate = null)
+    protected function resolveRelationColumn($name, $aggregate = null, $alias = null)
     {
         $parts = explode('.', Str::before($name, ':'));
         $columnName = array_pop($parts);
         $relation = implode('.', $parts);
 
         return  method_exists($this->query->getModel(), $parts[0])
-            ? $this->joinRelation($relation, $columnName, $aggregate, $name)
+            ? $this->joinRelation($relation, $columnName, $aggregate, $alias ?? $name)
             : $name;
     }
 
