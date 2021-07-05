@@ -817,8 +817,7 @@ class LivewireDatatable extends Component
                 } elseif ($this->freshColumns[$index]['type'] === 'string') {
                     if ($value == 1) {
                         $query->whereNotNull($this->getColumnField($index)[0])
-                            ->where($this->getColumnField($index)[0], '<>', '')
-                            ;
+                            ->where($this->getColumnField($index)[0], '<>', '');
                     } elseif (strlen($value)) {
                         $query->where(function ($query) use ($index) {
                             $query->whereNull(DB::raw($this->getColumnField($index)[0]))
