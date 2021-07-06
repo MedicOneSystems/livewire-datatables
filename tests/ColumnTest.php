@@ -92,6 +92,7 @@ class ColumnTest extends TestCase
             'align' => 'left',
             'preventExport' => null,
             'width' => null,
+            'unsortable' => null,
         ], $subject);
     }
 
@@ -127,6 +128,7 @@ class ColumnTest extends TestCase
             'align' => 'left',
             'preventExport' => null,
             'width' => null,
+            'unsortable' => null,
         ], $subject);
     }
 
@@ -161,6 +163,7 @@ class ColumnTest extends TestCase
             'align' => 'left',
             'preventExport' => null,
             'width' => '1em',
+            'unsortable' => null,
         ], $subject);
     }
 

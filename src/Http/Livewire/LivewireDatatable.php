@@ -116,6 +116,7 @@ class LivewireDatatable extends Component
                 'name',
                 'params',
                 'width',
+                'unsortable',
             ])->toArray();
         })->toArray();
     }
