@@ -941,7 +941,7 @@ class LivewireDatatable extends Component
 
     public function addSort()
     {
-        if (isset($this->sort)) {
+        if (isset($this->sort) && isset($this->freshColumns[$this->sort])) {
             $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
         }
 
