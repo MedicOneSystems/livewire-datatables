@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -53,10 +54,31 @@ class LivewireDatatable extends Component
     public $selected = [];
     public $beforeTableSlot;
     public $afterTableSlot;
+    public $complex;
+    public $complexQuery;
     public $name;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery'];
+
+    protected $operators = [
+        '=' => '=',
+        '>' => '>',
+        '<' => '<',
+        '<>' => '<>',
+        '>=' => '>=',
+        '<=' => '<=',
+        'equals' => '=',
+        'does not equal' => '<>',
+        'contains' => 'LIKE',
+        'does not contain' => 'NOT LIKE',
+        'begins with' => 'LIKE',
+        'ends with' => 'LIKE',
+        'is empty' => '=',
+        'is not empty' => '<>',
+        'includes' => '=',
+        'does not include' => '<>',
+    ];
 
     public function updatedSearch()
     {
@@ -112,7 +134,8 @@ class LivewireDatatable extends Component
                 'align',
                 'type',
                 'filterable',
-                'filterView',
+                'complex',
+                'filterview',
                 'name',
                 'params',
                 'width',
@@ -120,6 +143,14 @@ class LivewireDatatable extends Component
                 'preventExport',
             ])->toArray();
         })->toArray();
+    }
+
+    public function getComplexColumnsProperty()
+    {
+        // return $this->columns;
+        return collect($this->columns)->filter(function ($column) {
+            return $column['complex'];
+        });
     }
 
     public function getModelInstanceProperty()
@@ -571,7 +602,7 @@ class LivewireDatatable extends Component
             return [(string) $this->freshColumns[$index]['sort']];
         }
 
-        return [$this->getSelectStatements()[$index]];
+        return Arr::wrap($this->getSelectStatements()[$index]);
     }
 
     public function addScopeSelectFilter($query, $index, $value)
@@ -592,7 +623,7 @@ class LivewireDatatable extends Component
         return $query->{$this->freshColumns[$index]['scopeFilter']}($value);
     }
 
-    public function addAggregateFilter($query, $index, $filter)
+    public function addAggregateFilter($query, $index, $filter, $operand = null)
     {
         $column = $this->freshColumns[$index];
         $relation = Str::before($column['name'], '.');
@@ -617,6 +648,8 @@ class LivewireDatatable extends Component
             $query->hasAggregate($relation, $field, $aggregate, '>=', $filter['start']);
         })->when(isset($filter['end']), function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->hasAggregate($relation, $field, $aggregate, '<=', $filter['end']);
+        })->when(isset($operand), function ($query) use ($filter, $relation, $field, $aggregate, $operand) {
+            $query->hasAggregate($relation, $field, $aggregate, $operand, $filter);
         });
     }
 
@@ -731,7 +764,107 @@ class LivewireDatatable extends Component
             ->addNumberFilters()
             ->addDateRangeFilter()
             ->addTimeRangeFilter()
+            ->addComplexQuery()
             ->addSort();
+    }
+
+    public function complexQuery($rules)
+    {
+        $this->complexQuery = $rules;
+    }
+
+    public function addComplexQuery()
+    {
+        if (! $this->complexQuery) {
+            return $this;
+        }
+        $this->query->where(function ($query) {
+            $this->processNested($this->complexQuery, $query);
+        });
+
+        return $this;
+    }
+
+    private function complexOperator($operand)
+    {
+        return $operand ? $this->operators[$operand] : '=';
+    }
+
+    private function complexValue($rule)
+    {
+        if (isset($rule['content']['operand'])) {
+            if ($rule['content']['operand'] === 'contains') {
+                return '%'.$rule['content']['value'].'%';
+            } elseif ($rule['content']['operand'] === 'does not contain') {
+                return '%'.$rule['content']['value'].'%';
+            } elseif ($rule['content']['operand'] === 'begins with') {
+                return $rule['content']['value'].'%';
+            } elseif ($rule['content']['operand'] === 'ends with') {
+                return '%'.$rule['content']['value'];
+            } elseif ($rule['content']['operand'] === 'is empty' || $rule['content']['operand'] === 'is not empty') {
+                return '';
+            }
+        }
+
+        return $rule['content']['value'];
+    }
+
+    public function processNested($rules = null, $query = null, $logic = 'and')
+    {
+        collect($rules)->each(function ($rule) use ($query, $logic) {
+            if ($rule['type'] === 'rule' && isset($rule['content']['column'])) {
+                $query->where(function ($query) use ($rule) {
+                    if (! $this->addScopeSelectFilter($query, $rule['content']['column'], $rule['content']['value'])) {
+                        foreach ($this->getColumnField($rule['content']['column']) as $column) {
+                            if ($rule['content']['operand'] === 'is empty') {
+                                $query->whereNull($column);
+                            } elseif ($rule['content']['operand'] === 'is not empty') {
+                                $query->whereNotNull($column);
+                            } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean') {
+                                if ($rule['content']['value'] === 'true') {
+                                    $query->whereNotNull($column);
+                                } else {
+                                    $query->whereNull($column);
+                                }
+                            } elseif ($this->columnIsAggregateRelation($this->freshColumns[$rule['content']['column']])) {
+                                $query = $this->addAggregateFilter($query, $rule['content']['column'], $this->complexValue($rule), $this->complexOperator($rule['content']['operand']));
+                            } else {
+                                $query->orWhere(
+                                    Str::contains($column, '(') ? DB::raw($column) : $column,
+                                    $this->complexOperator($rule['content']['operand']),
+                                    $this->complexValue($rule)
+                                );
+                            }
+                        }
+                    }
+                }, null, null, $logic);
+            } else {
+                $query->where(function ($q) use ($rule) {
+                    $this->processNested($rule['content'], $q, $rule['logic']);
+                }, null, null, $logic);
+            }
+        });
+
+        // if (isset($c['query']['selectedOperator']) && $c['query']['selectedOperator'] === 'is empty') {
+        //             $query->where(function ($q) use ($c) {
+        //                 $q->where($this->getRule($c), '')
+        //                     ->orWhereNull($this->getRule($c));
+        //             }, null, null, $rules['logicalOperator']);
+        //         } elseif (isset($c['query']['selectedOperator']) && $c['query']['selectedOperator'] === 'is not empty') {
+        //             $query->where(function ($q) use ($c) {
+        //                 $q->where($this->getRule($c), '<>', '')
+        //                     ->orWhereNotNull($this->getRule($c));
+        //             }, null, null, $rules['logicalOperator']);
+        //         } else {
+        //             $query->where($this->getRule($c), $this->getOperator($c), $this->getValue($c), $rules['logicalOperator']);
+        //         }
+        //     } elseif ($c['type'] === 'query-builder-group') {
+        //         $query->where(function ($q) use ($c) {
+        //             $this->processNested($q, $c['query']);
+        //         }, null, null, $rules['logicalOperator']);
+        //     }
+
+        return $query;
     }
 
     public function addGlobalSearch()
