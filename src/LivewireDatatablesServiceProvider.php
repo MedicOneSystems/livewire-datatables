@@ -2,26 +2,29 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Query\Expression;
+use Livewire\Livewire;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
-use Livewire\Livewire;
+use Illuminate\Database\Query\Expression;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Mediconesystems\LivewireDatatables\Http\Livewire\ComplexQuery;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
-use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {
     public function boot()
     {
         Livewire::component('datatable', LivewireDatatable::class);
+        Livewire::component('complex-query', ComplexQuery::class);
 
         $this->loadViewsFrom(__DIR__.'/../resources/views/livewire/datatables', 'datatables');
+        $this->loadViewsFrom(__DIR__.'/../resources/views/components', 'datatables');
         $this->loadViewsFrom(__DIR__.'/../resources/views/icons', 'icons');
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');

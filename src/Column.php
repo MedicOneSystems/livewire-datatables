@@ -15,6 +15,7 @@ class Column
     public $base;
     public $raw;
     public $searchable;
+    public $complex;
     public $filterable;
     public $sort;
     public $unsortable;
@@ -127,6 +128,13 @@ class Column
     public function searchable()
     {
         $this->searchable = true;
+
+        return $this;
+    }
+
+    public function complex()
+    {
+        $this->complex = true;
 
         return $this;
     }
