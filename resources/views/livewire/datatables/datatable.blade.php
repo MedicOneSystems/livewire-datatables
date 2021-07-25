@@ -165,6 +165,11 @@
             @endif
         </div>
     </div>
+
+    @if($complex)
+        <livewire:complex-query :columns="$this->complexColumns" />
+    @endif
+
     @if($afterTableSlot)
     <div class="mt-8">
         @include($afterTableSlot)
