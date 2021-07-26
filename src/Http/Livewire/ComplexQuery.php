@@ -3,6 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
@@ -19,6 +20,20 @@ class ComplexQuery extends Component
         ],
     ];
 
+    public function updatedRules($value, $key)
+    {
+        $this->clearOperandAndValueWhenColumnChanged($key);
+        $this->validateRules();
+    }
+
+    public function clearOperandAndValueWhenColumnChanged($key)
+    {
+        if (Str::endsWith($key, 'column')) {
+            data_set($this->rules, str_replace('column', 'operand', $key), null);
+            data_set($this->rules, str_replace('column', 'value', $key), null);
+        }
+    }
+
     public function getRulesStringProperty($rules = null, $logic = 'and')
     {
         $rules = $rules ?? $this->rules;
@@ -29,16 +44,38 @@ class ComplexQuery extends Component
                 ? implode(' ', [$this->columns[$rule['content']['column']]['label'] ?? '', $rule['content']['operand'] ?? '', $rule['content']['value'] ?? ''])
                 : '('.$this->getRulesStringProperty($rule['content'], $rule['logic']).')';
         })
-        ->join(" $logic ")
-
-        /*
-         */
-;
+        ->join(" $logic ");
     }
 
     public function runQuery()
     {
-        $this->emitUp('complexQuery', $this->rules);
+        $this->emitUp('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
+    }
+
+    public function validateRules($rules = null, $key = '')
+    {
+        $rules = $rules ?? $this->rules[0]['content'];
+
+        collect($rules)->each(function ($rule, $i) use ($key) {
+            if ($rule['type'] === 'rule') {
+                $v = Validator::make($rule['content'], ['column' => 'required']);
+
+                $v->sometimes('operand', 'required', function ($rule) {
+                    return ! ($rule['value'] === 'true' || $rule['value'] === 'false');
+                });
+
+                $v->sometimes('value', 'required', function ($rule) {
+                    return ! collect([
+                        'is empty',
+                        'is not empty',
+                    ])->contains($rule['operand']);
+                });
+
+                $v->validate();
+            } else {
+                $this->validateRules($rule['content']);
+            }
+        });
     }
 
     public function addRule($index)
@@ -55,6 +92,8 @@ class ComplexQuery extends Component
         ];
 
         Arr::set($this->rules, $index, $temp);
+
+        $this->validateRules();
     }
 
     public function addGroup($index)
@@ -73,6 +112,7 @@ class ComplexQuery extends Component
     public function removeRule($index)
     {
         Arr::pull($this->rules, Str::beforeLast($index, '.'));
+
         $this->runQuery();
     }
 
@@ -100,7 +140,6 @@ class ComplexQuery extends Component
     {
         $operands = [
             'string' => ['equals', 'does not equal', 'contains', 'does not contain', 'is empty', 'is not empty', 'begins with', 'ends with'],
-            'filterable' => ['equals', 'does not equal'],
             'editable' => ['equals', 'does not equal', 'contains', 'does not contain', 'is empty', 'is not empty', 'begins with', 'ends with'],
             'number' => ['=', '<>', '<', '<=', '>', '>='],
             'date' => ['=', '<>', '<', '<=', '>', '>='],
@@ -113,16 +152,9 @@ class ComplexQuery extends Component
             return [];
         }
 
-
-        if (is_array($this->getRuleColumn($key)['filterable'])) {
-            return $operands['filterable'];
-        }
-
-        if (isset($this->getRuleColumn($key)['scopeFilter'])) {
-            return $operands['scope'];
-        }
-
-        return $operands[$this->getRuleColumn($key)['type']];
+        return optional($this->getRuleColumn($key))['scopeFilter']
+            ? $operands['scope']
+            : $operands[$this->getRuleColumn($key)['type']];
     }
 
     public function render()
