@@ -98,6 +98,18 @@ class ComplexQuery extends Component
         $this->validateRules();
     }
 
+    public function duplicateRule($index)
+    {
+        $current = Arr::get($this->rules, Str::beforeLast($index, '.content'));
+        $parentGroup = Arr::get($this->rules, Str::beforeLast(Str::beforeLast($index, '.content'), '.'));
+
+        $parentGroup[] = $current;
+
+        Arr::set($this->rules, Str::beforeLast(Str::beforeLast($index, '.content'), '.'), $parentGroup);
+
+        $this->validateRules();
+    }
+
     public function addGroup($index)
     {
         $temp = Arr::get($this->rules, $index);

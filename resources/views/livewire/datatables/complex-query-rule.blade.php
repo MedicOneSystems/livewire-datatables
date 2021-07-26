@@ -76,9 +76,15 @@
                 </div>
             @endif
         </div>
-        <button wire:click="removeRule('{{ $key }}')"
-            class="mb-px w-9 h-9 flex items-center justify-center rounded text-red-600">
-            <x-icons.trash />
-        </button>
+        <div class="flex">
+            <button wire:click="duplicateRule('{{ $key }}')"
+                class="mb-px w-9 h-9 flex items-center justify-center rounded text-green-600 hover:text-green-400">
+                <x-icons.copy />
+            </button>
+            <button wire:click="removeRule('{{ $key }}')"
+                class="mb-px w-9 h-9 flex items-center justify-center rounded text-red-600 hover:text-red-400">
+                <x-icons.trash />
+            </button>
+        </div>
     </div>
 </div>

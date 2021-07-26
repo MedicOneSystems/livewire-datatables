@@ -2,7 +2,7 @@
         rules: $persist(''),
         init() {
             Livewire.on('complexQuery', rules => this.rules = rules)
-            if (this.rules !== '') {
+            if (this.rules && this.rules !== '') {
                 $wire.set('rules', this.rules)
                 $wire.runQuery()
             }
