@@ -10,7 +10,11 @@
             @if($rule['type'] === 'rule')
                 @include('datatables::complex-query-rule', ['parentIndex' => $key, 'rule' => $rule])
             @elseif($rule['type'] === 'group')
-                <div class="p-4 bg-gray-{{ strlen($parentIndex) + 1 }}00 rounded-lg text-gray-{{ strlen($parentIndex) > 4 ? 1 : 9 }}00 border border-blue-400">
+                <div class="p-4 space-y-4 bg-gray-{{ strlen($parentIndex) + 1 }}00 rounded-lg text-gray-{{ strlen($parentIndex) > 4 ? 1 : 9 }}00 border border-blue-400">
+                    <span class="flex space-x-4">
+                        <button wire:click="addRule('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD RULE</button>
+                        <button wire:click="addGroup('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD GROUP</button>
+                    </span>
                     <div class="flex items-center">
                         @if(count($rule['content']) > 1)
                             <div class="mr-8">
@@ -34,11 +38,8 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 flex justify-between">
-                        <span class="flex space-x-4">
-                            <button wire:click="addRule('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD RULE</button>
-                            <button wire:click="addGroup('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD GROUP</button>
-                        </span>
+                    <div class="flex justify-end">
+
                         @unless($key === 0)
                             <button wire:click="removeRule('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-red-600 text-white"><x-icons.trash /></button>
                         @endunless
