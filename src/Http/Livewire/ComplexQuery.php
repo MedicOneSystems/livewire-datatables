@@ -49,7 +49,9 @@ class ComplexQuery extends Component
 
     public function runQuery()
     {
-        $this->emitUp('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
+        $this->validateRules();
+
+        $this->emit('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
     }
 
     public function validateRules($rules = null, $key = '')
