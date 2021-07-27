@@ -10,7 +10,27 @@
             @if($rule['type'] === 'rule')
                 @include('datatables::complex-query-rule', ['parentIndex' => $key, 'rule' => $rule])
             @elseif($rule['type'] === 'group')
-                <div class="p-4 space-y-4 bg-gray-{{ strlen($parentIndex) + 1 }}00 rounded-lg text-gray-{{ strlen($parentIndex) > 4 ? 1 : 9 }}00 border border-blue-400">
+                <div drag-target
+                    x-on:dragenter.prevent="dragenter"
+                    x-on:dragleave.prevent="dragleave"
+                    x-on:dragover.prevent
+                    x-on:drop.stop="drop"
+                    x-data="{
+                        key: '{{ collect(explode('.', $key))->join(".content.") . ".content" }}',
+                        source: () => document.querySelector('[dragging]'),
+                        dragstart: (e, id) =>{
+                            e.target.setAttribute('dragging', id)
+                        },
+                        dragend(e) {
+                            e.target.removeAttribute('dragging')
+                        },
+                        dragenter(e) {},
+                        dragleave(e) {},
+                        drop(e) {
+                          $wire.call('moveRule', this.source().getAttribute('dragging'), this.key)
+                        },
+                    }" class="p-4 space-y-4 bg-gray-{{ strlen($parentIndex) + 1 }}00 rounded-lg text-gray-{{ strlen($parentIndex) > 4 ? 1 : 9 }}00 border border-blue-400"
+                >
                     <span class="flex space-x-4">
                         <button wire:click="addRule('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD RULE</button>
                         <button wire:click="addGroup('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD GROUP</button>

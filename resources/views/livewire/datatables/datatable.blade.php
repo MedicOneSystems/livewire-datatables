@@ -55,7 +55,7 @@
         </div>
         @endif
 
-        <div class="rounded-lg shadow-lg bg-white max-w-screen overflow-x-scroll">
+        <div class="rounded-lg shadow-lg bg-white max-w-screen overflow-x-scroll @if($this->activeFilters) border-2 border-red-300 @endif">
             <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif">
                 <div class="table align-middle min-w-full">
                     @unless($this->hideHeader)
