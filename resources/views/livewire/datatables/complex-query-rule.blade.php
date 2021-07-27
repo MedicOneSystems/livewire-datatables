@@ -1,6 +1,12 @@
-<div>
+<div class="w-full">
     @php $key = collect(explode('.', $parentIndex))->join(".content.") . ".content" @endphp
-    <div class="flex space-x-4 items-end">
+    <div
+        draggable="true"
+        x-on:dragstart="dragstart($event, '{{ $key }}')"
+        x-on:dragend="dragend"
+        key="{{ $key }}"
+        class="flex space-x-4 items-end"
+    >
         <div class="flex flex-grow space-x-4">
             <div class="w-1/3">
                 <label

@@ -36,15 +36,11 @@ class ComplexQuery extends Component
 
     public function getRulesStringProperty($rules = null, $logic = 'and')
     {
-        $rules = $rules ?? $this->rules;
-
-        return collect($rules)
-        ->map(function ($rule) {
+        return collect($rules ?? $this->rules)->map(function ($rule) {
             return $rule['type'] === 'rule'
-                ? implode(' ', [$this->columns[$rule['content']['column']]['label'] ?? '', $rule['content']['operand'] ?? '', $rule['content']['value'] ?? ''])
-                : '('.$this->getRulesStringProperty($rule['content'], $rule['logic']).')';
-        })
-        ->join(" $logic ");
+                    ? implode(' ', [$this->columns[$rule['content']['column']]['label'] ?? '', $rule['content']['operand'] ?? '', $rule['content']['value'] ?? ''])
+                    : '('.$this->getRulesStringProperty($rule['content'], $rule['logic']).')';
+        })->join(strtoupper(" $logic "));
     }
 
     public function runQuery()
@@ -52,6 +48,12 @@ class ComplexQuery extends Component
         $this->validateRules();
 
         $this->emit('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
+    }
+
+    public function resetQuery()
+    {
+        $this->reset('rules');
+        $this->runQuery();
     }
 
     public function validateRules($rules = null, $key = '')
@@ -108,6 +110,20 @@ class ComplexQuery extends Component
         Arr::set($this->rules, Str::beforeLast(Str::beforeLast($index, '.content'), '.'), $parentGroup);
 
         $this->validateRules();
+    }
+
+    public function moveRule($from, $to)
+    {
+        $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
+        $newParent = Arr::get($this->rules, $to);
+
+        if (is_array($newParent) && is_array($mover)) {
+            array_push($newParent, $mover);
+            Arr::set($this->rules, $to, $newParent);
+            Arr::pull($this->rules, Str::beforeLast($from, '.'));
+        }
+
+        $this->runQuery();
     }
 
     public function addGroup($index)
