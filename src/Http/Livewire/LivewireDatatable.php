@@ -152,6 +152,11 @@ class LivewireDatatable extends Component
         });
     }
 
+    public function getPersistKeyProperty()
+    {
+        return Str::kebab(Str::afterLast(get_class($this), '\\'));
+    }
+
     public function getModelInstanceProperty()
     {
         return $this->model::firstOrFail();
@@ -723,7 +728,8 @@ class LivewireDatatable extends Component
             || count($this->activeSelectFilters)
             || count($this->activeBooleanFilters)
             || count($this->activeTextFilters)
-            || count($this->activeNumberFilters);
+            || count($this->activeNumberFilters)
+            || is_array($this->complexQuery);
     }
 
     public function columnIsRelation($column)
