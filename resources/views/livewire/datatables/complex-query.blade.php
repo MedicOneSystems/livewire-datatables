@@ -1,5 +1,5 @@
-<div x-data="{
-        rules: $persist(''),
+<div @if($persistKey) x-data="{
+        rules: $persist('').as('{{ $persistKey }}'),
         init() {
             Livewire.on('complexQuery', rules => this.rules = rules)
             if (this.rules && this.rules !== '') {
@@ -7,7 +7,7 @@
                 $wire.runQuery()
             }
         }
-    }" class="bg-gray-50 px-4 py-4 rounded-lg rounded-t-none shadow-lg"
+    }" @endif class="bg-gray-50 -mx-4 px-4 py-4 rounded-lg rounded-t-none shadow-lg"
 >
     <div class="my-4 text-xl uppercase tracking-wide font-medium leading-none">Query Builder</div>
 

@@ -10,6 +10,7 @@ use Livewire\Component;
 class ComplexQuery extends Component
 {
     public $columns;
+    public $persistKey;
     public $query = [];
     public $rule = [];
     public $rules = [
@@ -19,6 +20,12 @@ class ComplexQuery extends Component
             'content' => [],
         ],
     ];
+
+    public function mount($columns, $persistKey)
+    {
+        $this->columns = $columns;
+        $this->persistKey = $persistKey;
+    }
 
     public function updatedRules($value, $key)
     {
@@ -112,7 +119,21 @@ class ComplexQuery extends Component
         $this->validateRules();
     }
 
-    public function moveRule($from, $to)
+    public function moveRuleOver($from, $to)
+    {
+        $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
+        $newParent = Arr::get($this->rules, $to);
+
+        if (is_array($newParent) && is_array($mover)) {
+            Arr::prepend($newParent, $mover);
+            Arr::set($this->rules, $to, $newParent);
+            Arr::pull($this->rules, Str::beforeLast($from, '.'));
+        }
+
+        $this->runQuery();
+    }
+
+    public function moveRuleUnder($from, $to)
     {
         $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
         $newParent = Arr::get($this->rules, $to);

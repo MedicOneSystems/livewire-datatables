@@ -1,35 +1,29 @@
 <div class="space-y-4">
     @foreach($rules as $index => $rule)
-        @php
-            $key = $parentIndex !== null
-                ? $parentIndex . '.' . $index
-                : $index;
-        @endphp
-
+        @php $key = $parentIndex !== null ? $parentIndex . '.' . $index : $index; @endphp
         <div>
             @if($rule['type'] === 'rule')
                 @include('datatables::complex-query-rule', ['parentIndex' => $key, 'rule' => $rule])
             @elseif($rule['type'] === 'group')
-                <div drag-target
+                <div x-data="{
+                    key: '{{ collect(explode('.', $key))->join(".content.") . ".content" }}',
+                    source: () => document.querySelector('[dragging]'),
+                    dragstart: (e, key) => e.target.setAttribute('dragging', key),
+                    dragend: (e) => e.target.removeAttribute('dragging'),
+                    dragenter(e) {
+                        if (e.target.closest('[drag-target]') !== this.source().closest('[drag-target]')) {
+                            this.$refs.placeholderbottom.appendChild(this.source())
+                        }
+                    },
+                    drop(e) {
+                        $wire.call('moveRuleUnder', this.source().getAttribute('dragging'), this.key)
+                    },
+                }" drag-target
                     x-on:dragenter.prevent="dragenter"
-                    x-on:dragleave.prevent="dragleave"
+                    x-on:dragleave.prevent
                     x-on:dragover.prevent
-                    x-on:drop.stop="drop"
-                    x-data="{
-                        key: '{{ collect(explode('.', $key))->join(".content.") . ".content" }}',
-                        source: () => document.querySelector('[dragging]'),
-                        dragstart: (e, id) =>{
-                            e.target.setAttribute('dragging', id)
-                        },
-                        dragend(e) {
-                            e.target.removeAttribute('dragging')
-                        },
-                        dragenter(e) {},
-                        dragleave(e) {},
-                        drop(e) {
-                          $wire.call('moveRule', this.source().getAttribute('dragging'), this.key)
-                        },
-                    }" class="p-4 space-y-4 bg-gray-{{ strlen($parentIndex) + 1 }}00 rounded-lg text-gray-{{ strlen($parentIndex) > 4 ? 1 : 9 }}00 border border-blue-400"
+                    x-on:drop="drop"
+                    class="p-4 space-y-4 bg-gray-{{ strlen($parentIndex) + 1 }}00 rounded-lg text-gray-{{ strlen($parentIndex) > 6 ? 1 : 9 }}00 border border-blue-400"
                 >
                     <span class="flex space-x-4">
                         <button wire:click="addRule('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-blue-200 text-blue-900 hover:bg-blue-600 hover:text-blue-100">ADD RULE</button>
@@ -48,7 +42,6 @@
                                 </select>
                             </div>
                         @endif
-
                         <div class="flex-grow">
                             @include('datatables::complex-query-group', [
                                 'parentIndex' => $key,
@@ -59,11 +52,12 @@
                     </div>
 
                     <div class="flex justify-end">
-
                         @unless($key === 0)
                             <button wire:click="removeRule('{{ collect(explode('.', $key))->join(".content.") . ".content" }}')" class="px-3 py-2 rounded bg-red-600 text-white"><x-icons.trash /></button>
                         @endunless
                     </div>
+
+                    <div x-ref="placeholderbottom"></div>
                 </div>
             @endif
         </div>

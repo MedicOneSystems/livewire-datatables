@@ -167,7 +167,7 @@
     </div>
 
     @if($complex)
-        <livewire:complex-query :columns="$this->complexColumns" />
+        <livewire:complex-query :columns="$this->complexColumns" :persistKey="$this->persistKey" />
     @endif
 
     @if($afterTableSlot)
