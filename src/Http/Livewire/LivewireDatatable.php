@@ -59,7 +59,7 @@ class LivewireDatatable extends Component
     public $name;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'complexQuery'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery'];
 
     protected $operators = [
         '=' => '=',
@@ -135,7 +135,7 @@ class LivewireDatatable extends Component
                 'type',
                 'filterable',
                 'complex',
-                'filterview',
+                'filterView',
                 'name',
                 'params',
                 'width',
@@ -577,7 +577,10 @@ class LivewireDatatable extends Component
         $this->activeBooleanFilters = [];
         $this->activeTextFilters = [];
         $this->activeNumberFilters = [];
+        $this->complexQuery = null;
         $this->page = 1;
+
+        $this->emitTo('complex-query', 'resetQuery');
     }
 
     public function removeBooleanFilter($column)
@@ -604,6 +607,10 @@ class LivewireDatatable extends Component
 
     public function getColumnField($index)
     {
+        if ($this->freshColumns[$index]['filterOn']) {
+            return [$this->freshColumns[$index]['filterOn']];
+        }
+
         if ($this->freshColumns[$index]['scope']) {
             return 'scope';
         }
@@ -932,7 +939,7 @@ class LivewireDatatable extends Component
                                         if (Str::contains(strtolower($column), 'concat')) {
                                             $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
                                         } else {
-                                            $query->orWhere($column, $value);
+                                            $query->orWhereRaw($column . ' = ?', $value);
                                         }
                                     }
                                 });
@@ -1245,4 +1252,19 @@ class LivewireDatatable extends Component
         }
         $this->forgetComputed();
     }
+
+    // public function saveQuery($name, $rules)
+    // {
+    //     // Override this method with your own methods of saving
+    // }
+
+    // public function deleteQuery($id)
+    // {
+    //     // Override this method with your own methods of saving
+    // }
+
+    // public function getSavedQueries()
+    // {
+    //     // Override this method with your own methods of saving
+    // }
 }

@@ -5,10 +5,10 @@
         x-on:dragstart="dragstart($event, '{{ $key }}')"
         x-on:dragend="dragend"
         key="{{ $key }}"
-        class="px-4 rounded flex space-x-4 items-end"
+        class="px-3 py-2 -my-1 sm:flex space-x-4 items-end hover:bg-opacity-20 hover:bg-white hover:shadow-xl"
     >
-        <div class="flex flex-grow space-x-4">
-            <div class="w-1/3">
+        <div class="sm:flex flex-grow sm:space-x-4">
+            <div class="sm:w-1/3">
                 <label
                     class="block uppercase tracking-wide text-xs font-bold py-1 rounded flex justify-between">Column</label>
                 <div class="relative">
@@ -23,7 +23,7 @@
             </div>
 
             @if ($options = $this->getOperands($key))
-                <div class="w-1/3">
+                <div class="sm:w-1/3">
                     <label
                         class="block uppercase tracking-wide text-xs font-bold py-1 rounded flex justify-between">Operand</label>
                     <div class="relative">
@@ -39,7 +39,7 @@
             @endif
 
             @if (!in_array($rule['content']['operand'], ['is empty', 'is not empty']))
-                <div class="w-1/3">
+                <div class="sm:w-1/3">
                     @if ($column = $this->getRuleColumn($key))
                         <label
                             class="block uppercase tracking-wide text-xs font-bold py-1 rounded flex justify-between">Value</label>
@@ -82,7 +82,7 @@
                 </div>
             @endif
         </div>
-        <div class="flex">
+        <div class="flex justify-center sm:justify-end">
             <button wire:click="duplicateRule('{{ $key }}')"
                 class="mb-px w-9 h-9 flex items-center justify-center rounded text-green-600 hover:text-green-400">
                 <x-icons.copy />

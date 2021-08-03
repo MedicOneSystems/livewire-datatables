@@ -11,6 +11,7 @@ class ComplexQuery extends Component
 {
     public $columns;
     public $persistKey;
+    public $savedQueries;
     public $query = [];
     public $rule = [];
     public $rules = [
@@ -21,16 +22,25 @@ class ComplexQuery extends Component
         ],
     ];
 
-    public function mount($columns, $persistKey)
+    protected $listeners = ['updateSavedQueries', 'resetQuery'];
+
+    public function mount($columns, $persistKey, $savedQueries = null)
     {
         $this->columns = $columns;
         $this->persistKey = $persistKey;
+        $this->savedQueries = $savedQueries;
+    }
+
+    public function updateSavedQueries($savedQueries = null)
+    {
+        $this->mount($this->columns, $this->persistKey, $savedQueries ?? $this->savedQueries);
     }
 
     public function updatedRules($value, $key)
     {
         $this->clearOperandAndValueWhenColumnChanged($key);
-        $this->validateRules();
+
+        $this->runQuery();
     }
 
     public function clearOperandAndValueWhenColumnChanged($key)
@@ -55,6 +65,23 @@ class ComplexQuery extends Component
         $this->validateRules();
 
         $this->emit('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
+    }
+
+    public function saveQuery($name)
+    {
+        $this->emitUp('saveQuery', $name, $this->rules);
+    }
+
+    public function loadRules($rules)
+    {
+        $this->rules = $rules;
+        $this->runQuery();
+    }
+
+    public function deleteRules($id)
+    {
+        $this->emitUp('deleteQuery', $id);
+        ;
     }
 
     public function resetQuery()
@@ -119,25 +146,25 @@ class ComplexQuery extends Component
         $this->validateRules();
     }
 
-    public function moveRuleOver($from, $to)
+    // public function moveRuleOver($from, $to)
+    // {
+    //     $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
+    //     $newParent = Arr::get($this->rules, $to);
+
+    //     if (is_array($newParent) && is_array($mover)) {
+    //         Arr::prepend($newParent, $mover);
+    //         Arr::set($this->rules, $to, $newParent);
+    //         Arr::pull($this->rules, Str::beforeLast($from, '.'));
+    //     }
+
+    //     $this->runQuery();
+    // }
+
+    public function moveRule($from, $to)
     {
         $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
         $newParent = Arr::get($this->rules, $to);
-
-        if (is_array($newParent) && is_array($mover)) {
-            Arr::prepend($newParent, $mover);
-            Arr::set($this->rules, $to, $newParent);
-            Arr::pull($this->rules, Str::beforeLast($from, '.'));
-        }
-
-        $this->runQuery();
-    }
-
-    public function moveRuleUnder($from, $to)
-    {
-        $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
-        $newParent = Arr::get($this->rules, $to);
-
+        // dd($this->rules, $from, $to, $mover, $newParent);
         if (is_array($newParent) && is_array($mover)) {
             array_push($newParent, $mover);
             Arr::set($this->rules, $to, $newParent);
