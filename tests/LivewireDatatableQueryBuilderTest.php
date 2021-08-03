@@ -59,7 +59,7 @@ class LivewireDatatableQueryBuilderTest extends TestCase
         $subject->mount(DummyModel::class, ['id', 'dummy_has_one.name']);
         $subject->doSelectFilter(1, 'dwight');
 
-        $this->assertEquals('select "dummy_models"."id" as "id", "dummy_has_one_models"."name" as "dummy_has_one.name" from "dummy_models" left join "dummy_has_one_models" on "dummy_has_one_models"."dummy_model_id" = "dummy_models"."id" where ((("dummy_has_one_models"."name" = ?))) order by `id` desc', $subject->getQuery()->toSql());
+        $this->assertEquals('select "dummy_models"."id" as "id", "dummy_has_one_models"."name" as "dummy_has_one.name" from "dummy_models" left join "dummy_has_one_models" on "dummy_has_one_models"."dummy_model_id" = "dummy_models"."id" where (((dummy_has_one_models.name = ?))) order by `id` desc', $subject->getQuery()->toSql());
         $this->assertEquals(['dwight'], $subject->getQuery()->getBindings());
     }
 

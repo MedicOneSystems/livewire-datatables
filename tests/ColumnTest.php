@@ -96,6 +96,7 @@ class ColumnTest extends TestCase
             'exportCallback' => function () {
             },
             'complex' => null,
+            'filterOn' => null,
         ], $subject);
     }
 
@@ -134,6 +135,7 @@ class ColumnTest extends TestCase
             'unsortable' => null,
             'exportCallback' => null,
             'complex' => null,
+            'filterOn' => null,
         ], $subject);
     }
 
@@ -171,6 +173,7 @@ class ColumnTest extends TestCase
             'unsortable' => null,
             'exportCallback' => null,
             'complex' => null,
+            'filterOn' => null,
         ], $subject);
     }
 
