@@ -1136,7 +1136,7 @@ class LivewireDatatable extends Component
                         'value' => $value,
                         'table' => $this->builder()->getModel()->getTable(),
                         'column' => Str::after($name, '.'),
-                        'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()},
+                        'rowId' => $row->{$this->builder()->getModel()->getTable().'.'.$this->builder()->getModel()->getKeyName()} ?? $row->{$this->builder()->getModel()->getKeyName()},
                     ]);
                 } elseif ($export && isset($this->export_callbacks[$name])) {
                     $row->$name = $this->export_callbacks[$name]($value, $row);
