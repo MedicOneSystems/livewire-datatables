@@ -6,7 +6,7 @@
     @endif
     <div class="relative">
         <div class="flex justify-between items-center mb-1">
-            <div class="flex-grow h-10 flex items-center">
+            <div class="h-10 flex items-center">
                 @if($this->searchableColumns()->count())
                 <div class="w-96 flex rounded-lg shadow-sm">
                     <div class="relative flex-grow focus-within:z-10">
@@ -25,6 +25,10 @@
                 </div>
                 @endif
             </div>
+
+            @if($this->activeFilters)
+                <span class="text-xl text-blue-400 uppercase">FILTERS ACTIVE</span>
+            @endif
 
             <div class="flex items-center space-x-1">
                 <x-icons.cog wire:loading class="h-9 w-9 animate-spin text-gray-400" />

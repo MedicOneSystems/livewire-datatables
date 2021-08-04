@@ -57,6 +57,7 @@ class LivewireDatatable extends Component
     public $complex;
     public $complexQuery;
     public $name;
+    public $userFilter;
 
     protected $query;
     protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery'];
@@ -578,6 +579,7 @@ class LivewireDatatable extends Component
         $this->activeTextFilters = [];
         $this->activeNumberFilters = [];
         $this->complexQuery = null;
+        $this->userFilter = null;
         $this->page = 1;
 
         $this->emitTo('complex-query', 'resetQuery');
@@ -736,7 +738,8 @@ class LivewireDatatable extends Component
             || count($this->activeBooleanFilters)
             || count($this->activeTextFilters)
             || count($this->activeNumberFilters)
-            || is_array($this->complexQuery);
+            || is_array($this->complexQuery)
+            || $this->userFilter;
     }
 
     public function columnIsRelation($column)
