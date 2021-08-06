@@ -64,11 +64,13 @@
                             @if($hideable === 'inline')
                                 @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
                             @elseif($column['type'] === 'checkbox')
-                            <div class="w-32 py-4 flex justify-center overflow-hidden align-top px-6 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider focus:outline-none">
-                                <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
-                                    {{ count($selected) }}
-                                </div>
-                            </div>
+                                @unless($column['hidden'])
+                                    <div class="w-32 py-4 flex justify-center overflow-hidden align-top px-6 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider focus:outline-none">
+                                        <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
+                                            {{ count($selected) }}
+                                        </div>
+                                    </div>
+                                @endunless
                             @else
                                 @include('datatables::header-no-hide', ['column' => $column, 'sort' => $sort])
                             @endif
