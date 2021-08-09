@@ -54,7 +54,7 @@
         @endif
 
     @endif
-    @if(count($savedQueries))
+    @if(count($savedQueries ?? []))
         <div>
             <div class="mt-8 my-4 text-xl uppercase tracking-wide font-medium leading-none">Saved Queries</div>
             <div class="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
