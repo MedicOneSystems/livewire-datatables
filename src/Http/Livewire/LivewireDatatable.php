@@ -56,6 +56,7 @@ class LivewireDatatable extends Component
     public $afterTableSlot;
     public $complex;
     public $complexQuery;
+    public $title;
     public $name;
     public $userFilter;
 
@@ -937,15 +938,23 @@ class LivewireDatatable extends Component
                             $this->addAggregateFilter($query, $index, $activeSelectFilter);
                         } else {
                             if (! $this->addScopeSelectFilter($query, $index, $value)) {
-                                $query->orWhere(function ($query) use ($value, $index) {
-                                    foreach ($this->getColumnField($index) as $column) {
-                                        if (Str::contains(strtolower($column), 'concat')) {
-                                            $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
-                                        } else {
-                                            $query->orWhereRaw($column . ' = ?', $value);
+                                if ($this->freshColumns[$index]['type'] === 'json') {
+                                    $query->where(function ($query) use ($value, $index) {
+                                        foreach ($this->getColumnField($index) as $column) {
+                                            $query->whereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
                                         }
-                                    }
-                                });
+                                    });
+                                } else {
+                                    $query->orWhere(function ($query) use ($value, $index) {
+                                        foreach ($this->getColumnField($index) as $column) {
+                                            if (Str::contains(strtolower($column), 'concat')) {
+                                                $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
+                                            } else {
+                                                $query->orWhereRaw($column . ' = ?', $value);
+                                            }
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
@@ -1212,7 +1221,7 @@ class LivewireDatatable extends Component
     {
         $this->emit('refreshDynamic');
 
-        return view('datatables::datatable');
+        return view('datatables::datatable')->layoutData(['title' => $this->title]);
     }
 
     public function export()

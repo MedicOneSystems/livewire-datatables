@@ -218,6 +218,7 @@ class ComplexQuery extends Component
     {
         $operands = [
             'string' => ['equals', 'does not equal', 'contains', 'does not contain', 'is empty', 'is not empty', 'begins with', 'ends with'],
+            'json' => ['equals', 'does not equal', 'contains', 'does not contain', 'is empty', 'is not empty', 'begins with', 'ends with'],
             'editable' => ['equals', 'does not equal', 'contains', 'does not contain', 'is empty', 'is not empty', 'begins with', 'ends with'],
             'number' => ['=', '<>', '<', '<=', '>', '>='],
             'date' => ['=', '<>', '<', '<=', '>', '>='],
