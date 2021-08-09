@@ -117,6 +117,7 @@ class LivewireDatatable extends Component
                 'params',
                 'width',
                 'unsortable',
+                'preventExport',
             ])->toArray();
         })->toArray();
     }
@@ -956,6 +957,13 @@ class LivewireDatatable extends Component
         });
     }
 
+    public function getExportCallbacksProperty()
+    {
+        return collect($this->freshColumns)->filter->exportCallback->mapWithKeys(function ($column) {
+            return [$column['name'] => $column['exportCallback']];
+        });
+    }
+
     public function getEditablesProperty()
     {
         return collect($this->freshColumns)->filter(function ($column) {
@@ -965,17 +973,23 @@ class LivewireDatatable extends Component
         });
     }
 
-    public function mapCallbacks($paginatedCollection)
+    public function mapCallbacks($paginatedCollection, $export = false)
     {
-        $paginatedCollection->getCollection()->map(function ($row, $i) {
+        $paginatedCollection->collect()->map(function ($row, $i) use ($export) {
             foreach ($row as $name => $value) {
-                if (isset($this->editables[$name])) {
+                if ($export && isset($this->export_callbacks[$name])) {
+                    // dd($this->callbacks, $this->export_callbacks, $value, $row);
+                    $values = Str::contains($value, static::SEPARATOR) ? explode(static::SEPARATOR, $value) : [$value, $row];
+                    $row->$name = $this->export_callbacks[$name](...$values);
+                } elseif (isset($this->editables[$name])) {
                     $row->$name = view('datatables::editable', [
                         'value' => $value,
                         'table' => $this->builder()->getModel()->getTable(),
                         'column' => Str::after($name, '.'),
                         'rowId' => $row->{$this->builder()->getModel()->getTable().'.'.$this->builder()->getModel()->getKeyName()},
                     ]);
+                } elseif ($export && isset($this->export_callbacks[$name])) {
+                    $row->$name = $this->export_callbacks[$name]($value, $row);
                 } elseif (isset($this->callbacks[$name]) && is_string($this->callbacks[$name])) {
                     $row->$name = $this->{$this->callbacks[$name]}($value, $row);
                 } elseif (Str::startsWith($name, 'callback_')) {
@@ -1036,10 +1050,10 @@ class LivewireDatatable extends Component
 
         if ($value instanceof View) {
             return $value
-                ->with(['value' => str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'] ?? $value->gatherData()['slot'])]);
+                ->with(['value' => str_ireplace($string, (string) view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'] ?? $value->gatherData()['slot'])]);
         }
 
-        return str_ireplace($string, view('datatables::highlight', ['slot' => $output]), $value);
+        return str_ireplace($string, (string) view('datatables::highlight', ['slot' => $output]), $value);
     }
 
     public function render()
@@ -1053,7 +1067,15 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        return Excel::download(new DatatableExport($this->getQuery(true)->get()), 'DatatableExport.xlsx');
+        $results = $this->mapCallbacks($this->getQuery()->get(), true)->map(function ($item) {
+            return collect($this->columns)->reject(function ($value, $key) {
+                return $value['preventExport'] == true || $value['hidden'] == true;
+            })->mapWithKeys(function ($value, $key) use ($item) {
+                return [$value['label'] ?? $value['name'] => $item->{$value['name']}];
+            })->all();
+        });
+
+        return Excel::download(new DatatableExport($results), 'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)

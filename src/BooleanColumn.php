@@ -12,5 +12,9 @@ class BooleanColumn extends Column
         $this->callback = function ($value) {
             return view('datatables::boolean', ['value' => $value]);
         };
+
+        $this->exportCallback = function ($value) {
+            return $value ? 1 : 0;
+        };
     }
 }
