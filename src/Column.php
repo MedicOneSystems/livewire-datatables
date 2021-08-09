@@ -29,6 +29,7 @@ class Column
     public $align = 'left';
     public $preventExport;
     public $width;
+    public $exportCallback;
 
     public static function name($name)
     {
@@ -72,7 +73,9 @@ class Column
 
     public static function checkbox($attribute = 'id')
     {
-        return static::name($attribute.' as checkbox_attribute')->setType('checkbox');
+        return static::name($attribute.' as checkbox_attribute')
+            ->setType('checkbox')
+            ->excludeFromExport();
     }
 
     public static function scope($scope, $alias)
@@ -144,6 +147,13 @@ class Column
         return $this;
     }
 
+    public function exportCallback($exportCallback)
+    {
+        $this->exportCallback = $exportCallback;
+
+        return $this;
+    }
+
     public function excludeFromExport()
     {
         $this->preventExport = true;
@@ -160,6 +170,10 @@ class Column
             ]);
         };
 
+        $this->exportCallback = function ($value) {
+            return $value;
+        };
+
         return $this;
     }
 
@@ -167,6 +181,10 @@ class Column
     {
         $this->callback = function ($value) use ($length) {
             return view('datatables::tooltip', ['slot' => $value, 'length' => $length]);
+        };
+
+        $this->exportCallback = function ($value) {
+            return $value;
         };
 
         return $this;
@@ -185,6 +203,10 @@ class Column
     {
         $this->callback = function ($value, $row) use ($view) {
             return view($view, ['value' => $value, 'row' => $row]);
+        };
+
+        $this->exportCallback = function ($value) {
+            return $value;
         };
 
         return $this;
@@ -206,6 +228,10 @@ class Column
 
     public function editable($editable = true)
     {
+        $this->exportCallback = function ($value) {
+            return $value;
+        };
+
         return $editable ? $this->setType('editable') : $this;
     }
 

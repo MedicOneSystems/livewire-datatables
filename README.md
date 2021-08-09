@@ -179,6 +179,7 @@ class ComplexDemoTable extends LivewireDatatable
 |**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
 |**alignRight**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
 |**editable**| | Marks the column as editable | _(see below)_|
+|**exportCallback**| Closure $callback | Reformats the result when exporting | _(see below)_ |
 |**excludeFromExport**| | Excludes the column from export |```Column::name('email')->excludeFromExport()```|
 |**unsortable**| | Prevents the column being sortable |```Column::name('email')->unsortable()```|
 ___
@@ -234,7 +235,7 @@ Callbacks give you the freedom to perform any mutations you like on the data bef
 - The callbacks are performed on the paginated results of the database query, so shouldn't use a ton of memory
 - Callbacks will receive the chosen columns as their arguments.
 - Callbacks can be defined inline as below, or as public methods on the Datatable class, referenced by passing the name as a string as the second argument to the callback method.
-
+- If you want to format the result differently for export, use ```->exportCallback(Closure $callback)```.
 ```php
 class CallbackDemoTable extends LivewireDatatable
 {
@@ -252,6 +253,8 @@ class CallbackDemoTable extends LivewireDatatable
                 return $age > 18
                     ? '<span class="text-red-500">' . $age . '</span>'
                     : $age;
+            })->exportCallback(function ($dob, $signupDate), {
+                return $age = $signupDate->diffInYears($dob);
             }),
 
             ...
