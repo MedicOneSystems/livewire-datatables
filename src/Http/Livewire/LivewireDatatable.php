@@ -1067,7 +1067,6 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-
         $column_names = collect($this->columns)->reject(function ($value, $key) {
             return $value['preventExport'] == true || $value['hidden'] == true;
         })->mapWithKeys(function ($value, $key) {
@@ -1084,7 +1083,6 @@ class LivewireDatatable extends Component
         $data['results'] = $results;
 
         // return $data;
-
 
         // dd($data);
 
