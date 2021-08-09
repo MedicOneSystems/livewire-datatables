@@ -1067,31 +1067,15 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-
-        $column_names = collect($this->columns)->reject(function ($value, $key) {
-            return $value['preventExport'] == true || $value['hidden'] == true;
-        })->mapWithKeys(function ($value, $key) {
-            return [$value['name'] => $value['label'] ?? $value['name']];
-        });
-
-        // filter column name data results
-        $results = $this->mapCallbacks($this->getQuery()->get(), true)->map(function ($item) use ($column_names) {
-            return $column_names->mapWithKeys(function ($label, $name) use ($item) {
-                return [$label => $item->$name];
+        $results = $this->mapCallbacks($this->getQuery()->get(), true)->map(function ($item) {
+            return collect($this->columns)->reject(function ($value, $key) {
+                return $value['preventExport'] == true || $value['hidden'] == true;
+            })->mapWithKeys(function ($value, $key) use ($item) {
+                return [$value['label'] ?? $value['name'] => $item->{$value['name']}];
             })->all();
         });
 
-        $data['results'] = $results;
-
-        // return $data;
-
-
-        // dd($data);
-
-        return Excel::download(
-            new DatatableExport($results),
-            'DatatableExport.xlsx'
-        );
+        return Excel::download(new DatatableExport($results), 'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)
