@@ -787,7 +787,6 @@ class LivewireDatatable extends Component
             ->toArray()
         );
 
-
         $this->addGlobalSearch()
             ->addScopeColumns()
             ->addSelectFilters()
@@ -816,6 +815,7 @@ class LivewireDatatable extends Component
         });
 
         $this->page = 1;
+
         return $this;
     }
 
@@ -828,13 +828,13 @@ class LivewireDatatable extends Component
     {
         if (isset($rule['content']['operand'])) {
             if ($rule['content']['operand'] === 'contains') {
-                return '%'.$rule['content']['value'].'%';
+                return '%' . $rule['content']['value'] . '%';
             } elseif ($rule['content']['operand'] === 'does not contain') {
-                return '%'.$rule['content']['value'].'%';
+                return '%' . $rule['content']['value'] . '%';
             } elseif ($rule['content']['operand'] === 'begins with') {
-                return $rule['content']['value'].'%';
+                return $rule['content']['value'] . '%';
             } elseif ($rule['content']['operand'] === 'ends with') {
-                return '%'.$rule['content']['value'];
+                return '%' . $rule['content']['value'];
             } elseif ($rule['content']['operand'] === 'is empty' || $rule['content']['operand'] === 'is not empty') {
                 return '';
             }
@@ -902,10 +902,17 @@ class LivewireDatatable extends Component
                             foreach ($this->getColumnFilterStatement($i) as $column) {
                                 $query->when(is_array($column), function ($query) use ($search, $column) {
                                     foreach ($column as $col) {
+<<<<<<< HEAD
                                         $query->orWhereRaw('LOWER(' . $col . ') like ?', '%' . mb_strtolower($search) . '%');
                                     }
                                 }, function ($query) use ($search, $column) {
                                     $query->orWhereRaw('LOWER(' . $column . ') like ?', '%' . mb_strtolower($search) . '%');
+=======
+                                        $query->orWhereRaw('LOWER(' . $col . ') like ?', '%' . strtolower($search) . '%');
+                                    }
+                                }, function ($query) use ($search, $column) {
+                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', '%' . strtolower($search) . '%');
+>>>>>>> cd4ead5 (Apply fixes from StyleCI (#253))
                                 });
                             }
                         });
@@ -948,14 +955,14 @@ class LivewireDatatable extends Component
                                 if ($this->freshColumns[$index]['type'] === 'json') {
                                     $query->where(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
-                                            $query->whereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
+                                            $query->whereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
                                         }
                                     });
                                 } else {
                                     $query->orWhere(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
                                             if (Str::contains(strtolower($column), 'concat')) {
-                                                $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
+                                                $query->orWhereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
                                             } else {
                                                 $query->orWhereRaw($column . ' = ?', $value);
                                             }
@@ -1023,7 +1030,11 @@ class LivewireDatatable extends Component
                             $query->orWhere(function ($query) use ($index, $value) {
                                 foreach ($this->getColumnFilterStatement($index) as $column) {
                                     $column = is_array($column) ? $column[0] : $column;
+<<<<<<< HEAD
                                     $query->orWhereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
+=======
+                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
+>>>>>>> cd4ead5 (Apply fixes from StyleCI (#253))
                                 }
                             });
                         }
@@ -1049,12 +1060,12 @@ class LivewireDatatable extends Component
                         isset($filter['start']) ? $filter['start'] : 0,
                         isset($filter['end']) ? $filter['end'] : 9999999999,
                     ]) ?? $query->when(isset($filter['start']), function ($query) use ($filter, $index) {
-                        $query->whereRaw($this->getColumnFilterStatement($index)[0].' >= ?', $filter['start']);
+                        $query->whereRaw($this->getColumnFilterStatement($index)[0] . ' >= ?', $filter['start']);
                     })->when(isset($filter['end']), function ($query) use ($filter, $index) {
                         if (isset($this->freshColumns[$index]['round']) && $this->freshColumns[$index]['round'] !== null) {
-                            $query->whereRaw('ROUND(' . $this->getColumnFilterStatement($index)[0].',' . $this->freshColumns[$index]['round'] . ') <= ?', $filter['end']);
+                            $query->whereRaw('ROUND(' . $this->getColumnFilterStatement($index)[0] . ',' . $this->freshColumns[$index]['round'] . ') <= ?', $filter['end']);
                         } else {
-                            $query->whereRaw($this->getColumnFilterStatement($index)[0].' <= ?', $filter['end']);
+                            $query->whereRaw($this->getColumnFilterStatement($index)[0] . ' <= ?', $filter['end']);
                         }
                     });
                 }
@@ -1154,7 +1165,7 @@ class LivewireDatatable extends Component
                         'value' => $value,
                         'table' => $this->builder()->getModel()->getTable(),
                         'column' => Str::after($name, '.'),
-                        'rowId' => $row->{$this->builder()->getModel()->getTable().'.'.$this->builder()->getModel()->getKeyName()} ?? $row->{$this->builder()->getModel()->getKeyName()},
+                        'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()} ?? $row->{$this->builder()->getModel()->getKeyName()},
                     ]);
                 } elseif ($export && isset($this->export_callbacks[$name])) {
                     $row->$name = $this->export_callbacks[$name]($value, $row);
