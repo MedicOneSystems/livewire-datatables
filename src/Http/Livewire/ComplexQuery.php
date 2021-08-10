@@ -81,7 +81,6 @@ class ComplexQuery extends Component
     public function deleteRules($id)
     {
         $this->emitUp('deleteQuery', $id);
-        ;
     }
 
     public function resetQuery()
@@ -94,7 +93,7 @@ class ComplexQuery extends Component
     {
         $rules = $rules ?? $this->rules[0]['content'];
 
-        collect($rules)->each(function ($rule, $i) use ($key) {
+        collect($rules)->each(function ($rule, $i) {
             if ($rule['type'] === 'rule') {
                 $v = Validator::make($rule['content'], ['column' => 'required']);
 
