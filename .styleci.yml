@@ -4,5 +4,5 @@ enabled:
   - concat_with_spaces
 
 disabled:
-  -concat_without_spaces
+  - concat_without_spaces
   - single_class_element_per_statement
