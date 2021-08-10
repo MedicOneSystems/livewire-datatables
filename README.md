@@ -316,6 +316,10 @@ class EditableTable extends LivewireDatatable
 }
 ```
 
+
+![image](https://user-images.githubusercontent.com/7000886/128855344-25035758-ca90-42d2-bd19-518c9de45148.png)
+
+
 ## Styling
 I know it's not cool to provide a package with tons of opionated markup and styling. Most other packages seem to have gone down the route of passing optional classes around as arguments or config variables. My take is that because this is just blade with tailwind, you can publish the templates and do whatever you like to them - it should be obvious where the Livewire and Alpine moving parts are.
 
