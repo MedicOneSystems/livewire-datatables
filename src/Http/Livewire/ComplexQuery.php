@@ -146,25 +146,11 @@ class ComplexQuery extends Component
         $this->validateRules();
     }
 
-    // public function moveRuleOver($from, $to)
-    // {
-    //     $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
-    //     $newParent = Arr::get($this->rules, $to);
-
-    //     if (is_array($newParent) && is_array($mover)) {
-    //         Arr::prepend($newParent, $mover);
-    //         Arr::set($this->rules, $to, $newParent);
-    //         Arr::pull($this->rules, Str::beforeLast($from, '.'));
-    //     }
-
-    //     $this->runQuery();
-    // }
-
     public function moveRule($from, $to)
     {
         $mover = Arr::get($this->rules, Str::beforeLast($from, '.'));
         $newParent = Arr::get($this->rules, $to);
-        // dd($this->rules, $from, $to, $mover, $newParent);
+
         if (is_array($newParent) && is_array($mover)) {
             array_push($newParent, $mover);
             Arr::set($this->rules, $to, $newParent);
