@@ -148,7 +148,7 @@ class Column
         return $this;
     }
 
-    public function filterStatement($query)
+    public function filterOn($query)
     {
         $this->filterOn = $query;
 
