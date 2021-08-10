@@ -21,7 +21,7 @@ class ComponentParser
 
         $classPath = static::generatePathFromNamespace($classNamespace);
 
-        $this->baseClassPath = rtrim($classPath, DIRECTORY_SEPARATOR).'/';
+        $this->baseClassPath = rtrim($classPath, DIRECTORY_SEPARATOR) . '/';
 
         $directories = preg_split('/[.\/]+/', $rawCommand);
 
@@ -41,7 +41,7 @@ class ComponentParser
 
     public function classPath()
     {
-        return $this->baseClassPath.collect()
+        return $this->baseClassPath . collect()
             ->concat($this->directories)
             ->push($this->classFile())
             ->implode('/');
@@ -49,19 +49,19 @@ class ComponentParser
 
     public function relativeClassPath()
     {
-        return Str::replaceFirst(base_path().DIRECTORY_SEPARATOR, '', $this->classPath());
+        return Str::replaceFirst(base_path() . DIRECTORY_SEPARATOR, '', $this->classPath());
     }
 
     public function classFile()
     {
-        return $this->componentClass.'.php';
+        return $this->componentClass . '.php';
     }
 
     public function classNamespace()
     {
         return empty($this->directories)
             ? $this->baseClassNamespace
-            : $this->baseClassNamespace.'\\'.collect()
+            : $this->baseClassNamespace . '\\' . collect()
                 ->concat($this->directories)
                 ->map([Str::class, 'studly'])
                 ->implode('\\');
@@ -75,20 +75,20 @@ class ComponentParser
     public function classContents()
     {
         if ($this->model) {
-            $template = file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'datatable-model.stub');
+            $template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'datatable-model.stub');
 
             return preg_replace_array(
                 ['/\[namespace\]/', '/\[use\]/', '/\[class\]/', '/\[model\]/'],
                 [
                     $this->classNamespace(),
-                    config('livewire-datatables.model_namespace', 'App').'\\'.Str::studly($this->model),
+                    config('livewire-datatables.model_namespace', 'App') . '\\' . Str::studly($this->model),
                     $this->className(),
                     Str::studly($this->model),
                 ],
                 $template
             );
         } else {
-            $template = file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'datatable.stub');
+            $template = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'datatable.stub');
 
             return preg_replace_array(
                 ['/\[namespace\]/', '/\[class\]/'],
@@ -102,6 +102,6 @@ class ComponentParser
     {
         $name = Str::replaceFirst(app()->getNamespace(), '', $namespace);
 
-        return app('path').'/'.str_replace('\\', '/', $name);
+        return app('path') . '/' . str_replace('\\', '/', $name);
     }
 }

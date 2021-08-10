@@ -56,7 +56,7 @@ class ComplexQuery extends Component
         return collect($rules ?? $this->rules)->map(function ($rule) {
             return $rule['type'] === 'rule'
                     ? implode(' ', [$this->columns[$rule['content']['column']]['label'] ?? '', $rule['content']['operand'] ?? '', $rule['content']['value'] ?? ''])
-                    : '('.$this->getRulesStringProperty($rule['content'], $rule['logic']).')';
+                    : '(' . $this->getRulesStringProperty($rule['content'], $rule['logic']) . ')';
         })->join(strtoupper(" $logic "));
     }
 
@@ -81,7 +81,6 @@ class ComplexQuery extends Component
     public function deleteRules($id)
     {
         $this->emitUp('deleteQuery', $id);
-        ;
     }
 
     public function resetQuery()
@@ -94,7 +93,7 @@ class ComplexQuery extends Component
     {
         $rules = $rules ?? $this->rules[0]['content'];
 
-        collect($rules)->each(function ($rule, $i) use ($key) {
+        collect($rules)->each(function ($rule, $i) {
             if ($rule['type'] === 'rule') {
                 $v = Validator::make($rule['content'], ['column' => 'required']);
 
@@ -197,7 +196,7 @@ class ComplexQuery extends Component
 
     public function getRuleColumn($key)
     {
-        return $this->columns[Arr::get($this->rules, $key.'.column')] ?? null;
+        return $this->columns[Arr::get($this->rules, $key . '.column')] ?? null;
     }
 
     public function getOperands($key)
