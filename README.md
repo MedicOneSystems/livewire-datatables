@@ -8,7 +8,7 @@
 - Mutate and format columns using preset or custom callbacks
 - Sort data using column or computed column
 - Filter using booleans, times, dates, selects or free text
-- Create complex combined filters using the [complex query builder](#Columns)
+- Create complex combined filters using the [complex query builder](#Complex Query Builder)
 - Show / hide columns
 
 ## [Live Demo App](https://livewire-datatables.com)
