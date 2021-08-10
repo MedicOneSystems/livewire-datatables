@@ -56,6 +56,7 @@ class LivewireDatatable extends Component
     public $afterTableSlot;
     public $complex;
     public $complexQuery;
+    public $persistComplexQuery;
     public $title;
     public $name;
     public $userFilter;
@@ -156,7 +157,9 @@ class LivewireDatatable extends Component
 
     public function getPersistKeyProperty()
     {
-        return Str::kebab(Str::afterLast(get_class($this), '\\'));
+        return $this->persistComplexQuery
+            ? Str::kebab(Str::afterLast(get_class($this), '\\'))
+            : null;
     }
 
     public function getModelInstanceProperty()
@@ -608,8 +611,12 @@ class LivewireDatatable extends Component
         unset($this->activeNumberFilters[$column]);
     }
 
-    public function getColumnField($index)
+    public function getColumnFilterStatement($index)
     {
+        if ($this->freshColumns[$index]['type'] === 'editable') {
+            return [$this->getSelectStatements()[$index][0]];
+        }
+
         if ($this->freshColumns[$index]['filterOn']) {
             return [$this->freshColumns[$index]['filterOn']];
         }
@@ -845,7 +852,7 @@ class LivewireDatatable extends Component
                         if ($this->columnIsAggregateRelation($this->freshColumns[$rule['content']['column']])) {
                             $query = $this->addAggregateFilter($query, $rule['content']['column'], $this->complexValue($rule), $this->complexOperator($rule['content']['operand']));
                         } else {
-                            foreach ($this->getColumnField($rule['content']['column']) as $column) {
+                            foreach ($this->getColumnFilterStatement($rule['content']['column']) as $column) {
                                 if ($rule['content']['operand'] === 'is empty') {
                                     $query->whereNull($column);
                                 } elseif ($rule['content']['operand'] === 'is not empty') {
@@ -892,7 +899,7 @@ class LivewireDatatable extends Component
                 $query->where(function ($query) use ($search) {
                     $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
                         $query->orWhere(function ($query) use ($i, $search) {
-                            foreach ($this->getColumnField($i) as $column) {
+                            foreach ($this->getColumnFilterStatement($i) as $column) {
                                 $query->when(is_array($column), function ($query) use ($search, $column) {
                                     foreach ($column as $col) {
                                         $query->orWhereRaw('LOWER('.$col.') like ?', '%'.strtolower($search).'%');
@@ -940,13 +947,13 @@ class LivewireDatatable extends Component
                             if (! $this->addScopeSelectFilter($query, $index, $value)) {
                                 if ($this->freshColumns[$index]['type'] === 'json') {
                                     $query->where(function ($query) use ($value, $index) {
-                                        foreach ($this->getColumnField($index) as $column) {
+                                        foreach ($this->getColumnFilterStatement($index) as $column) {
                                             $query->whereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
                                         }
                                     });
                                 } else {
                                     $query->orWhere(function ($query) use ($value, $index) {
-                                        foreach ($this->getColumnField($index) as $column) {
+                                        foreach ($this->getColumnFilterStatement($index) as $column) {
                                             if (Str::contains(strtolower($column), 'concat')) {
                                                 $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
                                             } else {
@@ -972,26 +979,26 @@ class LivewireDatatable extends Component
         }
         $this->query->where(function ($query) {
             foreach ($this->activeBooleanFilters as $index => $value) {
-                if ($this->getColumnField($index) === 'scope') {
+                if ($this->getColumnFilterStatement($index) === 'scope') {
                     $this->addScopeSelectFilter($query, $index, $value);
                 } elseif ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
                 } elseif ($this->freshColumns[$index]['type'] === 'string') {
                     if ($value == 1) {
-                        $query->whereNotNull($this->getColumnField($index)[0])
-                            ->where($this->getColumnField($index)[0], '<>', '');
+                        $query->whereNotNull($this->getColumnFilterStatement($index)[0])
+                            ->where($this->getColumnFilterStatement($index)[0], '<>', '');
                     } elseif (strlen($value)) {
                         $query->where(function ($query) use ($index) {
-                            $query->whereNull(DB::raw($this->getColumnField($index)[0]))
-                                ->orWhere(DB::raw($this->getColumnField($index)[0]), '');
+                            $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]))
+                                ->orWhere(DB::raw($this->getColumnFilterStatement($index)[0]), '');
                         });
                     }
                 } elseif ($value == 1) {
-                    $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
+                    $query->where(DB::raw($this->getColumnFilterStatement($index)[0]), '>', 0);
                 } elseif (strlen($value)) {
                     $query->where(function ($query) use ($index) {
-                        $query->whereNull(DB::raw($this->getColumnField($index)[0]))
-                            ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
+                        $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]))
+                            ->orWhere(DB::raw($this->getColumnFilterStatement($index)[0]), 0);
                     });
                 }
             }
@@ -1014,7 +1021,7 @@ class LivewireDatatable extends Component
                             $this->addAggregateFilter($query, $index, $activeTextFilter);
                         } else {
                             $query->orWhere(function ($query) use ($index, $value) {
-                                foreach ($this->getColumnField($index) as $column) {
+                                foreach ($this->getColumnFilterStatement($index) as $column) {
                                     $column = is_array($column) ? $column[0] : $column;
                                     $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
                                 }
@@ -1042,12 +1049,12 @@ class LivewireDatatable extends Component
                         isset($filter['start']) ? $filter['start'] : 0,
                         isset($filter['end']) ? $filter['end'] : 9999999999,
                     ]) ?? $query->when(isset($filter['start']), function ($query) use ($filter, $index) {
-                        $query->whereRaw($this->getColumnField($index)[0].' >= ?', $filter['start']);
+                        $query->whereRaw($this->getColumnFilterStatement($index)[0].' >= ?', $filter['start']);
                     })->when(isset($filter['end']), function ($query) use ($filter, $index) {
                         if (isset($this->freshColumns[$index]['round']) && $this->freshColumns[$index]['round'] !== null) {
-                            $query->whereRaw('ROUND(' . $this->getColumnField($index)[0].',' . $this->freshColumns[$index]['round'] . ') <= ?', $filter['end']);
+                            $query->whereRaw('ROUND(' . $this->getColumnFilterStatement($index)[0].',' . $this->freshColumns[$index]['round'] . ') <= ?', $filter['end']);
                         } else {
-                            $query->whereRaw($this->getColumnField($index)[0].' <= ?', $filter['end']);
+                            $query->whereRaw($this->getColumnFilterStatement($index)[0].' <= ?', $filter['end']);
                         }
                     });
                 }
@@ -1068,7 +1075,7 @@ class LivewireDatatable extends Component
                 if (! ((isset($filter['start']) && $filter['start'] != '') || (isset($filter['end']) && $filter['end'] != ''))) {
                     break;
                 }
-                $query->whereBetween($this->getColumnField($index)[0], [
+                $query->whereBetween($this->getColumnFilterStatement($index)[0], [
                     isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '0000-00-00',
                     isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : now()->format('Y-m-d'),
                 ]);
@@ -1091,11 +1098,11 @@ class LivewireDatatable extends Component
 
                 if ($end < $start) {
                     $query->where(function ($subQuery) use ($index, $start, $end) {
-                        $subQuery->whereBetween($this->getColumnField($index)[0], [$start, '23:59'])
-                            ->orWhereBetween($this->getColumnField($index)[0], ['00:00', $end]);
+                        $subQuery->whereBetween($this->getColumnFilterStatement($index)[0], [$start, '23:59'])
+                            ->orWhereBetween($this->getColumnFilterStatement($index)[0], ['00:00', $end]);
                     });
                 } else {
-                    $query->whereBetween($this->getColumnField($index)[0], [$start, $end]);
+                    $query->whereBetween($this->getColumnFilterStatement($index)[0], [$start, $end]);
                 }
             }
         });
@@ -1140,7 +1147,6 @@ class LivewireDatatable extends Component
         $paginatedCollection->collect()->map(function ($row, $i) use ($export) {
             foreach ($row as $name => $value) {
                 if ($export && isset($this->export_callbacks[$name])) {
-                    // dd($this->callbacks, $this->export_callbacks, $value, $row);
                     $values = Str::contains($value, static::SEPARATOR) ? explode(static::SEPARATOR, $value) : [$value, $row];
                     $row->$name = $this->export_callbacks[$name](...$values);
                 } elseif (isset($this->editables[$name])) {
@@ -1267,16 +1273,16 @@ class LivewireDatatable extends Component
 
     // public function saveQuery($name, $rules)
     // {
-    //     // Override this method with your own methods of saving
+    //     // Override this method with your own method for saving
     // }
 
     // public function deleteQuery($id)
     // {
-    //     // Override this method with your own methods of saving
+    //     // Override this method with your own method for deleting
     // }
 
     // public function getSavedQueries()
     // {
-    //     // Override this method with your own methods of saving
+    //     // Override this method with your own method for getting saved queries
     // }
 }
