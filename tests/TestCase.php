@@ -15,8 +15,8 @@ class TestCase extends Orchestra
     {
         parent::setUp();
 
-        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-        $this->withFactories(__DIR__.'/database/factories');
+        $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
+        $this->withFactories(__DIR__ . '/database/factories');
         $this->artisan('migrate', ['--database' => 'sqlite'])->run();
     }
 
@@ -48,7 +48,7 @@ class TestCase extends Orchestra
             View::addLocation(sys_get_temp_dir());
         }
 
-        $tempFilePath = tempnam($temporaryDirectory, 'tests').'.blade.php';
+        $tempFilePath = tempnam($temporaryDirectory, 'tests') . '.blade.php';
 
         file_put_contents($tempFilePath, $bladeContent);
 

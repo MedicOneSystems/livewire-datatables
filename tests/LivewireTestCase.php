@@ -31,6 +31,6 @@ class LivewireTestCase extends BaseTestCase
 
     protected function livewireClassesPath($path = '')
     {
-        return app_path('Http/Livewire'.($path ? '/'.$path : ''));
+        return app_path('Http/Livewire' . ($path ? '/' . $path : ''));
     }
 }
