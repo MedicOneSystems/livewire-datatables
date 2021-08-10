@@ -2,8 +2,6 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use Illuminate\Support\Carbon;
-
 class JsonColumn extends Column
 {
     public $type = 'json';
