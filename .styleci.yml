@@ -1,7 +1,7 @@
 preset: laravel
 
 enabled:
-  -concat_with_spaces
+  - concat_with_spaces
 
 disabled:
   - single_class_element_per_statement
