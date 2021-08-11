@@ -902,17 +902,10 @@ class LivewireDatatable extends Component
                             foreach ($this->getColumnFilterStatement($i) as $column) {
                                 $query->when(is_array($column), function ($query) use ($search, $column) {
                                     foreach ($column as $col) {
-<<<<<<< HEAD
                                         $query->orWhereRaw('LOWER(' . $col . ') like ?', '%' . mb_strtolower($search) . '%');
                                     }
                                 }, function ($query) use ($search, $column) {
                                     $query->orWhereRaw('LOWER(' . $column . ') like ?', '%' . mb_strtolower($search) . '%');
-=======
-                                        $query->orWhereRaw('LOWER(' . $col . ') like ?', '%' . strtolower($search) . '%');
-                                    }
-                                }, function ($query) use ($search, $column) {
-                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', '%' . strtolower($search) . '%');
->>>>>>> cd4ead5 (Apply fixes from StyleCI (#253))
                                 });
                             }
                         });
@@ -1030,11 +1023,7 @@ class LivewireDatatable extends Component
                             $query->orWhere(function ($query) use ($index, $value) {
                                 foreach ($this->getColumnFilterStatement($index) as $column) {
                                     $column = is_array($column) ? $column[0] : $column;
-<<<<<<< HEAD
                                     $query->orWhereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
-=======
-                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
->>>>>>> cd4ead5 (Apply fixes from StyleCI (#253))
                                 }
                             });
                         }
