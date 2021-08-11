@@ -748,10 +748,10 @@ class LivewireDatatable extends Component
                             foreach ($this->getColumnField($i) as $column) {
                                 $query->when(is_array($column), function ($query) use ($search, $column) {
                                     foreach ($column as $col) {
-                                        $query->orWhereRaw('LOWER('.$col.') like ?', '%'.strtolower($search).'%');
+                                        $query->orWhereRaw('LOWER('.$col.') like ?', '%' . mb_strtolower($search).'%');
                                     }
                                 }, function ($query) use ($search, $column) {
-                                    $query->orWhereRaw('LOWER('.$column.') like ?', '%'.strtolower($search).'%');
+                                    $query->orWhereRaw('LOWER('.$column.') like ?', '%' . mb_strtolower($search).'%');
                                 });
                             }
                         });
@@ -857,7 +857,7 @@ class LivewireDatatable extends Component
                             $query->orWhere(function ($query) use ($index, $value) {
                                 foreach ($this->getColumnField($index) as $column) {
                                     $column = is_array($column) ? $column[0] : $column;
-                                    $query->orWhereRaw('LOWER('.$column.') like ?', [strtolower("%$value%")]);
+                                    $query->orWhereRaw('LOWER('.$column.') like ?', [mb_strtolower("%$value%")]);
                                 }
                             });
                         }
