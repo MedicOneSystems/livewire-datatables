@@ -86,11 +86,11 @@ class MakeDatatableCommandTest extends TestCase
 
     protected function livewireClassesPath($path = '')
     {
-        return app_path('Http/Livewire'.($path ? '/'.$path : ''));
+        return app_path('Http/Livewire' . ($path ? '/' . $path : ''));
     }
 
     protected function livewireViewsPath($path = '')
     {
-        return resource_path('views').'/livewire'.($path ? '/'.$path : '');
+        return resource_path('views') . '/livewire' . ($path ? '/' . $path : '');
     }
 }

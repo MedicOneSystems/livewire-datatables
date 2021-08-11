@@ -21,8 +21,8 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
     {
         Livewire::component('datatable', LivewireDatatable::class);
 
-        $this->loadViewsFrom(__DIR__.'/../resources/views/livewire/datatables', 'datatables');
-        $this->loadViewsFrom(__DIR__.'/../resources/views/icons', 'icons');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views/livewire/datatables', 'datatables');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views/icons', 'icons');
 
         Blade::component('icons::arrow-left', 'icons.arrow-left');
         Blade::component('icons::arrow-right', 'icons.arrow-right');
@@ -37,12 +37,12 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/livewire-datatables.php' => config_path('livewire-datatables.php'),
+                __DIR__ . '/../config/livewire-datatables.php' => config_path('livewire-datatables.php'),
             ], 'config');
 
             $this->publishes([
-                __DIR__.'/../resources/views/livewire/datatables' => resource_path('views/livewire/datatables'),
-                __DIR__.'/../resources/views/icons' => resource_path('views/livewire/datatables/icons'),
+                __DIR__ . '/../resources/views/livewire/datatables' => resource_path('views/livewire/datatables'),
+                __DIR__ . '/../resources/views/icons' => resource_path('views/livewire/datatables/icons'),
             ], 'views');
 
             $this->commands([MakeDatatableCommand::class]);
@@ -97,7 +97,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                     $relation->getRelated()->newQuery(),
                     $this,
                     $aggregate,
-                    $table.'.'.($column ?? 'id')
+                    $table . '.' . ($column ?? 'id')
                 );
 
                 $query->callScope($constraints);
@@ -107,7 +107,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
-                $columnAlias = new Expression('`'.($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')).'`');
+                $columnAlias = new Expression('`' . ($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')) . '`');
                 $this->selectSub($query, $columnAlias);
             }
             // $this->groupIfNotGrouped($this->getModel()->getTable() . '.' . $this->getModel()->getKeyName());
@@ -127,7 +127,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $relation->getRelated()->newQueryWithoutRelationships(),
                 $this,
                 $aggregate,
-                $table.'.'.$column
+                $table . '.' . $column
             );
 
             $hasQuery->mergeConstraintsFrom($relation->getQuery());
@@ -139,15 +139,15 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
     public function loadRelationMacros()
     {
         Relation::macro('getRelationExistenceAggregatesQuery', function (EloquentBuilder $query, EloquentBuilder $parentQuery, $aggregate, $column) {
-            $distinct_aggregate = new Expression($aggregate."(distinct {$column} separator ', ')");
+            $distinct_aggregate = new Expression($aggregate . "(distinct {$column} separator ', ')");
 
             if ($query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-                $distinct_aggregate = new Expression($aggregate."(REPLACE(DISTINCT({$column}), '', '') , ', ')");
+                $distinct_aggregate = new Expression($aggregate . "(REPLACE(DISTINCT({$column}), '', '') , ', ')");
             }
 
             $expression = $aggregate === 'group_concat'
                 ? $distinct_aggregate
-                : new Expression('COALESCE('.$aggregate."({$column}),0)");
+                : new Expression('COALESCE(' . $aggregate . "({$column}),0)");
 
             return $this->getRelationExistenceQuery(
                 $query,
@@ -157,13 +157,13 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
         });
 
         Relation::macro('getRelationCountHashWithoutIncrementing', function () {
-            return 'laravel_reserved_'.static::$selfJoinCount;
+            return 'laravel_reserved_' . static::$selfJoinCount;
         });
     }
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/livewire-datatables.php', 'livewire-datatables');
+        $this->mergeConfigFrom(__DIR__ . '/../config/livewire-datatables.php', 'livewire-datatables');
     }
 
     protected function loadViewsFrom($path, $namespace)
@@ -174,7 +174,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 is_array($this->app->config['view']['paths'])
             ) {
                 foreach ($this->app->config['view']['paths'] as $viewPath) {
-                    if (is_dir($appPath = $viewPath.'/livewire/'.$namespace)) {
+                    if (is_dir($appPath = $viewPath . '/livewire/' . $namespace)) {
                         $view->addNamespace($namespace, $appPath);
                     }
                 }

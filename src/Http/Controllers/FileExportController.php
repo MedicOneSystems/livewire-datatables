@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Storage;
      public function handle($filename)
      {
          $response = Response::make(Storage::disk(config('livewire-datatables.file_export.disk') ?: config('filesystems.default'))
-            ->get('datatables/'.$filename), 200, [
+            ->get('datatables/' . $filename), 200, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
                 'X-Vapor-Base64-Encode' => 'True',
             ]);
 
          Storage::disk(config('livewire-datatables.file_export.disk') ?: config('filesystems.default'))
-        ->delete('datatables/'.$filename);
+        ->delete('datatables/' . $filename);
 
          return $response;
      }

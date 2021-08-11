@@ -63,7 +63,7 @@ class Column
     {
         $column = new static;
 
-        $column->name = 'callback_'.crc32(json_encode(func_get_args()));
+        $column->name = 'callback_' . crc32(json_encode(func_get_args()));
         $column->callback = $callback;
         $column->additionalSelects = is_array($columns) ? $columns : array_map('trim', explode(',', $columns));
         $column->params = $params;
@@ -73,7 +73,7 @@ class Column
 
     public static function checkbox($attribute = 'id')
     {
-        return static::name($attribute.' as checkbox_attribute')
+        return static::name($attribute . ' as checkbox_attribute')
             ->setType('checkbox')
             ->excludeFromExport();
     }
