@@ -116,7 +116,6 @@ class LivewireDatatable extends Component
 
         $this->initialiseSort();
 
-        // check if there are sorting vars in the session
         $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
         $this->sort = session()->get($key . $this->name . '_sort', $this->sort);
         $this->direction = session()->get($key . $this->name . '_direction', $this->direction);
@@ -948,14 +947,14 @@ class LivewireDatatable extends Component
                                 if ($this->freshColumns[$index]['type'] === 'json') {
                                     $query->where(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
-                                            $query->whereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
+                                            $query->whereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
                                         }
                                     });
                                 } else {
                                     $query->orWhere(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
-                                            if (Str::contains(strtolower($column), 'concat')) {
-                                                $query->orWhereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
+                                            if (Str::contains(mb_strtolower($column), 'concat')) {
+                                                $query->orWhereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
                                             } else {
                                                 $query->orWhereRaw($column . ' = ?', $value);
                                             }
@@ -1271,18 +1270,18 @@ class LivewireDatatable extends Component
         $this->forgetComputed();
     }
 
-    // public function saveQuery($name, $rules)
-    // {
-    //     // Override this method with your own method for saving
-    // }
+    public function saveQuery($name, $rules)
+    {
+        // Override this method with your own method for saving
+    }
 
-    // public function deleteQuery($id)
-    // {
-    //     // Override this method with your own method for deleting
-    // }
+    public function deleteQuery($id)
+    {
+        // Override this method with your own method for deleting
+    }
 
-    // public function getSavedQueries()
-    // {
-    //     // Override this method with your own method for getting saved queries
-    // }
+    public function getSavedQueries()
+    {
+        // Override this method with your own method for getting saved queries
+    }
 }

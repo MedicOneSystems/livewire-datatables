@@ -106,14 +106,14 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 $query->callScope($constraints);
 
                 $query = $query->mergeConstraintsFrom($relation->getQuery())->toBase();
-                // dd($relations, $column, $aggregate);
+
                 if (count($query->columns) > 1) {
                     $query->columns = [$query->columns[0]];
                 }
                 $columnAlias = new Expression('`' . ($alias ?? collect([$relations, $column])->filter()->flatten()->join('.')) . '`');
                 $this->selectSub($query, $columnAlias);
             }
-            // $this->groupIfNotGrouped($this->getModel()->getTable() . '.' . $this->getModel()->getKeyName());
+
             return $this;
         });
 
