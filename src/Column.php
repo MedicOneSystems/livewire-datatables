@@ -177,6 +177,32 @@ class Column
         return $this;
     }
 
+    public function link($href, $slot = null)
+    {
+        $this->callback = function ($caption, $row) use ($href, $slot) {
+            $substitutes = ['{{caption}}' => $caption];
+
+            foreach ($row as $attribute => $value) {
+                $substitutes["{{{$attribute}}}"] = $value;
+            }
+
+            if (! $slot) {
+                $slot = $caption;
+            }
+
+            return view('datatables::link', [
+                'href' => strtr($href, $substitutes),
+                'slot' => strtr($slot, $substitutes),
+            ]);
+        };
+
+        $this->exportCallback = function ($value) {
+            return $value;
+        };
+
+        return $this;
+    }
+
     public function truncate($length = 16)
     {
         $this->callback = function ($value) use ($length) {

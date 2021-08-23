@@ -170,6 +170,7 @@ class ComplexDemoTable extends LivewireDatatable
 |**sortBy**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::name('dob')->sortBy('DATE_FORMAT(users.dob, "%m%d%Y")'),```|
 |**truncate**|[*Integer* $length (default: 16)]Truncates column to $length and provides full-text in a tooltip. Uses ```view('livewire-datatables::tooltip)```|```Column::name('biography)->truncate(30)```|
 |**linkTo**|*String* $model, [*Integer* $pad]|Replaces the value with a link to ```"/$model/$value"```. Useful for ID columns. Optional zero-padding. Uses ```view('livewire-datatables::link)```|```Column::name('id')->linkTo('user')```|
+|**link**|*String* $href, [*String* $slot]|Let the content of the column render as a link. You may use {{ }} syntax to fill the url with any attributes of the current row. Uses ```view('livewire-datatables::link)```|```Column::name('first_name')->link('/users/{{slug}}/edit', 'edit {{first_name}} {{last_name}}')```|
 |**round**|[*Integer* $precision (default: 0)]|Rounds value to given precision|```Column::name('age')->round()```|
 |**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::name('name')->defaultSort('asc')```|
 |**searchable**| |Includes the column in the global search|```Column::name('name')->searchable()```|
