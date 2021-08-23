@@ -161,18 +161,23 @@ class Column
         return $this;
     }
 
-    /**
-     * Let the content of the column render as a link. You may use {{ }} syntax to fill the
-     * url with any attributes of the current row.
-     *
-     * <code>
-     * Column::name('email')->linkTo('mailto:{{caption}}')
-     * Column::name('first_name')->linkTo('/users/{{slug}}/edit', 'edit {{first_name}} {{last_name}}')
-     * </code>
-     *
-     * @param mixed $href
-     */
-    public function linkTo($href, $slot = null)
+    public function linkTo($model, $pad = null)
+    {
+        $this->callback = function ($value) use ($model, $pad) {
+            return view('datatables::link', [
+                'href' => url("/$model/$value"),
+                'slot' => $pad ? str_pad($value, $pad, '0', STR_PAD_LEFT) : $value,
+            ]);
+        };
+
+        $this->exportCallback = function ($value) {
+            return $value;
+        };
+
+        return $this;
+    }
+
+    public function link($href, $slot = null)
     {
         $this->callback = function ($caption, $row) use ($href, $slot) {
             $substitutes = ['{{caption}}' => $caption];
