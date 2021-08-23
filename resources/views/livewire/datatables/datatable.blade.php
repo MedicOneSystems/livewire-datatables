@@ -6,7 +6,7 @@
     @endif
     <div class="relative">
         <div class="flex justify-between items-center mb-1">
-            <div class="flex-grow h-10 flex items-center">
+            <div class="h-10 flex items-center">
                 @if($this->searchableColumns()->count())
                 <div class="w-96 flex rounded-lg shadow-sm">
                     <div class="relative flex-grow focus-within:z-10">
@@ -26,12 +26,22 @@
                 @endif
             </div>
 
+            @if($this->activeFilters)
+                <span class="text-xl text-blue-400 uppercase">FILTERS ACTIVE</span>
+            @endif
+
             <div class="flex items-center space-x-1">
                 <x-icons.cog wire:loading class="h-9 w-9 animate-spin text-gray-400" />
 
+                @if($this->activeFilters)
+                <button wire:click="clearAllFilters" class="flex items-center space-x-2 px-3 border border-red-400 rounded-md bg-white text-red-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-red-200 focus:outline-none"><span>{{ __('Reset') }}</span>
+                    <x-icons.x-circle class="m-2" />
+                </button>
+                @endif
+
                 @if($exportable)
                 <div x-data="{ init() {
-                    window.livewire.on('startDownload', link => window.open(link,'_blank'))
+                    window.livewire.on('startDownload', link => window.open(link, '_blank'))
                 } }" x-init="init">
                     <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span>{{ __('Export') }}</span>
                         <x-icons.excel class="m-2" /></button>
@@ -55,7 +65,7 @@
         </div>
         @endif
 
-        <div class="rounded-lg shadow-lg bg-white max-w-screen overflow-x-scroll">
+        <div wire:loading.class="opacity-50" class="rounded-lg shadow-lg bg-white max-w-screen overflow-x-scroll border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
             <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif">
                 <div class="table align-middle min-w-full">
                     @unless($this->hideHeader)
@@ -131,8 +141,10 @@
                     @endforelse
                 </div>
             </div>
-            @unless($this->hidePagination)
-            <div class="rounded-lg rounded-t-none max-w-screen border-b border-gray-200 bg-white">
+        </div>
+
+        @unless($this->hidePagination)
+            <div class="max-w-screen bg-white after:rounded-lg border-4 border-t-0 border-b-0 @if($this->activeFilters) border-blue-500 @else border-transparent @endif">
                 <div class="p-2 sm:flex items-center justify-between">
                     {{-- check if there is any data --}}
                     @if(count($this->results))
@@ -162,9 +174,15 @@
                     @endif
                 </div>
             </div>
-            @endif
-        </div>
+        @endif
     </div>
+
+    @if($complex)
+        <div class="bg-gray-50 px-4 py-4 rounded-b-lg rounded-t-none shadow-lg border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) border-t-0 @endif">
+            <livewire:complex-query :columns="$this->complexColumns" :persistKey="$this->persistKey" :savedQueries="method_exists($this, 'getSavedQueries') ? $this->getSavedQueries() : null" />
+        </div>
+    @endif
+
     @if($afterTableSlot)
     <div class="mt-8">
         @include($afterTableSlot)

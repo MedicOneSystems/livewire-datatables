@@ -15,6 +15,7 @@ class Column
     public $base;
     public $raw;
     public $searchable;
+    public $filterOn;
     public $filterable;
     public $sort;
     public $unsortable;
@@ -135,6 +136,13 @@ class Column
     {
         $this->filterable = $options ?? true;
         $this->scopeFilter = $scopeFilter;
+
+        return $this;
+    }
+
+    public function filterOn($query)
+    {
+        $this->filterOn = $query;
 
         return $this;
     }

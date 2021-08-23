@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -53,10 +54,34 @@ class LivewireDatatable extends Component
     public $selected = [];
     public $beforeTableSlot;
     public $afterTableSlot;
+    public $complex;
+    public $complexQuery;
+    public $persistComplexQuery;
+    public $title;
     public $name;
+    public $userFilter;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery'];
+
+    protected $operators = [
+        '=' => '=',
+        '>' => '>',
+        '<' => '<',
+        '<>' => '<>',
+        '>=' => '>=',
+        '<=' => '<=',
+        'equals' => '=',
+        'does not equal' => '<>',
+        'contains' => 'LIKE',
+        'does not contain' => 'NOT LIKE',
+        'begins with' => 'LIKE',
+        'ends with' => 'LIKE',
+        'is empty' => '=',
+        'is not empty' => '<>',
+        'includes' => '=',
+        'does not include' => '<>',
+    ];
 
     public function updatedSearch()
     {
@@ -112,6 +137,7 @@ class LivewireDatatable extends Component
                 'align',
                 'type',
                 'filterable',
+                'complex',
                 'filterView',
                 'name',
                 'params',
@@ -120,6 +146,20 @@ class LivewireDatatable extends Component
                 'preventExport',
             ])->toArray();
         })->toArray();
+    }
+
+    public function getComplexColumnsProperty()
+    {
+        return collect($this->columns)->filter(function ($column) {
+            return $column['filterable'];
+        });
+    }
+
+    public function getPersistKeyProperty()
+    {
+        return $this->persistComplexQuery
+            ? Str::kebab(Str::afterLast(get_class($this), '\\'))
+            : null;
     }
 
     public function getModelInstanceProperty()
@@ -139,7 +179,6 @@ class LivewireDatatable extends Component
 
     public function getProcessedColumnsProperty()
     {
-        // dd($this->columns());
         return ColumnSet::build($this->columns())
             ->include($this->include)
             ->exclude($this->exclude)
@@ -455,6 +494,7 @@ class LivewireDatatable extends Component
         foreach (explode(' ', $value) as $val) {
             $this->activeTextFilters[$index][] = $val;
         }
+
         $this->page = 1;
     }
 
@@ -501,6 +541,7 @@ class LivewireDatatable extends Component
         if ((! isset($this->activeNumberFilters[$index]['start']) || $this->activeNumberFilters[$index]['start'] == '') && (! isset($this->activeNumberFilters[$index]['end']) || $this->activeNumberFilters[$index]['end'] == '')) {
             $this->removeNumberFilter($index);
         }
+        $this->page = 1;
     }
 
     public function removeSelectFilter($column, $key = null)
@@ -509,16 +550,19 @@ class LivewireDatatable extends Component
         if (count($this->activeSelectFilters[$column]) < 1) {
             unset($this->activeSelectFilters[$column]);
         }
+        $this->page = 1;
     }
 
     public function clearDateFilter()
     {
         $this->dates = null;
+        $this->page = 1;
     }
 
     public function clearTimeFilter()
     {
         $this->times = null;
+        $this->page = 1;
     }
 
     public function clearFilters()
@@ -527,6 +571,7 @@ class LivewireDatatable extends Component
         $this->activeBooleanFilters = [];
         $this->activeTextFilters = [];
         $this->activeNumberFilters = [];
+        $this->page = 1;
     }
 
     public function clearAllFilters()
@@ -537,6 +582,11 @@ class LivewireDatatable extends Component
         $this->activeBooleanFilters = [];
         $this->activeTextFilters = [];
         $this->activeNumberFilters = [];
+        $this->complexQuery = null;
+        $this->userFilter = null;
+        $this->page = 1;
+
+        $this->emitTo('complex-query', 'resetQuery');
     }
 
     public function removeBooleanFilter($column)
@@ -561,8 +611,16 @@ class LivewireDatatable extends Component
         unset($this->activeNumberFilters[$column]);
     }
 
-    public function getColumnField($index)
+    public function getColumnFilterStatement($index)
     {
+        if ($this->freshColumns[$index]['type'] === 'editable') {
+            return [$this->getSelectStatements()[$index][0]];
+        }
+
+        if ($this->freshColumns[$index]['filterOn']) {
+            return [$this->freshColumns[$index]['filterOn']];
+        }
+
         if ($this->freshColumns[$index]['scope']) {
             return 'scope';
         }
@@ -571,7 +629,7 @@ class LivewireDatatable extends Component
             return [(string) $this->freshColumns[$index]['sort']];
         }
 
-        return [$this->getSelectStatements()[$index]];
+        return Arr::wrap($this->getSelectStatements()[$index]);
     }
 
     public function addScopeSelectFilter($query, $index, $value)
@@ -592,12 +650,14 @@ class LivewireDatatable extends Component
         return $query->{$this->freshColumns[$index]['scopeFilter']}($value);
     }
 
-    public function addAggregateFilter($query, $index, $filter)
+    public function addAggregateFilter($query, $index, $filter, $operand = null)
     {
         $column = $this->freshColumns[$index];
         $relation = Str::before($column['name'], '.');
         $aggregate = $this->columnAggregateType($column);
         $field = Str::before(explode('.', $column['name'])[1], ':');
+
+        $filter = Arr::wrap($filter);
 
         $query->when($column['type'] === 'boolean', function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
@@ -617,6 +677,8 @@ class LivewireDatatable extends Component
             $query->hasAggregate($relation, $field, $aggregate, '>=', $filter['start']);
         })->when(isset($filter['end']), function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->hasAggregate($relation, $field, $aggregate, '<=', $filter['end']);
+        })->when(isset($operand), function ($query) use ($filter, $relation, $field, $aggregate, $operand) {
+            $query->hasAggregate($relation, $field, $aggregate, $operand, $filter);
         });
     }
 
@@ -683,7 +745,9 @@ class LivewireDatatable extends Component
             || count($this->activeSelectFilters)
             || count($this->activeBooleanFilters)
             || count($this->activeTextFilters)
-            || count($this->activeNumberFilters);
+            || count($this->activeNumberFilters)
+            || is_array($this->complexQuery)
+            || $this->userFilter;
     }
 
     public function columnIsRelation($column)
@@ -698,7 +762,7 @@ class LivewireDatatable extends Component
         }
         $relation = $this->builder()->getRelation(Str::before($column['name'], '.'));
 
-        return /* $relation instanceof HasOne || */ $relation instanceof HasManyThrough || $relation instanceof HasMany || $relation instanceof belongsToMany;
+        return $relation instanceof HasManyThrough || $relation instanceof HasMany || $relation instanceof belongsToMany;
     }
 
     public function columnAggregateType($column)
@@ -718,9 +782,9 @@ class LivewireDatatable extends Component
 
         $this->query->addSelect(
             $this->getSelectStatements(true, $export)
-                ->filter()
-                ->flatten()
-                ->toArray()
+            ->filter()
+            ->flatten()
+            ->toArray()
         );
 
         $this->addGlobalSearch()
@@ -731,7 +795,97 @@ class LivewireDatatable extends Component
             ->addNumberFilters()
             ->addDateRangeFilter()
             ->addTimeRangeFilter()
+            ->addComplexQuery()
             ->addSort();
+    }
+
+    public function complexQuery($rules)
+    {
+        $this->complexQuery = $rules;
+    }
+
+    public function addComplexQuery()
+    {
+        if (! $this->complexQuery) {
+            return $this;
+        }
+
+        $this->query->where(function ($query) {
+            $this->processNested($this->complexQuery, $query);
+        });
+
+        $this->page = 1;
+
+        return $this;
+    }
+
+    private function complexOperator($operand)
+    {
+        return $operand ? $this->operators[$operand] : '=';
+    }
+
+    private function complexValue($rule)
+    {
+        if (isset($rule['content']['operand'])) {
+            if ($rule['content']['operand'] === 'contains') {
+                return '%' . $rule['content']['value'] . '%';
+            } elseif ($rule['content']['operand'] === 'does not contain') {
+                return '%' . $rule['content']['value'] . '%';
+            } elseif ($rule['content']['operand'] === 'begins with') {
+                return $rule['content']['value'] . '%';
+            } elseif ($rule['content']['operand'] === 'ends with') {
+                return '%' . $rule['content']['value'];
+            } elseif ($rule['content']['operand'] === 'is empty' || $rule['content']['operand'] === 'is not empty') {
+                return '';
+            }
+        }
+
+        return $rule['content']['value'];
+    }
+
+    public function processNested($rules = null, $query = null, $logic = 'and')
+    {
+        collect($rules)->each(function ($rule) use ($query, $logic) {
+            if ($rule['type'] === 'rule' && isset($rule['content']['column'])) {
+                $query->where(function ($query) use ($rule) {
+                    if (! $this->addScopeSelectFilter($query, $rule['content']['column'], $rule['content']['value'])) {
+                        if ($this->columnIsAggregateRelation($this->freshColumns[$rule['content']['column']])) {
+                            $query = $this->addAggregateFilter($query, $rule['content']['column'], $this->complexValue($rule), $this->complexOperator($rule['content']['operand']));
+                        } else {
+                            foreach ($this->getColumnFilterStatement($rule['content']['column']) as $column) {
+                                if ($rule['content']['operand'] === 'is empty') {
+                                    $query->whereNull($column);
+                                } elseif ($rule['content']['operand'] === 'is not empty') {
+                                    $query->whereNotNull($column);
+                                } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean') {
+                                    if ($rule['content']['value'] === 'true') {
+                                        $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                    } else {
+                                        $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                    }
+                                } else {
+                                    $col = (isset($this->freshColumns[$rule['content']['column']]['round']) && $this->freshColumns[$rule['content']['column']]['round'] !== null)
+                                        ? DB::raw('ROUND(' . $column . ', ' . $this->freshColumns[$rule['content']['column']]['round'] . ')')
+                                        : (Str::contains($column, '(') ? DB::raw($column) : $column);
+
+                                    $query->orWhere(
+                                        $col,
+                                        $this->complexOperator($rule['content']['operand']),
+                                        $this->complexValue($rule)
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }, null, null, $logic);
+            } else {
+                $query->where(function ($q) use ($rule) {
+                    $this->processNested($rule['content'], $q, $rule['logic']);
+                }, null, null, $logic);
+            }
+        });
+
+        return $query;
     }
 
     public function addGlobalSearch()
@@ -745,7 +899,7 @@ class LivewireDatatable extends Component
                 $query->where(function ($query) use ($search) {
                     $this->searchableColumns()->each(function ($column, $i) use ($query, $search) {
                         $query->orWhere(function ($query) use ($i, $search) {
-                            foreach ($this->getColumnField($i) as $column) {
+                            foreach ($this->getColumnFilterStatement($i) as $column) {
                                 $query->when(is_array($column), function ($query) use ($search, $column) {
                                     foreach ($column as $col) {
                                         $query->orWhereRaw('LOWER(' . $col . ') like ?', '%' . mb_strtolower($search) . '%');
@@ -791,11 +945,23 @@ class LivewireDatatable extends Component
                             $this->addAggregateFilter($query, $index, $activeSelectFilter);
                         } else {
                             if (! $this->addScopeSelectFilter($query, $index, $value)) {
-                                $query->orWhere(function ($query) use ($value, $index) {
-                                    foreach ($this->getColumnField($index) as $column) {
-                                        $query->orWhere($column, $value);
-                                    }
-                                });
+                                if ($this->freshColumns[$index]['type'] === 'json') {
+                                    $query->where(function ($query) use ($value, $index) {
+                                        foreach ($this->getColumnFilterStatement($index) as $column) {
+                                            $query->whereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
+                                        }
+                                    });
+                                } else {
+                                    $query->orWhere(function ($query) use ($value, $index) {
+                                        foreach ($this->getColumnFilterStatement($index) as $column) {
+                                            if (Str::contains(strtolower($column), 'concat')) {
+                                                $query->orWhereRaw('LOWER(' . $column . ') like ?', [strtolower("%$value%")]);
+                                            } else {
+                                                $query->orWhereRaw($column . ' = ?', $value);
+                                            }
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
@@ -813,26 +979,26 @@ class LivewireDatatable extends Component
         }
         $this->query->where(function ($query) {
             foreach ($this->activeBooleanFilters as $index => $value) {
-                if ($this->getColumnField($index) === 'scope') {
+                if ($this->getColumnFilterStatement($index) === 'scope') {
                     $this->addScopeSelectFilter($query, $index, $value);
                 } elseif ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
                 } elseif ($this->freshColumns[$index]['type'] === 'string') {
                     if ($value == 1) {
-                        $query->whereNotNull($this->getColumnField($index)[0])
-                            ->where($this->getColumnField($index)[0], '<>', '');
+                        $query->whereNotNull($this->getColumnFilterStatement($index)[0])
+                            ->where($this->getColumnFilterStatement($index)[0], '<>', '');
                     } elseif (strlen($value)) {
                         $query->where(function ($query) use ($index) {
-                            $query->whereNull(DB::raw($this->getColumnField($index)[0]))
-                                ->orWhere(DB::raw($this->getColumnField($index)[0]), '');
+                            $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]))
+                                ->orWhere(DB::raw($this->getColumnFilterStatement($index)[0]), '');
                         });
                     }
                 } elseif ($value == 1) {
-                    $query->where(DB::raw($this->getColumnField($index)[0]), '>', 0);
+                    $query->where(DB::raw($this->getColumnFilterStatement($index)[0]), '>', 0);
                 } elseif (strlen($value)) {
                     $query->where(function ($query) use ($index) {
-                        $query->whereNull(DB::raw($this->getColumnField($index)[0]))
-                            ->orWhere(DB::raw($this->getColumnField($index)[0]), 0);
+                        $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]))
+                            ->orWhere(DB::raw($this->getColumnFilterStatement($index)[0]), 0);
                     });
                 }
             }
@@ -855,7 +1021,7 @@ class LivewireDatatable extends Component
                             $this->addAggregateFilter($query, $index, $activeTextFilter);
                         } else {
                             $query->orWhere(function ($query) use ($index, $value) {
-                                foreach ($this->getColumnField($index) as $column) {
+                                foreach ($this->getColumnFilterStatement($index) as $column) {
                                     $column = is_array($column) ? $column[0] : $column;
                                     $query->orWhereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
                                 }
@@ -882,12 +1048,15 @@ class LivewireDatatable extends Component
                     $this->addScopeNumberFilter($query, $index, [
                         isset($filter['start']) ? $filter['start'] : 0,
                         isset($filter['end']) ? $filter['end'] : 9999999999,
-                    ])
-                        ?? $query->when(isset($filter['start']), function ($query) use ($filter, $index) {
-                            $query->whereRaw($this->getColumnField($index)[0] . ' >= ?', $filter['start']);
-                        })->when(isset($filter['end']), function ($query) use ($filter, $index) {
-                            $query->whereRaw($this->getColumnField($index)[0] . ' <= ?', $filter['end']);
-                        });
+                    ]) ?? $query->when(isset($filter['start']), function ($query) use ($filter, $index) {
+                        $query->whereRaw($this->getColumnFilterStatement($index)[0] . ' >= ?', $filter['start']);
+                    })->when(isset($filter['end']), function ($query) use ($filter, $index) {
+                        if (isset($this->freshColumns[$index]['round']) && $this->freshColumns[$index]['round'] !== null) {
+                            $query->whereRaw('ROUND(' . $this->getColumnFilterStatement($index)[0] . ',' . $this->freshColumns[$index]['round'] . ') <= ?', $filter['end']);
+                        } else {
+                            $query->whereRaw($this->getColumnFilterStatement($index)[0] . ' <= ?', $filter['end']);
+                        }
+                    });
                 }
             }
         });
@@ -906,7 +1075,7 @@ class LivewireDatatable extends Component
                 if (! ((isset($filter['start']) && $filter['start'] != '') || (isset($filter['end']) && $filter['end'] != ''))) {
                     break;
                 }
-                $query->whereBetween($this->getColumnField($index)[0], [
+                $query->whereBetween($this->getColumnFilterStatement($index)[0], [
                     isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '0000-00-00',
                     isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : now()->format('Y-m-d'),
                 ]);
@@ -929,11 +1098,11 @@ class LivewireDatatable extends Component
 
                 if ($end < $start) {
                     $query->where(function ($subQuery) use ($index, $start, $end) {
-                        $subQuery->whereBetween($this->getColumnField($index)[0], [$start, '23:59'])
-                            ->orWhereBetween($this->getColumnField($index)[0], ['00:00', $end]);
+                        $subQuery->whereBetween($this->getColumnFilterStatement($index)[0], [$start, '23:59'])
+                            ->orWhereBetween($this->getColumnFilterStatement($index)[0], ['00:00', $end]);
                     });
                 } else {
-                    $query->whereBetween($this->getColumnField($index)[0], [$start, $end]);
+                    $query->whereBetween($this->getColumnFilterStatement($index)[0], [$start, $end]);
                 }
             }
         });
@@ -978,7 +1147,6 @@ class LivewireDatatable extends Component
         $paginatedCollection->collect()->map(function ($row, $i) use ($export) {
             foreach ($row as $name => $value) {
                 if ($export && isset($this->export_callbacks[$name])) {
-                    // dd($this->callbacks, $this->export_callbacks, $value, $row);
                     $values = Str::contains($value, static::SEPARATOR) ? explode(static::SEPARATOR, $value) : [$value, $row];
                     $row->$name = $this->export_callbacks[$name](...$values);
                 } elseif (isset($this->editables[$name])) {
@@ -986,7 +1154,7 @@ class LivewireDatatable extends Component
                         'value' => $value,
                         'table' => $this->builder()->getModel()->getTable(),
                         'column' => Str::after($name, '.'),
-                        'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()},
+                        'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()} ?? $row->{$this->builder()->getModel()->getKeyName()},
                     ]);
                 } elseif ($export && isset($this->export_callbacks[$name])) {
                     $row->$name = $this->export_callbacks[$name]($value, $row);
@@ -1049,8 +1217,7 @@ class LivewireDatatable extends Component
         $output = substr($value, stripos($value, $string), strlen($string));
 
         if ($value instanceof View) {
-            return $value
-                ->with(['value' => str_ireplace($string, (string) view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'] ?? $value->gatherData()['slot'])]);
+            return $value->with(['value' => str_ireplace($string, (string) view('datatables::highlight', ['slot' => $output]), $value->gatherData()['value'] ?? $value->gatherData()['slot'])]);
         }
 
         return str_ireplace($string, (string) view('datatables::highlight', ['slot' => $output]), $value);
@@ -1060,7 +1227,7 @@ class LivewireDatatable extends Component
     {
         $this->emit('refreshDynamic');
 
-        return view('datatables::datatable');
+        return view('datatables::datatable')->layoutData(['title' => $this->title]);
     }
 
     public function export()
@@ -1087,7 +1254,7 @@ class LivewireDatatable extends Component
 
     public function checkboxQuery()
     {
-        $select = $this->resolveCheckboxColumnName(collect($this->freshColumns)->firstWhere('type', 'checkbox'));
+        $this->resolveCheckboxColumnName(collect($this->freshColumns)->firstWhere('type', 'checkbox'));
 
         return $this->query->reorder()->get()->map(function ($row) {
             return (string) $row->checkbox_attribute;
@@ -1103,4 +1270,19 @@ class LivewireDatatable extends Component
         }
         $this->forgetComputed();
     }
+
+    // public function saveQuery($name, $rules)
+    // {
+    //     // Override this method with your own method for saving
+    // }
+
+    // public function deleteQuery($id)
+    // {
+    //     // Override this method with your own method for deleting
+    // }
+
+    // public function getSavedQueries()
+    // {
+    //     // Override this method with your own method for getting saved queries
+    // }
 }

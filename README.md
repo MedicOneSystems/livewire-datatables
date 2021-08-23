@@ -8,6 +8,7 @@
 - Mutate and format columns using preset or custom callbacks
 - Sort data using column or computed column
 - Filter using booleans, times, dates, selects or free text
+- Create complex combined filters using the [complex query builder](#complex-query-builder)
 - Show / hide columns
 
 ## [Live Demo App](https://livewire-datatables.com)
@@ -174,7 +175,8 @@ class ComplexDemoTable extends LivewireDatatable
 |**round**|[*Integer* $precision (default: 0)]|Rounds value to given precision|```Column::name('age')->round()```|
 |**defaultSort**|[*String* $direction (default: 'desc')]|Marks the column as the default search column|```Column::name('name')->defaultSort('asc')```|
 |**searchable**| |Includes the column in the global search|```Column::name('name')->searchable()```|
-|**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope muyst also be passed|```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
+|**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope must also be passed|```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
+|**filterOn**|*String* $statement|Allows you to specify a column name or sql statement upon which to perform the filter. Useful if using a callback to modify |```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
 |**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
@@ -315,6 +317,105 @@ class EditableTable extends LivewireDatatable
     }
 }
 ```
+
+# Complex Query Builder
+Just add ```$complex = true``` to your Datatable Class and all filterable columns will be available in the complex query builder.
+
+**Features**
+- Combine rules and groups of rules using AND/OR logic
+- Drag and drop rules around the interface
+
+![image](https://user-images.githubusercontent.com/7000886/128855344-25035758-ca90-42d2-bd19-518c9de45148.png)
+---
+**Persisting Queries** (Requires AlpineJS v3 with $perist plugin)
+- Add ```$persistComplexQuery = true``` to your class and queries will be stored in browser localstorage.
+- By default the localstorage key will be the class name. You can provide your own by setting the public property ```$persistKey``` or overriding ```getPersistKeyProperty()``` on the Datatable Class
+- eg: for user-specific persistence:
+
+```php
+public function getPersistKeyProperty()
+{
+    return Auth::id() . '-' . parent::getPersistKeyProperty();
+}
+```
+---
+**Saving Queries**
+
+If you want to save permanently save queries you must provide 3 methods for adding, deleting and retrieving your saved queries using whatever logic you like:
+
+- ```public function saveQuery(String $name, Array $rules)```
+- ```public function deleteQuery(Int $id)```
+- ```public function getSavedQueries()```
+
+* In your save and delete methods, be sure to emit an ```updateSavedQueries``` livewire event and pass a fresh array of results (see example below)
+
+### Example:
+This example shows saving queries using a conventional Laravel ComplexQuery model, that belongsTo a User
+
+```php
+/* Migration */
+
+class CreateComplexQueriesTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('complex_queries', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('user_id');
+            $table->string('table');
+            $table->json('rules');
+            $table->string('name');
+            $table->timestamps();
+        });
+    }
+}
+
+
+/* Model */
+
+class ComplexQuery extends BaseModel
+{
+    protected $casts = ['rules' => 'array'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+
+/* Datatable Class */
+
+class TableWithSaving extends Livewire Datatable
+{
+    ...
+
+    public function saveQuery($name, $rules)
+    {
+        Auth::user()->complex_queries()->create([
+            'table' => $this->name,
+            'name' => $name,
+            'rules' => $rules
+        ]);
+
+        $this->emit('updateSavedQueries', $this->getSavedQueries());
+    }
+
+    public function deleteQuery($id)
+    {
+        ComplexQuery::destroy($id);
+
+        $this->emit('updateSavedQueries', $this->getSavedQueries());
+    }
+
+    public function getSavedQueries()
+    {
+        return Auth::user()->complex_queries()->where('table', $this->name)->get();
+    }
+
+    ...
+}
+```
+
 
 ## Styling
 I know it's not cool to provide a package with tons of opionated markup and styling. Most other packages seem to have gone down the route of passing optional classes around as arguments or config variables. My take is that because this is just blade with tailwind, you can publish the templates and do whatever you like to them - it should be obvious where the Livewire and Alpine moving parts are.
