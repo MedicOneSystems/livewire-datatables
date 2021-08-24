@@ -552,31 +552,10 @@ class LivewireDatatable extends Component
         $this->page = 1;
     }
 
-    public function clearDateFilter()
-    {
-        $this->dates = null;
-        $this->page = 1;
-    }
-
-    public function clearTimeFilter()
-    {
-        $this->times = null;
-        $this->page = 1;
-    }
-
-    public function clearFilters()
-    {
-        $this->activeSelectFilters = [];
-        $this->activeBooleanFilters = [];
-        $this->activeTextFilters = [];
-        $this->activeNumberFilters = [];
-        $this->page = 1;
-    }
-
     public function clearAllFilters()
     {
-        $this->clearDateFilter();
-        $this->clearTimeFilter();
+        $this->activeDateFilters = [];
+        $this->activeTimeFilters = [];
         $this->activeSelectFilters = [];
         $this->activeBooleanFilters = [];
         $this->activeTextFilters = [];
