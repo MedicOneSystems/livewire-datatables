@@ -60,6 +60,7 @@ class LivewireDatatable extends Component
     public $title;
     public $name;
     public $userFilter;
+    public $persistSort = true;
 
     protected $query;
     protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery'];
@@ -116,9 +117,6 @@ class LivewireDatatable extends Component
 
         $this->initialiseSort();
 
-        $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
-        $this->sort = session()->get($key . $this->name . '_sort', $this->sort);
-        $this->direction = session()->get($key . $this->name . '_direction', $this->direction);
         $this->perPage = $perPage ?? $this->perPage ?? config('livewire-datatables.default_per_page', 10);
     }
 
@@ -388,13 +386,48 @@ class LivewireDatatable extends Component
         return $columns;
     }
 
+    public function sessionStorageKey()
+    {
+        return Str::snake(Str::afterLast(get_called_class(), '\\'));
+    }
+
+    public function getSessionStoredSort()
+    {
+        $this->sort = session()->get($this->sessionStorageKey() . $this->name . '_sort', $this->sort);
+        $this->direction = session()->get($this->sessionStorageKey() . $this->name . '_direction', $this->direction);
+    }
+
+    public function setSessionStoredSort()
+    {
+        session()->put([$this->sessionStorageKey() . $this->name . '_sort' => $this->sort, $this->sessionStorageKey() . $this->name . '_direction' => $this->direction]);
+    }
+
+    public function sort($index)
+    {
+        if ($this->sort === (int) $index) {
+            $this->direction = ! $this->direction;
+        } else {
+            $this->sort = (int) $index;
+        }
+        $this->page = 1;
+
+        if ($this->persistSort) {
+            $this->setSessionStoredSort();
+        }
+    }
+
     public function initialiseSort()
     {
         $this->sort = $this->defaultSort()
-            ? $this->defaultSort()['key']
-            : collect($this->freshColumns)->reject(function ($column) {
-                return $column['type'] === 'checkbox' || $column['hidden'];
-            })->keys()->first();
+        ? $this->defaultSort()['key']
+        : collect($this->freshColumns)->reject(function ($column) {
+            return $column['type'] === 'checkbox' || $column['hidden'];
+        })->keys()->first();
+
+        if ($this->persistSort) {
+            $this->getSessionStoredSort();
+        }
+
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
@@ -448,19 +481,6 @@ class LivewireDatatable extends Component
     public function refreshLivewireDatatable()
     {
         $this->page = 1;
-    }
-
-    public function sort($index)
-    {
-        if ($this->sort === (int) $index) {
-            $this->direction = ! $this->direction;
-        } else {
-            $this->sort = (int) $index;
-        }
-        $this->page = 1;
-
-        $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
-        session()->put([$key . $this->name . '_sort' => $this->sort, $key . $this->name . '_direction' => $this->direction]);
     }
 
     public function toggle($index)
