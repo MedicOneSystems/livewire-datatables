@@ -617,7 +617,7 @@ class LivewireDatatable extends Component
         }
 
         if ($this->freshColumns[$index]['filterOn']) {
-            return [$this->freshColumns[$index]['filterOn']];
+            return Arr::wrap($this->freshColumns[$index]['filterOn']);
         }
 
         if ($this->freshColumns[$index]['scope']) {
