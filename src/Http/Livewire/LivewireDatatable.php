@@ -1076,7 +1076,7 @@ class LivewireDatatable extends Component
                 }
                 $query->whereBetween($this->getColumnFilterStatement($index)[0], [
                     isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : '0000-00-00',
-                    isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : now()->format('Y-m-d'),
+                    isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : '9999-12-31',
                 ]);
             }
         });
