@@ -1212,7 +1212,12 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        $results = $this->mapCallbacks($this->getQuery()->get(), true)->map(function ($item) {
+        $results = $this->mapCallbacks(
+            $this->getQuery()->when(count($this->selected), function ($query) {
+                return $query->havingRaw('checkbox_attribute IN (' . implode(',', $this->selected) . ')');
+            })->get(),
+            true
+        )->map(function ($item) {
             return collect($this->columns)->reject(function ($value, $key) {
                 return $value['preventExport'] == true || $value['hidden'] == true;
             })->mapWithKeys(function ($value, $key) use ($item) {
