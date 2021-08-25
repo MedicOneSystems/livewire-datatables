@@ -450,10 +450,25 @@ class LivewireDatatable extends Component
         $this->page = 1;
     }
 
-    public function sort($index)
+    /**
+     * Order the table by a given column index starting from 0.
+     *
+     * @param int $index which column to sort by
+     * @param string|null $direction needs to be 'asc' or 'desc'. set to null to toggle the current direction.
+     * @return void
+     */
+    public function sort($index, $direction = null)
     {
+        if (! in_array($direction, [null, 'asc', 'desc'])) {
+            throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
+        }
+
         if ($this->sort === (int) $index) {
-            $this->direction = ! $this->direction;
+            if ($direction === null) { // toggle direction
+                $this->direction = ! $this->direction;
+            } else {
+                $this->direction = $direction === 'desc' ? false : true;
+            }
         } else {
             $this->sort = (int) $index;
         }
