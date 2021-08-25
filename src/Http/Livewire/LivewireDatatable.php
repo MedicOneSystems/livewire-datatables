@@ -1274,6 +1274,11 @@ class LivewireDatatable extends Component
         $this->forgetComputed();
     }
 
+    public function rowIsSelected($row)
+    {
+        return isset($row->checkbox_attribute) && in_array($row->checkbox_attribute, $this->selected);
+    }
+
     public function saveQuery($name, $rules)
     {
         // Override this method with your own method for saving
@@ -1287,5 +1292,17 @@ class LivewireDatatable extends Component
     public function getSavedQueries()
     {
         // Override this method with your own method for getting saved queries
+    }
+
+    public function rowClasses($row, $loop)
+    {
+        // Override this method with your own method for adding classes to a row
+        return 'divide-x divide-gray-100 text-sm text-gray-900 ' . ($this->rowIsSelected($row) ? 'bg-yellow-100' : ($loop->even ? 'bg-gray-100' : 'bg-gray-50'));
+    }
+
+    public function cellClasses($row, $column)
+    {
+        // Override this method with your own method for adding classes to a cell
+        return 'text-sm text-gray-900';
     }
 }

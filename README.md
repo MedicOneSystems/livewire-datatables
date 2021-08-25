@@ -417,8 +417,23 @@ class TableWithSaving extends Livewire Datatable
 ```
 
 
-## Styling
+# Styling
 I know it's not cool to provide a package with tons of opionated markup and styling. Most other packages seem to have gone down the route of passing optional classes around as arguments or config variables. My take is that because this is just blade with tailwind, you can publish the templates and do whatever you like to them - it should be obvious where the Livewire and Alpine moving parts are.
+
+There are methods for applying styles to rows and cells. ```rowClasses``` receives the ```$row``` and the [laravel loop variable](https://laravel.com/docs/8.x/blade#the-loop-variable) as parameters. ```cellClasses``` receives the ```$row``` and ```$column```
+
+For example:
+```php
+public function rowClasses($row, $loop)
+{
+    return 'divide-x divide-gray-100 text-sm text-gray-900 ' . ($this->rowIsSelected($row) ? 'bg-yellow-100' : ($row->{'car.model'} === 'Ferrari' ? 'bg-red-500' : ($loop->even ? 'bg-gray-100' : 'bg-gray-50')));
+}
+
+public function cellClasses($row, $column)
+{
+    return 'text-sm ' . ($this->rowIsSelected($row) ? ' text-gray-900' : ($row->{'car.model'} === 'Ferrari' ? ' text-white' : ' text-gray-900'));
+}
+```
 
 You could also override the render method in your table's class to provide different templates for different tables.
 

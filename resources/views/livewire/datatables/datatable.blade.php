@@ -65,8 +65,8 @@
         </div>
         @endif
 
-        <div wire:loading.class="opacity-50" class="rounded-lg shadow-lg bg-white max-w-screen overflow-x-scroll border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
-            <div class="rounded-lg @unless($this->hidePagination) rounded-b-none @endif">
+        <div wire:loading.class="opacity-50" class="rounded-lg @unless($complex || $this->hidePagination) rounded-b-none @endunless shadow-lg bg-white max-w-screen overflow-x-scroll border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
+            <div>
                 <div class="table align-middle min-w-full">
                     @unless($this->hideHeader)
                     <div class="table-row divide-x divide-gray-200">
@@ -75,7 +75,7 @@
                                 @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
                             @elseif($column['type'] === 'checkbox')
                                 @unless($column['hidden'])
-                                    <div class="w-32 py-4 flex justify-center overflow-hidden align-top px-6 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider focus:outline-none">
+                                    <div class=" table-cell h-12 w-32 py-4 flex justify-center overflow-hidden align-top px-6 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider focus:outline-none">
                                         <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
                                             {{ count($selected) }}
                                         </div>
@@ -118,18 +118,18 @@
                         @endforeach
                     </div>
                     @endif
-                    @forelse($this->results as $result)
-                        <div class="table-row p-1 divide-x divide-gray-100 {{ isset($result->checkbox_attribute) && in_array($result->checkbox_attribute, $selected) ? 'bg-orange-100' : ($loop->even ? 'bg-gray-100' : 'bg-gray-50') }}">
+                    @forelse($this->results as $row)
+                        <div class="table-row p-1 {{ $this->rowClasses($row, $loop) }}">
                             @foreach($this->columns as $column)
                                 @if($column['hidden'])
                                     @if($hideable === 'inline')
                                     <div class="table-cell w-5 overflow-hidden align-top"></div>
                                     @endif
                                 @elseif($column['type'] === 'checkbox')
-                                    @include('datatables::checkbox', ['value' => $result->checkbox_attribute])
+                                    @include('datatables::checkbox', ['value' => $row->checkbox_attribute])
                                 @else
-                                    <div class="px-6 py-2 whitespace-no-wrap text-sm leading-5 text-gray-900 table-cell @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif">
-                                        {!! $result->{$column['name']} !!}
+                                    <div class="table-cell px-6 py-2 whitespace-no-wrap @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
+                                        {!! $row->{$column['name']} !!}
                                     </div>
                                 @endif
                             @endforeach
@@ -144,7 +144,7 @@
         </div>
 
         @unless($this->hidePagination)
-            <div class="max-w-screen bg-white after:rounded-lg border-4 border-t-0 border-b-0 @if($this->activeFilters) border-blue-500 @else border-transparent @endif">
+            <div class="max-w-screen bg-white @unless($complex) rounded-b-lg @endunless border-4 border-t-0 border-b-0 @if($this->activeFilters) border-blue-500 @else border-transparent @endif">
                 <div class="p-2 sm:flex items-center justify-between">
                     {{-- check if there is any data --}}
                     @if(count($this->results))
@@ -188,4 +188,5 @@
         @include($afterTableSlot)
     </div>
     @endif
+    <span class="hidden text-sm leading-5 text-gray-900 text-left text-center text-right bg-gray-50 bg-gray-100 bg-yellow-100"></span>
 </div>
