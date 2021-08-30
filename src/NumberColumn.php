@@ -5,6 +5,7 @@ namespace Mediconesystems\LivewireDatatables;
 class NumberColumn extends Column
 {
     public $type = 'number';
+    public $align = 'right';
     public $round;
 
     public function round($places = 0)
