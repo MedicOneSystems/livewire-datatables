@@ -62,7 +62,7 @@ class LivewireDatatable extends Component
     public $userFilter;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'apply'];
 
     protected $operators = [
         '=' => '=',
@@ -82,6 +82,25 @@ class LivewireDatatable extends Component
         'includes' => '=',
         'does not include' => '<>',
     ];
+
+    /**
+     * This events allows to control the options of the datatable from foreign livewire components
+     * by using $emit.
+     *
+     * @example $this->emit('apply', ['perPage' => 25]); // in any livewire component on your page
+     */
+    public function apply($options)
+    {
+        if (isset($options['sort'])) {
+            $this->sort($options['sort'], $options['direction'] ?? null);
+        }
+
+        foreach (['perPage', 'search', 'activeDateFilters', 'activeTimeFilters', 'activeBooleanFilters', 'activeTextFilters', 'activeNumberFilters', 'hide', 'selected'] as $property) {
+            if (isset($options[$property])) {
+                $this->$property = $options[$property];
+            }
+        }
+    }
 
     public function updatedSearch()
     {
