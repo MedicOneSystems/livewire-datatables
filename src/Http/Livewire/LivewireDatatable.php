@@ -61,6 +61,7 @@ class LivewireDatatable extends Component
     public $name;
     public $userFilter;
     public $persistSort = true;
+    public $persistPerPage = true;
     public $persistFilters = true;
 
     protected $query;
@@ -118,8 +119,7 @@ class LivewireDatatable extends Component
 
         $this->initializeSort();
         $this->initializeFilters();
-
-        $this->perPage = $perPage ?? $this->perPage ?? config('livewire-datatables.default_per_page', 10);
+        $this->initializePerPage();
     }
 
     public function columns()
@@ -403,6 +403,15 @@ class LivewireDatatable extends Component
         $this->direction = session()->get($this->sessionStorageKey() . $this->name . '_direction', $this->direction);
     }
 
+    public function getSessionStoredPerPage()
+    {
+        if (! $this->persistPerPage) {
+            return;
+        }
+
+        $this->perPage = session()->get($this->sessionStorageKey() . $this->name . '_perpage', $this->perPage);
+    }
+
     public function setSessionStoredSort()
     {
         if (! $this->persistSort) {
@@ -455,6 +464,15 @@ class LivewireDatatable extends Component
         $this->getSessionStoredSort();
 
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
+    }
+
+    public function initializePerPage()
+    {
+        $this->getSessionStoredPerPage();
+
+        if (! $this->perPage) {
+            $this->perPage = $this->perPage ?? config('livewire-datatables.default_per_page', 10);
+        }
     }
 
     public function initializeFilters()
@@ -1281,6 +1299,10 @@ class LivewireDatatable extends Component
     public function render()
     {
         $this->emit('refreshDynamic');
+
+        if ($this->persistPerPage) {
+            session()->put([$this->sessionStorageKey() . $this->name . '_perpage' => $this->perPage]);
+        }
 
         return view('datatables::datatable')->layoutData(['title' => $this->title]);
     }
