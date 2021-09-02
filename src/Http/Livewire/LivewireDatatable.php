@@ -63,7 +63,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'applyToTable'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'applyToTable', 'resetTable'];
 
     protected $operators = [
         '=' => '=',
@@ -101,6 +101,24 @@ class LivewireDatatable extends Component
                 $this->$property = $options[$property];
             }
         }
+    }
+
+    /**
+     * Call to clear all searches, filters, selections, return to page 1 and set perPage to default.
+     */
+    public function resetTable()
+    {
+        $this->perPage = config('livewire-datatables.default_per_page', 10);
+        $this->search = null;
+        $this->page = 1;
+        $this->activeSelectFilters = [];
+        $this->activeDateFilters = [];
+        $this->activeTimeFilters = [];
+        $this->activeTextFilters = [];
+        $this->activeBooleanFilters = [];
+        $this->activeNumberFilters = [];
+        $this->hide = null;
+        $this->selected = [];
     }
 
     public function updatedSearch()
