@@ -56,10 +56,11 @@ class LivewireDatatable extends Component
     public $afterTableSlot;
     public $complex;
     public $complexQuery;
-    public $persistComplexQuery;
     public $title;
     public $name;
     public $userFilter;
+    public $persistComplexQuery;
+    public $persistHiddenColumns = true;
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
@@ -118,6 +119,7 @@ class LivewireDatatable extends Component
         $this->columns = $this->getViewColumns();
 
         $this->initializeSort();
+        $this->initializeHiddenColumns();
         $this->initializeFilters();
         $this->initializePerPage();
     }
@@ -466,6 +468,23 @@ class LivewireDatatable extends Component
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
+    public function initializeHiddenColumns()
+    {
+        if (! $this->persistHiddenColumns) {
+            return;
+        }
+
+        if (session()->has($this->sessionStorageKey() . $this->name . '_hidden_columns')) {
+            foreach (session()->get($this->sessionStorageKey() . $this->name . '_hidden_columns') as $name) {
+                foreach ($this->columns as $key => $column) {
+                    if ($column['name'] === $name) {
+                        $this->columns[$key]['hidden'] = 1;
+                    }
+                }
+            }
+        }
+    }
+
     public function initializePerPage()
     {
         $this->getSessionStoredPerPage();
@@ -554,6 +573,18 @@ class LivewireDatatable extends Component
         }
 
         $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
+
+        if ($this->persistHiddenColumns) {
+            $hidden = [];
+
+            foreach ($this->columns as $column) {
+                if ($column['hidden']) {
+                    $hidden[] = $column['name'];
+                }
+            }
+
+            session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
+        }
     }
 
     public function doBooleanFilter($index, $value)
