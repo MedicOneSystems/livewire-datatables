@@ -88,12 +88,28 @@ class LivewireDatatable extends Component
      * This events allows to control the options of the datatable from foreign livewire components
      * by using $emit.
      *
-     * @example $this->emit('applyToTable', ['perPage' => 25]); // in any livewire component on your page
+     * @example $this->emit('applyToTable', ['perPage' => 25]); // in any other livewire component on the same page
      */
     public function applyToTable($options)
     {
         if (isset($options['sort'])) {
             $this->sort($options['sort'], $options['direction'] ?? null);
+        }
+
+        if (isset($options['hiddenColumns']) && is_array($options['hiddenColumns'])) {
+            // first display all columns,
+            foreach ($this->columns as $key => $column) {
+                $this->columns[$key]['hidden'] = false;
+            }
+
+            // then hide all columns that should be hidden:
+            foreach ($options['hiddenColumns'] as $columnToHide) {
+                foreach ($this->columns as $key => $column) {
+                    if ($column['name'] === $columnToHide) {
+                        $this->columns[$key]['hidden'] = true;
+                    }
+                }
+            }
         }
 
         foreach (['perPage', 'search', 'activeSelectFilters', 'activeDateFilters', 'activeTimeFilters', 'activeBooleanFilters', 'activeTextFilters', 'activeNumberFilters', 'hide', 'selected'] as $property) {
