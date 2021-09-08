@@ -539,8 +539,8 @@ class LivewireDatatable extends Component
     /**
      * Order the table by a given column index starting from 0.
      *
-     * @param int $index which column to sort by
-     * @param string|null $direction needs to be 'asc' or 'desc'. set to null to toggle the current direction.
+     * @param  int  $index  which column to sort by
+     * @param  string|null  $direction  needs to be 'asc' or 'desc'. set to null to toggle the current direction.
      * @return void
      */
     public function sort($index, $direction = null)
