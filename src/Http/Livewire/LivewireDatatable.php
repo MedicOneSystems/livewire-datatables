@@ -63,7 +63,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery'];
+    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'applyToTable', 'resetTable'];
 
     protected $operators = [
         '=' => '=',
@@ -83,6 +83,59 @@ class LivewireDatatable extends Component
         'includes' => '=',
         'does not include' => '<>',
     ];
+
+    /**
+     * This events allows to control the options of the datatable from foreign livewire components
+     * by using $emit.
+     *
+     * @example $this->emit('applyToTable', ['perPage' => 25]); // in any other livewire component on the same page
+     */
+    public function applyToTable($options)
+    {
+        if (isset($options['sort'])) {
+            $this->sort($options['sort'], $options['direction'] ?? null);
+        }
+
+        if (isset($options['hiddenColumns']) && is_array($options['hiddenColumns'])) {
+            // first display all columns,
+            foreach ($this->columns as $key => $column) {
+                $this->columns[$key]['hidden'] = false;
+            }
+
+            // then hide all columns that should be hidden:
+            foreach ($options['hiddenColumns'] as $columnToHide) {
+                foreach ($this->columns as $key => $column) {
+                    if ($column['name'] === $columnToHide) {
+                        $this->columns[$key]['hidden'] = true;
+                    }
+                }
+            }
+        }
+
+        foreach (['perPage', 'search', 'activeSelectFilters', 'activeDateFilters', 'activeTimeFilters', 'activeBooleanFilters', 'activeTextFilters', 'activeNumberFilters', 'hide', 'selected'] as $property) {
+            if (isset($options[$property])) {
+                $this->$property = $options[$property];
+            }
+        }
+    }
+
+    /**
+     * Call to clear all searches, filters, selections, return to page 1 and set perPage to default.
+     */
+    public function resetTable()
+    {
+        $this->perPage = config('livewire-datatables.default_per_page', 10);
+        $this->search = null;
+        $this->page = 1;
+        $this->activeSelectFilters = [];
+        $this->activeDateFilters = [];
+        $this->activeTimeFilters = [];
+        $this->activeTextFilters = [];
+        $this->activeBooleanFilters = [];
+        $this->activeNumberFilters = [];
+        $this->hide = null;
+        $this->selected = [];
+    }
 
     public function updatedSearch()
     {
@@ -481,6 +534,34 @@ class LivewireDatatable extends Component
     public function refreshLivewireDatatable()
     {
         $this->page = 1;
+    }
+
+    /**
+     * Order the table by a given column index starting from 0.
+     *
+     * @param int $index which column to sort by
+     * @param string|null $direction needs to be 'asc' or 'desc'. set to null to toggle the current direction.
+     * @return void
+     */
+    public function sort($index, $direction = null)
+    {
+        if (! in_array($direction, [null, 'asc', 'desc'])) {
+            throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
+        }
+
+        if ($this->sort === (int) $index) {
+            if ($direction === null) { // toggle direction
+                $this->direction = ! $this->direction;
+            } else {
+                $this->direction = $direction === 'desc' ? false : true;
+            }
+        } else {
+            $this->sort = (int) $index;
+        }
+        $this->page = 1;
+
+        $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
+        session()->put([$key . $this->name . '_sort' => $this->sort, $key . $this->name . '_direction' => $this->direction]);
     }
 
     public function toggle($index)
