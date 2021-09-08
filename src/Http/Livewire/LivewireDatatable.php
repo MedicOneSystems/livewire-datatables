@@ -118,10 +118,10 @@ class LivewireDatatable extends Component
 
         $this->columns = $this->getViewColumns();
 
-        $this->initializeSort();
-        $this->initializeHiddenColumns();
-        $this->initializeFilters();
-        $this->initializePerPage();
+        $this->initialiseSort();
+        $this->initialiseHiddenColumns();
+        $this->initialiseFilters();
+        $this->initialisePerPage();
     }
 
     public function columns()
@@ -455,7 +455,7 @@ class LivewireDatatable extends Component
         }
     }
 
-    public function initializeSort()
+    public function initialiseSort()
     {
         $this->sort = $this->defaultSort()
         ? $this->defaultSort()['key']
@@ -468,7 +468,7 @@ class LivewireDatatable extends Component
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
-    public function initializeHiddenColumns()
+    public function initialiseHiddenColumns()
     {
         if (! $this->persistHiddenColumns) {
             return;
@@ -485,7 +485,7 @@ class LivewireDatatable extends Component
         }
     }
 
-    public function initializePerPage()
+    public function initialisePerPage()
     {
         $this->getSessionStoredPerPage();
 
@@ -494,7 +494,7 @@ class LivewireDatatable extends Component
         }
     }
 
-    public function initializeFilters()
+    public function initialiseFilters()
     {
         if (! $this->persistFilters) {
             return;
@@ -565,7 +565,7 @@ class LivewireDatatable extends Component
     public function toggle($index)
     {
         if ($this->sort == $index) {
-            $this->initializeSort();
+            $this->initialiseSort();
         }
 
         if (! $this->columns[$index]['hidden']) {
