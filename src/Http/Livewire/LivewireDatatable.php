@@ -494,20 +494,6 @@ class LivewireDatatable extends Component
         ]);
     }
 
-    public function sort($index)
-    {
-        if ($this->sort === (int) $index) {
-            $this->direction = ! $this->direction;
-        } else {
-            $this->sort = (int) $index;
-        }
-        $this->page = 1;
-
-        if ($this->persistSort) {
-            $this->setSessionStoredSort();
-        }
-    }
-
     public function initialiseSort()
     {
         $this->sort = $this->defaultSort()
@@ -528,13 +514,10 @@ class LivewireDatatable extends Component
         }
 
         if (session()->has($this->sessionStorageKey() . $this->name . '_hidden_columns')) {
-            foreach (session()->get($this->sessionStorageKey() . $this->name . '_hidden_columns') as $name) {
-                foreach ($this->columns as $key => $column) {
-                    if ($column['name'] === $name) {
-                        $this->columns[$key]['hidden'] = 1;
-                    }
-                }
-            }
+            $this->columns = collect($this->columns)->map(function ($column, $index) {
+                $column['hidden'] = in_array($index, session()->get($this->sessionStorageKey() . $this->name . '_hidden_columns'));
+                return $column;
+            })->toArray();
         }
     }
 
@@ -656,13 +639,7 @@ class LivewireDatatable extends Component
         $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
 
         if ($this->persistHiddenColumns) {
-            $hidden = [];
-
-            foreach ($this->columns as $column) {
-                if ($column['hidden']) {
-                    $hidden[] = $column['name'];
-                }
-            }
+            $hidden = collect($this->columns)->filter->hidden->keys()->toArray();
 
             session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
         }
