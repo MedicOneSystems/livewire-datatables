@@ -516,6 +516,7 @@ class LivewireDatatable extends Component
         if (session()->has($this->sessionStorageKey() . $this->name . '_hidden_columns')) {
             $this->columns = collect($this->columns)->map(function ($column, $index) {
                 $column['hidden'] = in_array($index, session()->get($this->sessionStorageKey() . $this->name . '_hidden_columns'));
+
                 return $column;
             })->toArray();
         }
