@@ -56,11 +56,14 @@ class LivewireDatatable extends Component
     public $afterTableSlot;
     public $complex;
     public $complexQuery;
-    public $persistComplexQuery;
     public $title;
     public $name;
     public $userFilter;
+    public $persistComplexQuery;
+    public $persistHiddenColumns = true;
     public $persistSort = true;
+    public $persistPerPage = true;
+    public $persistFilters = true;
 
     protected $query;
     protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'applyToTable', 'resetTable'];
@@ -169,8 +172,9 @@ class LivewireDatatable extends Component
         $this->columns = $this->getViewColumns();
 
         $this->initialiseSort();
-
-        $this->perPage = $perPage ?? $this->perPage ?? config('livewire-datatables.default_per_page', 10);
+        $this->initialiseHiddenColumns();
+        $this->initialiseFilters();
+        $this->initialisePerPage();
     }
 
     public function columns()
@@ -446,13 +450,48 @@ class LivewireDatatable extends Component
 
     public function getSessionStoredSort()
     {
+        if (! $this->persistSort) {
+            return;
+        }
+
         $this->sort = session()->get($this->sessionStorageKey() . $this->name . '_sort', $this->sort);
         $this->direction = session()->get($this->sessionStorageKey() . $this->name . '_direction', $this->direction);
     }
 
+    public function getSessionStoredPerPage()
+    {
+        if (! $this->persistPerPage) {
+            return;
+        }
+
+        $this->perPage = session()->get($this->sessionStorageKey() . $this->name . '_perpage', $this->perPage);
+    }
+
     public function setSessionStoredSort()
     {
+        if (! $this->persistSort) {
+            return;
+        }
+
         session()->put([$this->sessionStorageKey() . $this->name . '_sort' => $this->sort, $this->sessionStorageKey() . $this->name . '_direction' => $this->direction]);
+    }
+
+    public function setSessionStoredFilters()
+    {
+        if (! $this->persistFilters) {
+            return;
+        }
+
+        session()->put([
+            $this->sessionStorageKey() . $this->name . '_filter' => [
+                'text' => $this->activeTextFilters,
+                'boolean' => $this->activeBooleanFilters,
+                'select' => $this->activeSelectFilters,
+                'date' => $this->activeDateFilters,
+                'time' => $this->activeTimeFilters,
+                'number' => $this->activeNumberFilters,
+            ],
+        ]);
     }
 
     public function sort($index)
@@ -477,11 +516,51 @@ class LivewireDatatable extends Component
             return $column['type'] === 'checkbox' || $column['hidden'];
         })->keys()->first();
 
-        if ($this->persistSort) {
-            $this->getSessionStoredSort();
-        }
+        $this->getSessionStoredSort();
 
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
+    }
+
+    public function initialiseHiddenColumns()
+    {
+        if (! $this->persistHiddenColumns) {
+            return;
+        }
+
+        if (session()->has($this->sessionStorageKey() . $this->name . '_hidden_columns')) {
+            foreach (session()->get($this->sessionStorageKey() . $this->name . '_hidden_columns') as $name) {
+                foreach ($this->columns as $key => $column) {
+                    if ($column['name'] === $name) {
+                        $this->columns[$key]['hidden'] = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    public function initialisePerPage()
+    {
+        $this->getSessionStoredPerPage();
+
+        if (! $this->perPage) {
+            $this->perPage = $this->perPage ?? config('livewire-datatables.default_per_page', 10);
+        }
+    }
+
+    public function initialiseFilters()
+    {
+        if (! $this->persistFilters) {
+            return;
+        }
+
+        $filters = session()->get($this->sessionStorageKey() . $this->name . '_filter');
+
+        $this->activeBooleanFilters = $filters['boolean'] ?? [];
+        $this->activeSelect = $filters['select'] ?? [];
+        $this->activeTextFilters = $filters['text'] ?? [];
+        $this->activeDateFilters = $filters['date'] ?? [];
+        $this->activeTimeFilters = $filters['time'] ?? [];
+        $this->activeNumberFilters = $filters['number'] ?? [];
     }
 
     public function defaultSort()
@@ -575,18 +654,32 @@ class LivewireDatatable extends Component
         }
 
         $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
+
+        if ($this->persistHiddenColumns) {
+            $hidden = [];
+
+            foreach ($this->columns as $column) {
+                if ($column['hidden']) {
+                    $hidden[] = $column['name'];
+                }
+            }
+
+            session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
+        }
     }
 
     public function doBooleanFilter($index, $value)
     {
         $this->activeBooleanFilters[$index] = $value;
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doSelectFilter($index, $value)
     {
         $this->activeSelectFilters[$index][] = $value;
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doTextFilter($index, $value)
@@ -596,30 +689,35 @@ class LivewireDatatable extends Component
         }
 
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doDateFilterStart($index, $start)
     {
         $this->activeDateFilters[$index]['start'] = $start;
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doDateFilterEnd($index, $end)
     {
         $this->activeDateFilters[$index]['end'] = $end;
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doTimeFilterStart($index, $start)
     {
         $this->activeTimeFilters[$index]['start'] = $start;
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doTimeFilterEnd($index, $end)
     {
         $this->activeTimeFilters[$index]['end'] = $end;
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doNumberFilterStart($index, $start)
@@ -627,6 +725,7 @@ class LivewireDatatable extends Component
         $this->activeNumberFilters[$index]['start'] = $start ? (int) $start : null;
         $this->clearEmptyNumberFilter($index);
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function doNumberFilterEnd($index, $end)
@@ -634,6 +733,7 @@ class LivewireDatatable extends Component
         $this->activeNumberFilters[$index]['end'] = ($end !== '') ? (int) $end : null;
         $this->clearEmptyNumberFilter($index);
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function clearEmptyNumberFilter($index)
@@ -642,6 +742,7 @@ class LivewireDatatable extends Component
             $this->removeNumberFilter($index);
         }
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function removeSelectFilter($column, $key = null)
@@ -651,6 +752,7 @@ class LivewireDatatable extends Component
             unset($this->activeSelectFilters[$column]);
         }
         $this->page = 1;
+        $this->setSessionStoredFilters();
     }
 
     public function clearAllFilters()
@@ -664,6 +766,7 @@ class LivewireDatatable extends Component
         $this->complexQuery = null;
         $this->userFilter = null;
         $this->page = 1;
+        $this->setSessionStoredFilters();
 
         $this->emitTo('complex-query', 'resetQuery');
     }
@@ -671,6 +774,7 @@ class LivewireDatatable extends Component
     public function removeBooleanFilter($column)
     {
         unset($this->activeBooleanFilters[$column]);
+        $this->setSessionStoredFilters();
     }
 
     public function removeTextFilter($column, $key = null)
@@ -683,11 +787,13 @@ class LivewireDatatable extends Component
         } else {
             unset($this->activeTextFilters[$column]);
         }
+        $this->setSessionStoredFilters();
     }
 
     public function removeNumberFilter($column)
     {
         unset($this->activeNumberFilters[$column]);
+        $this->setSessionStoredFilters();
     }
 
     public function getColumnFilterStatement($index)
@@ -1315,6 +1421,10 @@ class LivewireDatatable extends Component
     public function render()
     {
         $this->emit('refreshDynamic');
+
+        if ($this->persistPerPage) {
+            session()->put([$this->sessionStorageKey() . $this->name . '_perpage' => $this->perPage]);
+        }
 
         return view('datatables::datatable')->layoutData(['title' => $this->title]);
     }
