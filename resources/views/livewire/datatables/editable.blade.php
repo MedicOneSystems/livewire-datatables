@@ -16,7 +16,7 @@
         x-on:click="edit = true; $nextTick(() => { $refs.input.focus() })">{!! htmlspecialchars($value) !!}</button>
     <span x-cloak x-show="edit">
         <input class="border-blue-400 px-2 py-1 -mx-2 -my-1 rounded focus:outline-none focus:border" x-ref="input" value="{!! htmlspecialchars($value) !!}"
-            wire:change="edited($event.target.value, '{{ $table }}', '{{ $column }}', '{{ $rowId }}')"
+            wire:change="edited($event.target.value, '{{ $key }}', '{{ $column }}', '{{ $rowId }}')"
             x-on:click.away="edit = false" x-on:blur="edit = false" x-on:keydown.enter="edit = false" />
     </span>
 </div>
