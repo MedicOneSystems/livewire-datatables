@@ -1315,7 +1315,7 @@ class LivewireDatatable extends Component
                 } elseif (isset($this->editables[$name])) {
                     $row->$name = view('datatables::editable', [
                         'value' => $value,
-                        'table' => $this->builder()->getModel()->getTable(),
+                        'key' => $this->builder()->getModel()->getQualifiedKeyName(),
                         'column' => Str::after($name, '.'),
                         'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()} ?? $row->{$this->builder()->getModel()->getKeyName()},
                     ]);
