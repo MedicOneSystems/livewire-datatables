@@ -18,7 +18,7 @@
     "require": {
         "php": "^7.2.5|^8.0",
         "illuminate/support": "^7.0|^8.0",
-        "livewire/livewire": "^1.2|^2.0",
+        "livewire/livewire": "^2.4.4",
         "maatwebsite/excel": "^3.1"
     },
     "require-dev": {
