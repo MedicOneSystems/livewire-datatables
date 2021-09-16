@@ -191,6 +191,7 @@ class LivewireDatatable extends Component
                 'align',
                 'type',
                 'filterable',
+                'hideable',
                 'complex',
                 'filterView',
                 'name',
@@ -1347,7 +1348,7 @@ class LivewireDatatable extends Component
             : $value;
     }
 
-    /*  This can be called to apply highlting of the search term to some string.
+    /*  This can be called to apply highlighting of the search term to some string.
      *  Motivation: Call this from your Column::Callback to apply highlight to a chosen section of the result.
      */
     public function highlightStringWithCurrentSearchTerm(string $originalString)
