@@ -188,6 +188,7 @@ class LivewireDatatable extends Component
             return collect($column)->only([
                 'hidden',
                 'label',
+                'content',
                 'align',
                 'type',
                 'filterable',
@@ -290,7 +291,7 @@ class LivewireDatatable extends Component
     {
         return $this->processedColumns->columns
             ->reject(function ($column) use ($export) {
-                return $column->scope || ($export && $column->preventExport);
+                return $column->scope || $column->type === 'label' || ($export && $column->preventExport);
             })->map(function ($column) {
                 if ($column->select) {
                     return $column;

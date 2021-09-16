@@ -98,14 +98,12 @@ somewhere in your CSS
 ### Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
 > ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
 
-
 ### Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
 
 
 ## Columns
 Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
 There are additional specific types of Column; ```NumberColumn```, ```DateColumn```, ```TimeColumn```, using the correct one for your datatype will enable type-specific formatting and filtering:
-
 
 | Class | Description |
 |---|---|
@@ -114,6 +112,7 @@ There are additional specific types of Column; ```NumberColumn```, ```DateColumn
 |BooleanColumn| Values will be automatically formatted to a yes/no icon, filters will be yes/no|
 |DateColumn| Values will be automatically formatted to the default date format. Filters will be a date range|
 |TimeColumn| Values will be automatically formatted to the default time format. Filters will be a time range|
+|LabelColumn| Fixed header string ("label") with fixed content string in every row. No SQL is executed at all|
 ___
 
 ```php
@@ -152,7 +151,11 @@ class ComplexDemoTable extends LivewireDatatable
             DateColumn::name('dob')
                 ->label('DOB')
                 ->filterable()
-                ->hide()
+                ->hide(),
+
+            (new LabelColumn())
+                ->label('My custom heading')
+                ->content('This fixed string appears in every row')
         ];
     }
 }
