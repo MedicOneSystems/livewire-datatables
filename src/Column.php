@@ -17,6 +17,7 @@ class Column
     public $searchable;
     public $filterOn;
     public $filterable;
+    public $hideable;
     public $sort;
     public $unsortable;
     public $defaultSort;
@@ -114,6 +115,13 @@ class Column
     public function defaultSort($direction = true)
     {
         $this->defaultSort = $direction;
+
+        return $this;
+    }
+
+    public function hideable()
+    {
+        $this->hideable = true;
 
         return $this;
     }
