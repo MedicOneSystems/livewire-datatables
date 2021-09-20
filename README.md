@@ -449,6 +449,8 @@ public function cellClasses($row, $column)
 }
 ```
 
+You can change the default CSS classes applied by the ```rowClasses``` and the ```cellClasses``` methods by changing ```default_classes``` in the ```livewire-datatables.php``` config file.
+
 You could also override the render method in your table's class to provide different templates for different tables.
 
 

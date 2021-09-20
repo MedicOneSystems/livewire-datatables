@@ -1509,12 +1509,20 @@ class LivewireDatatable extends Component
     public function rowClasses($row, $loop)
     {
         // Override this method with your own method for adding classes to a row
-        return 'divide-x divide-gray-100 text-sm text-gray-900 ' . ($this->rowIsSelected($row) ? 'bg-yellow-100' : ($loop->even ? 'bg-gray-100' : 'bg-gray-50'));
+        if ($this->rowIsSelected($row)) {
+            return config('livewire-datatables.default_classes.row.selected', 'divide-x divide-gray-100 text-sm text-gray-900 bg-yellow-100');
+        } else {
+            if ($loop->even) {
+                return config('livewire-datatables.default_classes.row.even', 'divide-x divide-gray-100 text-sm text-gray-900 bg-gray-100');
+            } else {
+                return config('livewire-datatables.default_classes.row.odd', 'divide-x divide-gray-100 text-sm text-gray-900 bg-gray-50');
+            }
+        }
     }
 
     public function cellClasses($row, $column)
     {
         // Override this method with your own method for adding classes to a cell
-        return 'text-sm text-gray-900';
+        return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
     }
 }
