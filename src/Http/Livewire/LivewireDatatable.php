@@ -59,6 +59,7 @@ class LivewireDatatable extends Component
     public $complexQuery;
     public $title;
     public $name;
+    public $columnGroups = [];
     public $userFilter;
     public $persistComplexQuery;
     public $persistHiddenColumns = true;
@@ -176,6 +177,7 @@ class LivewireDatatable extends Component
         $this->initialiseHiddenColumns();
         $this->initialiseFilters();
         $this->initialisePerPage();
+        $this->initialiseColumnGroups();
     }
 
     public function columns()
@@ -189,6 +191,7 @@ class LivewireDatatable extends Component
             return collect($column)->only([
                 'hidden',
                 'label',
+                'group',
                 'content',
                 'align',
                 'type',
@@ -537,6 +540,15 @@ class LivewireDatatable extends Component
         }
     }
 
+    public function initialiseColumnGroups()
+    {
+        array_map(function ($column) {
+            if ($column['group'] ?? false) {
+                $this->columnGroups[$column['group']][] = $column['name'] ?? $column['label'];
+            }
+        }, $this->columns);
+    }
+
     public function initialiseFilters()
     {
         if (! $this->persistFilters) {
@@ -649,6 +661,15 @@ class LivewireDatatable extends Component
             $hidden = collect($this->columns)->filter->hidden->keys()->toArray();
 
             session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
+        }
+    }
+
+    public function toggleGroup($group)
+    {
+        foreach ($this->columns as $key => $column) {
+            if ($column['group'] === $group) {
+                $this->toggle($key);
+            }
         }
     }
 

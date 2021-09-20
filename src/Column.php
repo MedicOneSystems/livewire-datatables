@@ -9,6 +9,7 @@ class Column
 {
     public $type = 'string';
     public $label;
+    public $group;
     public $name;
     public $select;
     public $joins;
@@ -331,6 +332,16 @@ class Column
     public function field()
     {
         return Str::afterLast($this->name, '.');
+    }
+
+    /**
+     * You can use group(null) to revoke a column from a group, if necessary.
+     */
+    public function group($group)
+    {
+        $this->group = $group;
+
+        return $this;
     }
 
     public function relations()

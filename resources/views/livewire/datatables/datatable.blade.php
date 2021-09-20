@@ -51,6 +51,11 @@
                 @if($hideable === 'select')
                 @include('datatables::hide-column-multiselect')
                 @endif
+
+                @foreach ($columnGroups as $name => $group)
+                    <button wire:click="toggleGroup('{{ $name }}')" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span>{{ __('Toggle :group', ['group' => $name]) }}</span>
+                        </button>
+                @endforeach
             </div>
         </div>
 
