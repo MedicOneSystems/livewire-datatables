@@ -33,6 +33,9 @@ class Column
     public $width;
     public $exportCallback;
 
+    /** @var array list all column types that are not sortable by SQL here */
+    public const UNSORTABLE_TYPES = ['label', 'checkbox'];
+
     public static function name($name)
     {
         $column = new static;
