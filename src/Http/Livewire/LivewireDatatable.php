@@ -272,7 +272,7 @@ class LivewireDatatable extends Component
         return $selects->count() > 1
             ? new Expression("CONCAT_WS('" . static::SEPARATOR . "' ," .
                 collect($selects)->map(function ($select) {
-                    return "COALESCE($select, NULL)";
+                    return "IF($select, $select, '')";
                 })->join(', ') . ')')
             : $selects->first();
     }
@@ -700,7 +700,7 @@ class LivewireDatatable extends Component
 
     public function doNumberFilterStart($index, $start)
     {
-        $this->activeNumberFilters[$index]['start'] = $start ? (int) $start : null;
+        $this->activeNumberFilters[$index]['start'] = ($start != '') ? (int) $start : null;
         $this->clearEmptyNumberFilter($index);
         $this->page = 1;
         $this->setSessionStoredFilters();
@@ -708,7 +708,7 @@ class LivewireDatatable extends Component
 
     public function doNumberFilterEnd($index, $end)
     {
-        $this->activeNumberFilters[$index]['end'] = ($end !== '') ? (int) $end : null;
+        $this->activeNumberFilters[$index]['end'] = ($end != '') ? (int) $end : null;
         $this->clearEmptyNumberFilter($index);
         $this->page = 1;
         $this->setSessionStoredFilters();
