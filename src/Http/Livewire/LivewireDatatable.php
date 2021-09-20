@@ -17,6 +17,7 @@ use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
+use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
@@ -438,8 +439,12 @@ class LivewireDatatable extends Component
     {
         $columns = $this->processedColumns->columnsArray();
 
-        if (($name = collect($columns)->pluck('name')->duplicates()) && collect($columns)->pluck('name')->duplicates()->count()) {
-            throw new Exception('Duplicate Column Name: ' . $name->first());
+        $duplicates = collect($columns)->reject(function ($column) {
+            return in_array($column['type'], Column::UNSORTABLE_TYPES);
+        })->pluck('name')->duplicates();
+
+        if ($duplicates->count()) {
+            throw new Exception('Duplicate Column Name(s): ' . implode(', ', $duplicates->toArray()));
         }
 
         return $columns;
@@ -501,8 +506,7 @@ class LivewireDatatable extends Component
         $this->sort = $this->defaultSort()
         ? $this->defaultSort()['key']
         : collect($this->freshColumns)->reject(function ($column) {
-            // list all column types that are not sortable by SQL:
-            return in_array($column['type'], ['checkbox', 'label']) || $column['hidden'];
+            return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys()->first();
 
         $this->getSessionStoredSort();
