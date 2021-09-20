@@ -501,11 +501,11 @@ class LivewireDatatable extends Component
         $this->sort = $this->defaultSort()
         ? $this->defaultSort()['key']
         : collect($this->freshColumns)->reject(function ($column) {
-            return $column['type'] === 'checkbox' || $column['hidden'];
+            // list all column types that are not sortable by SQL:
+            return in_array($column['type'], ['checkbox', 'label']) || $column['hidden'];
         })->keys()->first();
 
         $this->getSessionStoredSort();
-
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
@@ -1275,9 +1275,15 @@ class LivewireDatatable extends Component
         return $this;
     }
 
+    /**
+     * Set the 'ORDER BY' clause of the SQL query.
+     *
+     * Do not set a 'ORDER BY' clause if the column to be sorted does not have a name assigned.
+     * This could be a 'label' or 'checkbox' column which is not 'sortable' by SQL by design.
+     */
     public function addSort()
     {
-        if (isset($this->sort) && isset($this->freshColumns[$this->sort])) {
+        if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
             $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
         }
 
