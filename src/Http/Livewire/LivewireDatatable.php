@@ -17,6 +17,7 @@ use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
+use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
@@ -188,9 +189,11 @@ class LivewireDatatable extends Component
             return collect($column)->only([
                 'hidden',
                 'label',
+                'content',
                 'align',
                 'type',
                 'filterable',
+                'hideable',
                 'complex',
                 'filterView',
                 'name',
@@ -289,7 +292,7 @@ class LivewireDatatable extends Component
     {
         return $this->processedColumns->columns
             ->reject(function ($column) use ($export) {
-                return $column->scope || ($export && $column->preventExport);
+                return $column->scope || $column->type === 'label' || ($export && $column->preventExport);
             })->map(function ($column) {
                 if ($column->select) {
                     return $column;
@@ -436,8 +439,12 @@ class LivewireDatatable extends Component
     {
         $columns = $this->processedColumns->columnsArray();
 
-        if (($name = collect($columns)->pluck('name')->duplicates()) && collect($columns)->pluck('name')->duplicates()->count()) {
-            throw new Exception('Duplicate Column Name: ' . $name->first());
+        $duplicates = collect($columns)->reject(function ($column) {
+            return in_array($column['type'], Column::UNSORTABLE_TYPES);
+        })->pluck('name')->duplicates();
+
+        if ($duplicates->count()) {
+            throw new Exception('Duplicate Column Name(s): ' . implode(', ', $duplicates->toArray()));
         }
 
         return $columns;
@@ -499,11 +506,10 @@ class LivewireDatatable extends Component
         $this->sort = $this->defaultSort()
         ? $this->defaultSort()['key']
         : collect($this->freshColumns)->reject(function ($column) {
-            return $column['type'] === 'checkbox' || $column['hidden'];
+            return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys()->first();
 
         $this->getSessionStoredSort();
-
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
@@ -540,7 +546,7 @@ class LivewireDatatable extends Component
         $filters = session()->get($this->sessionStorageKey() . $this->name . '_filter');
 
         $this->activeBooleanFilters = $filters['boolean'] ?? [];
-        $this->activeSelect = $filters['select'] ?? [];
+        $this->activeSelectFilters = $filters['select'] ?? [];
         $this->activeTextFilters = $filters['text'] ?? [];
         $this->activeDateFilters = $filters['date'] ?? [];
         $this->activeTimeFilters = $filters['time'] ?? [];
@@ -1273,9 +1279,15 @@ class LivewireDatatable extends Component
         return $this;
     }
 
+    /**
+     * Set the 'ORDER BY' clause of the SQL query.
+     *
+     * Do not set a 'ORDER BY' clause if the column to be sorted does not have a name assigned.
+     * This could be a 'label' or 'checkbox' column which is not 'sortable' by SQL by design.
+     */
     public function addSort()
     {
-        if (isset($this->sort) && isset($this->freshColumns[$this->sort])) {
+        if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
             $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
         }
 
@@ -1347,7 +1359,7 @@ class LivewireDatatable extends Component
             : $value;
     }
 
-    /*  This can be called to apply highlting of the search term to some string.
+    /*  This can be called to apply highlighting of the search term to some string.
      *  Motivation: Call this from your Column::Callback to apply highlight to a chosen section of the result.
      */
     public function highlightStringWithCurrentSearchTerm(string $originalString)

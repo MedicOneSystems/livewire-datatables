@@ -34,8 +34,11 @@
             </span>
         </button>
     @endif
-    <button wire:click.prefetch="toggle('{{ $index }}')"
-        class="absolute bottom-1 right-1 focus:outline-none">
-        <x-icons.arrow-circle-left class="h-3 w-3 text-gray-300 hover:text-blue-400" />
-    </button>
+
+    @if ($column['hideable'])
+        <button wire:click.prefetch="toggle('{{ $index }}')"
+            class="absolute bottom-1 right-1 focus:outline-none">
+            <x-icons.arrow-circle-left class="h-3 w-3 text-gray-300 hover:text-blue-400" />
+        </button>
+    @endif
 </div>

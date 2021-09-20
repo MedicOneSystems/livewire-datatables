@@ -17,6 +17,7 @@ class Column
     public $searchable;
     public $filterOn;
     public $filterable;
+    public $hideable;
     public $sort;
     public $unsortable;
     public $defaultSort;
@@ -31,6 +32,9 @@ class Column
     public $preventExport;
     public $width;
     public $exportCallback;
+
+    /** @var array list all column types that are not sortable by SQL here */
+    public const UNSORTABLE_TYPES = ['label', 'checkbox'];
 
     public static function name($name)
     {
@@ -114,6 +118,13 @@ class Column
     public function defaultSort($direction = true)
     {
         $this->defaultSort = $direction;
+
+        return $this;
+    }
+
+    public function hideable()
+    {
+        $this->hideable = true;
 
         return $this;
     }
