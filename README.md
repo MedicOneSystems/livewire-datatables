@@ -138,18 +138,21 @@ class ComplexDemoTable extends LivewireDatatable
 
             Column::name('name')
                 ->defaultSort('asc')
+                ->group('group1')
                 ->searchable()
                 ->hideable()
                 ->filterable(),
 
             Column::name('planet.name')
                 ->label('Planet')
+                ->group('group1')
                 ->searchable()
                 ->hideable()
                 ->filterable($this->planets),
 
             DateColumn::name('dob')
                 ->label('DOB')
+                ->group('group2')
                 ->filterable()
                 ->hide(),
 
@@ -171,6 +174,7 @@ class ComplexDemoTable extends LivewireDatatable
 |_static_ **delete**|[*String* $primaryKey default: 'id']|Adds a column with a delete button, which will call ```$this->model::destroy($primaryKey)```|```Column::delete()```|
 |_static_ **checkbox**|[*String* $column default: 'id']|Adds a column with a checkbox. The component public property ```$selected``` will contain an array of the named column from checked rows, |```Column::checkbox()```|
 |**label**|*String* $name|Changes the display name of a column|```Column::name('id')->label('ID)```|
+|**group**|*String* $group|Assign the column to a group. Allows to toggle the visibility of all columns of a group at once|```Column::name('id')->group('my-group')```|
 |**format**|[*String* $format]|Formats the column value according to type. Dates/times will use the default format or the argument |```Column::name('email_verified_at')->filterable(),```|
 |**hide**| |Marks column to start as hidden|```Column::name('id')->hidden()```|
 |**sortBy**|*String\|Expression* $column|Changes the query by which the column is sorted|```Column::name('dob')->sortBy('DATE_FORMAT(users.dob, "%m%d%Y")'),```|
@@ -208,6 +212,10 @@ NumberColumn::name('students.age:min')->label('Student Min'),
 
 NumberColumn::name('students.age:max')->label('Student Max'),
 ```
+
+### Column Groups
+
+When you have a very big table with a lot of columns, it is possible to create 'column groups' that allows the user to toggle the visibility of a whole group at once. Use `->group('NAME')` at any column to achieve this.
 
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
