@@ -53,7 +53,7 @@
                 @endif
 
                 @foreach ($columnGroups as $name => $group)
-                    <button wire:click="toggleGroup('{{ $name }}')" class="px-3 py-2 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span class="flex items-center h-5">{{ __('Toggle :group', ['group' => $name]) }}</span>
+                    <button wire:click="toggleGroup('{{ $name }}')" class="px-3 py-2 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span class="flex items-center h-5">{{ $group['label'] ? __($group['label']) : __('Toggle :group', ['group' => $name]) }}</span>
                         </button>
                 @endforeach
             </div>

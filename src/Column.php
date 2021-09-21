@@ -10,6 +10,7 @@ class Column
     public $type = 'string';
     public $label;
     public $group;
+    public $groupLabel;
     public $name;
     public $select;
     public $joins;
@@ -336,10 +337,13 @@ class Column
 
     /**
      * You can use group(null) to revoke a column from a group, if necessary.
+     * The label can be a i18n placeholder like 'app.my_string' and it will be
+     * automatically translated via __().
      */
-    public function group($group)
+    public function group($group, $label = null)
     {
         $this->group = $group;
+        $this->groupLabel = $label;
 
         return $this;
     }

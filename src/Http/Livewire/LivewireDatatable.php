@@ -192,6 +192,7 @@ class LivewireDatatable extends Component
                 'hidden',
                 'label',
                 'group',
+                'groupLabel',
                 'content',
                 'align',
                 'type',
@@ -278,7 +279,7 @@ class LivewireDatatable extends Component
         return $selects->count() > 1
             ? new Expression("CONCAT_WS('" . static::SEPARATOR . "' ," .
                 collect($selects)->map(function ($select) {
-                    return "IF($select, $select, '')";
+                    return "COALESCE($select, NULL)";
                 })->join(', ') . ')')
             : $selects->first();
     }
@@ -543,8 +544,12 @@ class LivewireDatatable extends Component
     public function initialiseColumnGroups()
     {
         array_map(function ($column) {
-            if ($column['group'] ?? false) {
-                $this->columnGroups[$column['group']][] = $column['name'] ?? $column['label'];
+            if (isset($column['group']) && isset($column['groupLabel'])) {
+                $this->columnGroups[$column['group']]['label'] = $column['groupLabel'];
+            }
+
+            if (isset($column['group'])) {
+                $this->columnGroups[$column['group']]['columns'][] = $column['label'] ?? $column['name'];
             }
         }, $this->columns);
     }
