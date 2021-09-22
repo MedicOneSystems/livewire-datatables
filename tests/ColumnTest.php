@@ -170,7 +170,7 @@ class ColumnTest extends TestCase
             'joins' => null,
 
             'aggregate' => 'group_concat',
-            'align' => 'left',gch
+            'align' => 'left',
             'preventExport' => null,
             'width' => '1em',
             'unsortable' => null,
