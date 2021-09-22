@@ -168,8 +168,9 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => null,
             'joins' => null,
+
             'aggregate' => 'group_concat',
-            'align' => 'left',
+            'align' => 'left',gch
             'preventExport' => null,
             'width' => '1em',
             'unsortable' => null,
