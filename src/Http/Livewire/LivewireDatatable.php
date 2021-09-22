@@ -67,6 +67,16 @@ class LivewireDatatable extends Component
     public $persistPerPage = true;
     public $persistFilters = true;
 
+    /**
+     * @var array List your groups and the corresponding label (or translation) here.
+     *            The label can be a i18n placeholder like 'app.my_string' and it will be automatically translated via __().
+     *
+     * Group labels are optional. If they are omitted, the 'name' of the group will be displayed to the user.
+     *
+     * @example ['group1' => 'app.toggle_group1', 'group2' => 'app.toggle_group2']
+     */
+    public $groupLabels = [];
+
     protected $query;
     protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'applyToTable', 'resetTable'];
 
@@ -543,7 +553,7 @@ class LivewireDatatable extends Component
     public function initialiseColumnGroups()
     {
         array_map(function ($column) {
-            if ($column['group'] ?? false) {
+            if (isset($column['group'])) {
                 $this->columnGroups[$column['group']][] = $column['name'] ?? $column['label'];
             }
         }, $this->columns);
@@ -671,6 +681,34 @@ class LivewireDatatable extends Component
                 $this->toggle($key);
             }
         }
+    }
+
+    /**
+     * @return bool returns true if all columns of the given group are _completely_ visible.
+     */
+    public function isGroupVisible($group)
+    {
+        foreach ($this->columns as $column) {
+            if ($column['group'] === $group && $column['hidden']) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return bool returns true if all columns of the given group are _completely_ hidden.
+     */
+    public function isGroupHidden($group)
+    {
+        foreach ($this->columns as $column) {
+            if ($column['group'] === $group && ! $column['hidden']) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function doBooleanFilter($index, $value)

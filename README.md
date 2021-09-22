@@ -216,6 +216,27 @@ NumberColumn::name('students.age:max')->label('Student Max'),
 ### Column Groups
 
 When you have a very big table with a lot of columns, it is possible to create 'column groups' that allows the user to toggle the visibility of a whole group at once. Use `->group('NAME')` at any column to achieve this.
+You can human readable labels and translations of your groups via the `groupLabels` property of your table:
+
+```php
+class GroupDemoTable extends LivewireDatatable
+{
+    public $groupLabels = [
+         'group1' => 'app.translation_for_group_1'
+         'group2' => 'app.translation_for_group_2'
+    ];
+
+public function columns()
+{
+    return [
+        Column::name('planets.name')
+            ->group('group1')
+            ->label('Planet'),
+
+        Column::name('planets.name')
+            ->group('group2')
+            ->label('Planet'),
+```
 
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
