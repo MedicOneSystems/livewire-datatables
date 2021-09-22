@@ -202,7 +202,6 @@ class LivewireDatatable extends Component
                 'hidden',
                 'label',
                 'group',
-                'groupLabel',
                 'content',
                 'align',
                 'type',
@@ -554,12 +553,8 @@ class LivewireDatatable extends Component
     public function initialiseColumnGroups()
     {
         array_map(function ($column) {
-            if (isset($column['group']) && isset($column['groupLabel'])) {
-                $this->columnGroups[$column['group']]['label'] = $column['groupLabel'];
-            }
-
             if (isset($column['group'])) {
-                $this->columnGroups[$column['group']]['columns'][] = $column['label'] ?? $column['name'];
+                $this->columnGroups[$column['group']][] = $column['name'] ?? $column['label'];
             }
         }, $this->columns);
     }
