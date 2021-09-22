@@ -9,8 +9,6 @@ class Column
 {
     public $type = 'string';
     public $label;
-    public $group;
-    public $groupLabel;
     public $name;
     public $select;
     public $joins;
@@ -34,6 +32,11 @@ class Column
     public $preventExport;
     public $width;
     public $exportCallback;
+
+    /**
+     * @var string (optional) you can group your columns to let the user toggle the visibility of a group at once.
+     */
+    public $group;
 
     /** @var array list all column types that are not sortable by SQL here */
     public const UNSORTABLE_TYPES = ['label', 'checkbox'];
@@ -337,13 +340,12 @@ class Column
 
     /**
      * You can use group(null) to revoke a column from a group, if necessary.
-     * The label can be a i18n placeholder like 'app.my_string' and it will be
-     * automatically translated via __().
+     *
+     * @see array LivewireDatatable->groupLabels to assign a human readable and translatable label for the group
      */
-    public function group($group, $label = null)
+    public function group($group)
     {
         $this->group = $group;
-        $this->groupLabel = $label;
 
         return $this;
     }
