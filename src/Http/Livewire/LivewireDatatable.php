@@ -66,6 +66,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
+    public $prefix;
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -180,6 +181,8 @@ class LivewireDatatable extends Component
         }
 
         $this->params = $params;
+
+        $this->prefix = $this->builder()->getModel()->getConnection()->getTablePrefix();
 
         $this->columns = $this->getViewColumns();
 
@@ -606,7 +609,7 @@ class LivewireDatatable extends Component
                 break;
 
             case $column['select']:
-                return Str::before($column['select'], ' AS ');
+                return Str::before($this->prefix . $column['select'], ' AS ');
                 break;
 
              default:
@@ -1130,10 +1133,10 @@ class LivewireDatatable extends Component
                             foreach ($this->getColumnFilterStatement($i) as $column) {
                                 $query->when(is_array($column), function ($query) use ($search, $column) {
                                     foreach ($column as $col) {
-                                        $query->orWhereRaw('LOWER(' . $col . ') like ?', '%' . mb_strtolower($search) . '%');
+                                        $query->orWhereRaw('LOWER(' . $this->prefix . $col . ') like ?', '%' . mb_strtolower($search) . '%');
                                     }
                                 }, function ($query) use ($search, $column) {
-                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', '%' . mb_strtolower($search) . '%');
+                                    $query->orWhereRaw('LOWER(' . $this->prefix . $column . ') like ?', '%' . mb_strtolower($search) . '%');
                                 });
                             }
                         });
@@ -1176,14 +1179,14 @@ class LivewireDatatable extends Component
                                 if ($this->freshColumns[$index]['type'] === 'json') {
                                     $query->where(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
-                                            $query->whereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
+                                            $query->whereRaw('LOWER(' . $this->prefix . $column . ') like ?', [mb_strtolower("%$value%")]);
                                         }
                                     });
                                 } else {
                                     $query->orWhere(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
                                             if (Str::contains(mb_strtolower($column), 'concat')) {
-                                                $query->orWhereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
+                                                $query->orWhereRaw('LOWER(' . $this->prefix . $column . ') like ?', [mb_strtolower("%$value%")]);
                                             } else {
                                                 $query->orWhereRaw($column . ' = ?', $value);
                                             }
@@ -1251,7 +1254,7 @@ class LivewireDatatable extends Component
                             $query->orWhere(function ($query) use ($index, $value) {
                                 foreach ($this->getColumnFilterStatement($index) as $column) {
                                     $column = is_array($column) ? $column[0] : $column;
-                                    $query->orWhereRaw('LOWER(' . $column . ') like ?', [mb_strtolower("%$value%")]);
+                                    $query->orWhereRaw('LOWER(' . $this->prefix . $column . ') like ?', [mb_strtolower("%$value%")]);
                                 }
                             });
                         }
