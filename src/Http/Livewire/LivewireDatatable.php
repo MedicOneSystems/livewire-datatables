@@ -199,6 +199,7 @@ class LivewireDatatable extends Component
     {
         return collect($this->freshColumns)->map(function ($column) {
             return collect($column)->only([
+                'index',
                 'hidden',
                 'label',
                 'group',
