@@ -78,7 +78,15 @@ class LivewireDatatable extends Component
     public $groupLabels = [];
 
     protected $query;
-    protected $listeners = ['refreshLivewireDatatable', 'complexQuery', 'saveQuery', 'deleteQuery', 'applyToTable', 'resetTable'];
+    protected $listeners = [
+        'refreshLivewireDatatable',
+        'complexQuery',
+        'saveQuery',
+        'deleteQuery',
+        'applyToTable',
+        'resetTable',
+        'doTextFilter',
+    ];
 
     protected $operators = [
         '=' => '=',
@@ -132,6 +140,8 @@ class LivewireDatatable extends Component
                 $this->$property = $options[$property];
             }
         }
+
+        $this->setSessionStoredFilters();
     }
 
     /**
