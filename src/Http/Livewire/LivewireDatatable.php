@@ -521,6 +521,7 @@ class LivewireDatatable extends Component
                 'date' => $this->activeDateFilters,
                 'time' => $this->activeTimeFilters,
                 'number' => $this->activeNumberFilters,
+                'search' => $this->search,
             ],
         ]);
     }
@@ -584,6 +585,10 @@ class LivewireDatatable extends Component
         $this->activeDateFilters = $filters['date'] ?? [];
         $this->activeTimeFilters = $filters['time'] ?? [];
         $this->activeNumberFilters = $filters['number'] ?? [];
+
+        if (isset($filters['search'])) {
+            $this->search = $filters['search'];
+        }
     }
 
     public function defaultSort()
