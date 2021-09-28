@@ -34,7 +34,7 @@ class ColumnSet
 
     public static function fromArray($columns)
     {
-        return (new static(collect(static::squeezeIndex($columns))));
+        return new static(collect(static::squeezeIndex($columns)));
     }
 
     /**
