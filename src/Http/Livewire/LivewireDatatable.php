@@ -526,6 +526,17 @@ class LivewireDatatable extends Component
         ]);
     }
 
+    public function setSessionStoredHidden()
+    {
+        if (! $this->persistHiddenColumns) {
+            return;
+        }
+
+        $hidden = collect($this->columns)->filter->hidden->keys()->toArray();
+
+        session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
+    }
+
     public function initialiseSort()
     {
         $this->sort = $this->defaultSort()
@@ -683,20 +694,38 @@ class LivewireDatatable extends Component
 
         $this->columns[$index]['hidden'] = ! $this->columns[$index]['hidden'];
 
-        if ($this->persistHiddenColumns) {
-            $hidden = collect($this->columns)->filter->hidden->keys()->toArray();
-
-            session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
-        }
+        $this->setSessionStoredHidden();
     }
 
     public function toggleGroup($group)
     {
+        if ($this->isGroupVisible($group)) {
+            $this->hideGroup($group);
+        } else {
+            $this->showGroup($group);
+        }
+    }
+
+    public function showGroup($group)
+    {
         foreach ($this->columns as $key => $column) {
             if ($column['group'] === $group) {
-                $this->toggle($key);
+                $this->columns[$key]['hidden'] = false;
             }
         }
+
+        $this->setSessionStoredHidden();
+    }
+
+    public function hideGroup($group)
+    {
+        foreach ($this->columns as $key => $column) {
+            if ($column['group'] === $group) {
+                $this->columns[$key]['hidden'] = true;
+            }
+        }
+
+        $this->setSessionStoredHidden();
     }
 
     /**
