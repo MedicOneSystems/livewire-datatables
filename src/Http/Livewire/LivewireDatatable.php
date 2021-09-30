@@ -212,6 +212,8 @@ class LivewireDatatable extends Component
                 'name',
                 'params',
                 'width',
+                'minWidth',
+                'maxWidth',
                 'unsortable',
                 'preventExport',
             ])->toArray();
