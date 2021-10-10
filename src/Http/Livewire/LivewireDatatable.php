@@ -67,6 +67,9 @@ class LivewireDatatable extends Component
     public $persistPerPage = true;
     public $persistFilters = true;
 
+    public $actions;
+    public $selectedAction;
+
     /**
      * @var array List your groups and the corresponding label (or translation) here.
      *            The label can be a i18n placeholder like 'app.my_string' and it will be automatically translated via __().
@@ -182,6 +185,8 @@ class LivewireDatatable extends Component
         $this->params = $params;
 
         $this->columns = $this->getViewColumns();
+
+        $this->actions = $this->getMassActions();
 
         $this->initialiseSort();
         $this->initialiseHiddenColumns();
@@ -1544,6 +1549,11 @@ class LivewireDatatable extends Component
         // Override this method with your own method for getting saved queries
     }
 
+    public function buildActions()
+    {
+        // Override this method with your own method for creating mass actions
+    }
+
     public function rowClasses($row, $loop)
     {
         // Override this method with your own method for adding classes to a row
@@ -1562,5 +1572,54 @@ class LivewireDatatable extends Component
     {
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
+    }
+
+    public function getMassActions()
+    {
+        return collect($this->massActions)->map(function ($action) {
+            return collect($action)->only(['value', 'label', 'group'])->toArray();
+        })->toArray();
+    }
+	
+    public function getMassActionsProperty()
+    {
+        $actions = $this->buildActions();
+
+        $duplicates = collect($actions)->pluck('value')->duplicates();
+
+        if ($duplicates->count()) {
+            throw new Exception('Duplicate Action(s): ' . implode(', ', $duplicates->toArray()));
+        }
+
+        return $actions;
+    }
+
+    public function getSelectActionsProperty()
+    {
+        return collect($this->actions)->groupBy(function ($item) {
+            return $item['group'];
+        }, true);
+    }
+
+    public function updatedSelectedAction($value)
+    {
+        if (!count($this->selected)) {
+            $this->selectedAction = null;
+            return;
+        }
+
+        $action = collect($this->massActions)->filter(function($item) use ($value) {
+            return $item->value === $value;
+        })->shift();
+
+        $collection = collect($action);
+
+        if ($collection->has('exportable')) {
+            // @todo -- Export with type and user defined params if any.
+        }
+
+        if ($collection->has('callable') && is_callable($action->callable)) {
+            $action->callable($value, $this->selected);
+        }
     }
 }

@@ -39,6 +39,28 @@
                 </button>
                 @endif
 
+                @if(count($this->selectActions))
+                <div class="space-x-2">
+                    <label for="massActions">With selected:</label>
+                    <select wire:model="selectedAction" class="space-x-2 px-3 border border-green-400 rounded-md bg-white text-xs leading-4 font-medium uppercase tracking-wider focus:outline-none" id="massActions">
+                        <option value="">Choose...</option>
+                        @foreach($this->selectActions as $group => $items)
+                        @if(!$group)
+                        @foreach($items as $item)
+                        <option value="{{$item['value']}}">{{$item['label']}}</option>
+                        @endforeach
+                        @else
+                        <optgroup label="{{$group}}">
+                            @foreach($items as $item)
+                            <option value="{{$item['value']}}">{{$item['label']}}</option>
+                            @endforeach
+                        </optgroup>
+                        @endif
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
                 @if($exportable)
                 <div x-data="{ init() {
                     window.livewire.on('startDownload', link => window.open(link, '_blank'))
