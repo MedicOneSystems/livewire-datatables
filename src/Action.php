@@ -20,10 +20,10 @@ class Action
 
     public static function value($value)
     {
-        $column = new static;
-        $column->value = $value;
+        $action = new static;
+        $action->value = $value;
 
-        return $column;
+        return $action;
     }
 
     public function label($label)
@@ -33,11 +33,13 @@ class Action
         return $this;
     }
 
-    public function group($group)
+    public static function group($group, $actions)
     {
-        $this->group = $group;
-
-        return $this;
+        if ($actions instanceof \Closure) {
+            return collect($actions())->each(function ($item) use ($group) {
+                $item->group = $group;
+            });
+        }
     }
 
     public function exportable($exportable = true, $exportableOptions = [])

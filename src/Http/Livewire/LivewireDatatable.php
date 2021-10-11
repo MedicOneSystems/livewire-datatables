@@ -1576,11 +1576,11 @@ class LivewireDatatable extends Component
 
     public function getMassActions()
     {
-        return collect($this->massActions)->map(function ($action) {
-            return collect($action)->only(['value', 'label', 'group'])->toArray();
+        return collect($this->massActions)->flatten()->map(function ($action) {
+            return collect($action)->except(['exportable', 'exportableOptions', 'callable'])->toArray();
         })->toArray();
     }
-	
+
     public function getMassActionsProperty()
     {
         $actions = $this->buildActions();
@@ -1608,14 +1608,17 @@ class LivewireDatatable extends Component
             return;
         }
 
-        $action = collect($this->massActions)->filter(function($item) use ($value) {
+        $action = collect($this->massActions)->flatten()->filter(function ($item) use ($value) {
             return $item->value === $value;
         })->shift();
 
         $collection = collect($action);
 
+        // @todo -- Export with type and user defined params if any.
         if ($collection->has('exportable')) {
-            // @todo -- Export with type and user defined params if any.
+            if ($collection->has('exportableOptions')) {
+                $exportOptions = $collection->get('exportableOptions');
+            }
         }
 
         if ($collection->has('callable') && is_callable($action->callable)) {
