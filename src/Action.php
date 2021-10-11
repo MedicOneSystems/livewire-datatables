@@ -33,7 +33,14 @@ class Action
         return $this;
     }
 
-    public static function group($group, $actions)
+    public function group($group)
+    {
+        $this->group = $group;
+
+        return $this;
+    }
+
+    public static function groups($group, $actions)
     {
         if ($actions instanceof \Closure) {
             return collect($actions())->each(function ($item) use ($group) {
