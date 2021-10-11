@@ -1576,22 +1576,22 @@ class LivewireDatatable extends Component
 
     public function getMassActions()
     {
-        return collect($this->massActions)->flatten()->map(function ($action) {
+        return collect($this->massActions)->map(function ($action) {
             return collect($action)->except(['exportable', 'exportableOptions', 'callable'])->toArray();
         })->toArray();
     }
 
     public function getMassActionsProperty()
     {
-        $actions = $this->buildActions();
+        $actions = collect($this->buildActions());
 
-        $duplicates = collect($actions)->pluck('value')->duplicates();
+        $duplicates = $actions->pluck('value')->duplicates();
 
         if ($duplicates->count()) {
             throw new Exception('Duplicate Action(s): ' . implode(', ', $duplicates->toArray()));
         }
 
-        return $actions;
+        return $actions->flatten()->toArray();
     }
 
     public function getSelectActionsProperty()
@@ -1608,7 +1608,7 @@ class LivewireDatatable extends Component
             return;
         }
 
-        $action = collect($this->massActions)->flatten()->filter(function ($item) use ($value) {
+        $action = collect($this->massActions)->filter(function ($item) use ($value) {
             return $item->value === $value;
         })->shift();
 
