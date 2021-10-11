@@ -1583,7 +1583,7 @@ class LivewireDatatable extends Component
 
     public function getMassActionsProperty()
     {
-        $actions = collect($this->buildActions());
+        $actions = collect($this->buildActions())->flatten();
 
         $duplicates = $actions->pluck('value')->duplicates();
 
@@ -1591,7 +1591,7 @@ class LivewireDatatable extends Component
             throw new Exception('Duplicate Action(s): ' . implode(', ', $duplicates->toArray()));
         }
 
-        return $actions->flatten()->toArray();
+        return $actions->toArray();
     }
 
     public function getSelectActionsProperty()
