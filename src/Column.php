@@ -34,6 +34,12 @@ class Column
     public $exportCallback;
 
     /**
+     * @var bool should the sum of all summarizable cells in this column be
+     *           displayed as a summary at the bottom of the table?
+     */
+    public $summary = false;
+
+    /**
      * @var string (optional) you can group your columns to let the user toggle the visibility of a group at once.
      */
     public $group;
@@ -109,6 +115,20 @@ class Column
     public function label($label)
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function enableSummary()
+    {
+        $this->summary = true;
+
+        return $this;
+    }
+
+    public function disableSummary()
+    {
+        $this->summary = false;
 
         return $this;
     }
