@@ -1581,7 +1581,7 @@ class LivewireDatatable extends Component
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
     }
-    
+
     public function getMassActions()
     {
         return collect($this->massActions)->map(function ($action) {

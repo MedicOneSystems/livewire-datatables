@@ -10,7 +10,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Excel as ExcelExport;
 use Maatwebsite\Excel\Facades\Excel;
-
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class DatatableExport implements FromCollection, WithHeadings, ShouldAutoSize, WithColumnWidths, WithStyles
