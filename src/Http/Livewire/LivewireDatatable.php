@@ -1626,7 +1626,6 @@ class LivewireDatatable extends Component
         $isExport = $collection->get('isExport');
 
         if ($isExport) {
-
             $fileName = $collection->get('name');
             $fileType = $collection->get('type');
 
@@ -1656,6 +1655,7 @@ class LivewireDatatable extends Component
 
         if (! count($this->selected)) {
             $this->selectedAction = null;
+
             return;
         }
 
