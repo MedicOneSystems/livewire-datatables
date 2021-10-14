@@ -99,31 +99,31 @@ class DatatableExport implements FromCollection, WithHeadings, ShouldAutoSize, W
     public function getFileWriter($fileType)
     {
         switch ($fileType) {
-            case "xlsx":
+            case 'xlsx':
                 $writer = ExcelExport::XLSX;
                 break;
-            case "csv":
+            case 'csv':
                 $writer = ExcelExport::CSV;
                 break;
-            case "tsv":
+            case 'tsv':
                 $writer = ExcelExport::TSV;
                 break;
-            case "ods":
+            case 'ods':
                 $writer = ExcelExport::ODS;
                 break;
-            case "xls":
+            case 'xls':
                 $writer = ExcelExport::XLS;
                 break;
-            case "html":
+            case 'html':
                 $writer = ExcelExport::HTML;
                 break;
-            case "mpdf":
+            case 'mpdf':
                 $writer = ExcelExport::MPDF;
                 break;
-            case "dompdf":
+            case 'dompdf':
                 $writer = ExcelExport::DOMPDF;
                 break;
-            case "tcpdf":
+            case 'tcpdf':
                 $writer = ExcelExport::TCPDF;
                 break;
             default:

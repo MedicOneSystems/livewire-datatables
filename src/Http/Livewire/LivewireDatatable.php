@@ -16,7 +16,6 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
@@ -1582,6 +1581,7 @@ class LivewireDatatable extends Component
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
     }
+    
     public function getMassActions()
     {
         return collect($this->massActions)->map(function ($action) {
@@ -1611,7 +1611,7 @@ class LivewireDatatable extends Component
 
     public function handleMassActions()
     {
-        if (!$this->selectedAction) {
+        if (! $this->selectedAction) {
             return;
         }
 
@@ -1650,11 +1650,11 @@ class LivewireDatatable extends Component
             if ($widths) {
                 $datatableExport->setColumnWidths($widths);
             }
-    
+
             return $datatableExport->download();
         }
 
-        if (!count($this->selected)) {
+        if (! count($this->selected)) {
             $this->selectedAction = null;
             return;
         }
