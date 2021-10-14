@@ -1487,7 +1487,18 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        $results = $this->mapCallbacks(
+        $export = new DatatableExport($this->getExportResultsSet());
+
+        $export->setFileName('DatatableExport');
+
+        $export->setFileType('xlsx');
+
+        return $export->download();
+    }
+
+    public function getExportResultsSet()
+    {
+        return $this->mapCallbacks(
             $this->getQuery()->when(count($this->selected), function ($query) {
                 return $query->havingRaw('checkbox_attribute IN (' . implode(',', $this->selected) . ')');
             })->get(),
@@ -1499,8 +1510,6 @@ class LivewireDatatable extends Component
                 return [$value['label'] ?? $value['name'] => $item->{$value['name']}];
             })->all();
         });
-
-        return Excel::download(new DatatableExport($results), 'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)
@@ -1573,11 +1582,10 @@ class LivewireDatatable extends Component
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
     }
-
     public function getMassActions()
     {
         return collect($this->massActions)->map(function ($action) {
-            return collect($action)->except(['exportable', 'exportableOptions', 'callable'])->toArray();
+            return collect($action)->except(['callable'])->toArray();
         })->toArray();
     }
 
@@ -1601,28 +1609,61 @@ class LivewireDatatable extends Component
         }, true);
     }
 
-    public function updatedSelectedAction($value)
+    public function handleMassActions()
     {
+        if (!$this->selectedAction) {
+            return;
+        }
+
+        $option = $this->selectedAction;
+
+        $action = collect($this->massActions)->filter(function ($item) use ($option) {
+            return $item->value === $option;
+        })->shift();
+
+        $collection = collect($action);
+
+        $isExport = $collection->get('isExport');
+
+        if ($isExport) {
+
+            $fileName = $collection->get('name');
+            $fileType = $collection->get('type');
+
+            $styles = $collection->get('styles');
+            $widths = $collection->get('widths');
+
+            $datatableExport = new DatatableExport($this->getExportResultsSet());
+
+            if ($fileName) {
+                $datatableExport->setFileName($fileName);
+            }
+
+            if ($fileType) {
+                $datatableExport->setFileType($fileType);
+            }
+
+            if ($styles) {
+                $datatableExport->setStyles($styles);
+            }
+
+            if ($widths) {
+                $datatableExport->setColumnWidths($widths);
+            }
+    
+            return $datatableExport->download();
+        }
+
         if (!count($this->selected)) {
             $this->selectedAction = null;
             return;
         }
 
-        $action = collect($this->massActions)->filter(function ($item) use ($value) {
-            return $item->value === $value;
-        })->shift();
-
-        $collection = collect($action);
-
-        // @todo -- Export with type and user defined params if any.
-        if ($collection->has('exportable')) {
-            if ($collection->has('exportableOptions')) {
-                $exportOptions = $collection->get('exportableOptions');
-            }
-        }
-
         if ($collection->has('callable') && is_callable($action->callable)) {
-            $action->callable($value, $this->selected);
+            $action->callable($option, $this->selected);
         }
+
+        $this->selectedAction = null;
+        $this->selected = [];
     }
 }

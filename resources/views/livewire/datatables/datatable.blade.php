@@ -40,7 +40,7 @@
                 @endif
 
                 @if(count($this->selectActions))
-                <div class="space-x-2">
+                <div class="flex justify-center items-center space-x-1">
                     <label for="massActions">With selected:</label>
                     <select wire:model="selectedAction" class="space-x-2 px-3 border border-green-400 rounded-md bg-white text-xs leading-4 font-medium uppercase tracking-wider focus:outline-none" id="massActions">
                         <option value="">Choose...</option>
@@ -58,6 +58,7 @@
                         @endif
                         @endforeach
                     </select>
+                    <button wire:click="handleMassActions" class="flex items-center px-4 py-2 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none" type="submit" title="Submit">Go</button>
                 </div>
                 @endif
 

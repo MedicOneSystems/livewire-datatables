@@ -7,8 +7,11 @@ class Action
     public $value;
     public $label;
     public $group;
-    public $exportable = false;
-    public $exportableOptions = [];
+    public $isExport = false;
+    public $name;
+    public $type;
+    public $styles = [];
+    public $widths = [];
     public $callable;
 
     public function __call($method, $args)
@@ -40,7 +43,7 @@ class Action
         return $this;
     }
 
-    public static function groups($group, $actions)
+    public static function groupBy($group, $actions)
     {
         if ($actions instanceof \Closure) {
             return collect($actions())->each(function ($item) use ($group) {
@@ -49,10 +52,37 @@ class Action
         }
     }
 
-    public function exportable($exportable = true, $exportableOptions = [])
+    public function isExport($isExport = true)
     {
-        $this->exportable = $exportable;
-        $this->exportableOptions = $exportableOptions;
+        $this->isExport = $isExport;
+
+        return $this;
+    }
+
+    public function name($name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function type($type)
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function styles($styles)
+    {
+        $this->styles = $styles;
+
+        return $this;
+    }
+
+    public function widths($widths)
+    {
+        $this->widths = $widths;
 
         return $this;
     }
