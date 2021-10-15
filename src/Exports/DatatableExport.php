@@ -8,7 +8,6 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Excel as ExcelExport;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -17,8 +16,7 @@ class DatatableExport implements FromCollection, WithHeadings, ShouldAutoSize, W
     use Exportable;
 
     public $collection;
-    public $fileName = 'DatatableExport';
-    public $fileType = 'xlsx';
+    public $fileName = 'DatatableExport.xlsx';
     public $styles = [];
     public $columnWidths = [];
 
@@ -47,18 +45,6 @@ class DatatableExport implements FromCollection, WithHeadings, ShouldAutoSize, W
     public function getFileName(): string
     {
         return $this->fileName;
-    }
-
-    public function setFileType($fileType)
-    {
-        $this->fileType = strtolower($fileType);
-
-        return $this;
-    }
-
-    public function getFileType(): string
-    {
-        return $this->fileType;
     }
 
     public function setColumnWidths($columnWidths)
@@ -95,51 +81,8 @@ class DatatableExport implements FromCollection, WithHeadings, ShouldAutoSize, W
         return $this->getStyles();
     }
 
-    public function getFileWriter($fileType)
-    {
-        switch ($fileType) {
-            case 'xlsx':
-                $writer = ExcelExport::XLSX;
-                break;
-            case 'csv':
-                $writer = ExcelExport::CSV;
-                break;
-            case 'tsv':
-                $writer = ExcelExport::TSV;
-                break;
-            case 'ods':
-                $writer = ExcelExport::ODS;
-                break;
-            case 'xls':
-                $writer = ExcelExport::XLS;
-                break;
-            case 'html':
-                $writer = ExcelExport::HTML;
-                break;
-            case 'mpdf':
-                $writer = ExcelExport::MPDF;
-                break;
-            case 'dompdf':
-                $writer = ExcelExport::DOMPDF;
-                break;
-            case 'tcpdf':
-                $writer = ExcelExport::TCPDF;
-                break;
-            default:
-                $writer = ExcelExport::XLSX;
-        }
-
-        return $writer;
-    }
-
     public function download()
     {
-        $fileName = $this->getFileName();
-        $fileType = $this->getFileType();
-
-        $writer = $this->getFileWriter($fileType);
-        $headers = ($fileType === 'csv') ? ['Content-Type' => 'text/csv'] : [];
-
-        return Excel::download($this, $fileName . '.' . $fileType, $writer, $headers);
+        return Excel::download($this, $this->getFileName());
     }
 }

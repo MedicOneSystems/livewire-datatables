@@ -1488,10 +1488,6 @@ class LivewireDatatable extends Component
 
         $export = new DatatableExport($this->getExportResultsSet());
 
-        $export->setFileName('DatatableExport');
-
-        $export->setFileType('xlsx');
-
         return $export->download();
     }
 
@@ -1585,7 +1581,7 @@ class LivewireDatatable extends Component
     public function getMassActions()
     {
         return collect($this->massActions)->map(function ($action) {
-            return collect($action)->except(['callable'])->toArray();
+            return collect($action)->only(['group', 'value', 'label'])->toArray();
         })->toArray();
     }
 
@@ -1623,24 +1619,15 @@ class LivewireDatatable extends Component
 
         $collection = collect($action);
 
-        $isExport = $collection->get('isExport');
-
-        if ($isExport) {
-            $fileName = $collection->get('name');
-            $fileType = $collection->get('type');
+        if ($collection->get('isExport')) {
+            $fileName = $collection->get('fileName');
 
             $styles = $collection->get('styles');
             $widths = $collection->get('widths');
 
             $datatableExport = new DatatableExport($this->getExportResultsSet());
 
-            if ($fileName) {
-                $datatableExport->setFileName($fileName);
-            }
-
-            if ($fileType) {
-                $datatableExport->setFileType($fileType);
-            }
+            $datatableExport->setFileName($fileName);
 
             if ($styles) {
                 $datatableExport->setStyles($styles);

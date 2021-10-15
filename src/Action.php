@@ -7,9 +7,8 @@ class Action
     public $value;
     public $label;
     public $group;
+    public $fileName;
     public $isExport = false;
-    public $name;
-    public $type;
     public $styles = [];
     public $widths = [];
     public $callable;
@@ -52,23 +51,17 @@ class Action
         }
     }
 
+    public function export($fileName)
+    {
+        $this->fileName = $fileName;
+        $this->isExport();
+
+        return $this;
+    }
+
     public function isExport($isExport = true)
     {
         $this->isExport = $isExport;
-
-        return $this;
-    }
-
-    public function name($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function type($type)
-    {
-        $this->type = $type;
 
         return $this;
     }
