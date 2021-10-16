@@ -39,12 +39,12 @@
                 </button>
                 @endif
 
-                @if(count($this->selectActions))
+                @if(count($this->massActionsOptions))
                 <div class="flex justify-center items-center space-x-1">
-                    <label for="massActions">With selected:</label>
-                    <select wire:model="selectedAction" class="space-x-2 px-3 border border-green-400 rounded-md bg-white text-xs leading-4 font-medium uppercase tracking-wider focus:outline-none" id="massActions">
+                    <label for="datatables_mass_actions">With selected:</label>
+                    <select wire:model="massActionOption" class="space-x-2 px-3 border border-green-400 rounded-md bg-white text-xs leading-4 font-medium uppercase tracking-wider focus:outline-none" id="datatables_mass_actions">
                         <option value="">Choose...</option>
-                        @foreach($this->selectActions as $group => $items)
+                        @foreach($this->massActionsOptions as $group => $items)
                         @if(!$group)
                         @foreach($items as $item)
                         <option value="{{$item['value']}}">{{$item['label']}}</option>
@@ -58,7 +58,7 @@
                         @endif
                         @endforeach
                     </select>
-                    <button wire:click="handleMassActions" class="flex items-center px-4 py-2 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none" type="submit" title="Submit">Go</button>
+                    <button wire:click="massActionOptionHandler" class="flex items-center px-4 py-2 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none" type="submit" title="Submit">Go</button>
                 </div>
                 @endif
 

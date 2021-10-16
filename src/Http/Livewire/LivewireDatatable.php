@@ -67,7 +67,7 @@ class LivewireDatatable extends Component
     public $persistFilters = true;
 
     public $actions;
-    public $selectedAction;
+    public $massActionOption;
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -1592,26 +1592,26 @@ class LivewireDatatable extends Component
         $duplicates = $actions->pluck('value')->duplicates();
 
         if ($duplicates->count()) {
-            throw new Exception('Duplicate Action(s): ' . implode(', ', $duplicates->toArray()));
+            throw new Exception('Duplicate Mass Action(s): ' . implode(', ', $duplicates->toArray()));
         }
 
         return $actions->toArray();
     }
 
-    public function getSelectActionsProperty()
+    public function getMassActionsOptionsProperty()
     {
         return collect($this->actions)->groupBy(function ($item) {
             return $item['group'];
         }, true);
     }
 
-    public function handleMassActions()
+    public function massActionOptionHandler()
     {
-        if (! $this->selectedAction) {
+        if (! $this->massActionOption) {
             return;
         }
 
-        $option = $this->selectedAction;
+        $option = $this->massActionOption;
 
         $action = collect($this->massActions)->filter(function ($item) use ($option) {
             return $item->value === $option;
@@ -1620,28 +1620,19 @@ class LivewireDatatable extends Component
         $collection = collect($action);
 
         if ($collection->get('isExport')) {
-            $fileName = $collection->get('fileName');
-
-            $styles = $collection->get('styles');
-            $widths = $collection->get('widths');
-
             $datatableExport = new DatatableExport($this->getExportResultsSet());
 
-            $datatableExport->setFileName($fileName);
+            $datatableExport->setFileName($collection->get('fileName'));
 
-            if ($styles) {
-                $datatableExport->setStyles($styles);
-            }
+            $datatableExport->setStyles($collection->get('styles'));
 
-            if ($widths) {
-                $datatableExport->setColumnWidths($widths);
-            }
+            $datatableExport->setColumnWidths($collection->get('widths'));
 
             return $datatableExport->download();
         }
 
         if (! count($this->selected)) {
-            $this->selectedAction = null;
+            $this->massActionOption = null;
 
             return;
         }
@@ -1650,7 +1641,7 @@ class LivewireDatatable extends Component
             $action->callable($option, $this->selected);
         }
 
-        $this->selectedAction = null;
+        $this->massActionOption = null;
         $this->selected = [];
     }
 }
