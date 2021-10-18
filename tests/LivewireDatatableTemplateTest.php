@@ -167,4 +167,27 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertEquals(1, $subject->sort);
         $this->assertTrue($subject->direction);
     }
+
+    /** @test */
+    public function it_can_set_sort_from_array()
+    {
+        factory(DummyModel::class)->create();
+
+        $subject = Livewire::test(LivewireDatatable::class, [
+            'model' => DummyModel::class,
+            'sort' => [
+                'subject|asc',
+                'type|asc',
+            ],
+            'multisortable' => true
+        ]);
+
+        $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
+        $this->assertIsArray($subject->columns);
+
+        $this->assertEquals(1, $subject->sort);
+        $this->assertEquals(1, $subject->multisortable);
+        $this->assertTrue($subject->direction);
+    }
+
 }

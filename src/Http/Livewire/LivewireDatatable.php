@@ -66,6 +66,8 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
+    public $multisortable = false;
+    public $sortingBy = [];
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -653,6 +655,7 @@ class LivewireDatatable extends Component
 
         $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
         session()->put([$key . $this->name . '_sort' => $this->sort, $key . $this->name . '_direction' => $this->direction]);
+        $this->sortingBy[$this->name] = $this->direction;
     }
 
     public function toggle($index)
@@ -1006,7 +1009,9 @@ class LivewireDatatable extends Component
 
     public function buildDatabaseQuery($export = false)
     {
-        $this->query = $this->builder();
+        $this->query = with($this->builder(), function ($builder) {
+            return $builder;
+        });
 
         $this->query->addSelect(
             $this->getSelectStatements(true, $export)
