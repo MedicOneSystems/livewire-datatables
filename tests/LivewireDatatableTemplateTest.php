@@ -178,7 +178,7 @@ class LivewireDatatableTemplateTest extends TestCase
             'model' => DummyModel::class,
             'sort' => [
                 'subject|asc',
-                'category|asc',
+                'category|desc',
             ],
             'multisortable' => true
         ]);
@@ -187,6 +187,9 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertIsArray($subject->columns);
 
         $this->assertEquals([1,2], $subject->sort);
+        $this->assertEquals($subject->freshColumns[1]['defaultSort'],"asc");
+        $this->assertEquals($subject->freshColumns[2]['defaultSort'],"desc");
+
         $this->assertEquals(1, $subject->multisortable);
         $this->assertNull($subject->direction);
     }
