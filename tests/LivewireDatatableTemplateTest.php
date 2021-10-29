@@ -158,18 +158,19 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'sort' => 'subject|asc',
+            'multisortable' => false,
+            'sort' => ['subject|asc', 'category|asc'],
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
         $this->assertIsArray($subject->columns);
 
-        $this->assertEquals(1, $subject->sort);
+        $this->assertEquals([1], $subject->sort);
         $this->assertTrue($subject->direction);
     }
 
     /** @test */
-    public function it_can_set_sort_from_array()
+    public function it_can_set_multisort_from_property()
     {
         factory(DummyModel::class)->create();
 
@@ -177,7 +178,7 @@ class LivewireDatatableTemplateTest extends TestCase
             'model' => DummyModel::class,
             'sort' => [
                 'subject|asc',
-                'type|asc',
+                'category|asc',
             ],
             'multisortable' => true
         ]);
@@ -185,9 +186,9 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
         $this->assertIsArray($subject->columns);
 
-        $this->assertEquals(1, $subject->sort);
+        $this->assertEquals([1,2], $subject->sort);
         $this->assertEquals(1, $subject->multisortable);
-        $this->assertTrue($subject->direction);
+        $this->assertNull($subject->direction);
     }
 
 }

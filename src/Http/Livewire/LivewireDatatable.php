@@ -32,7 +32,7 @@ class LivewireDatatable extends Component
     public $model;
     public $columns;
     public $search;
-    public $sort;
+    public $sort = [];
     public $direction;
     public $activeDateFilters = [];
     public $activeTimeFilters = [];
@@ -67,7 +67,6 @@ class LivewireDatatable extends Component
     public $persistPerPage = true;
     public $persistFilters = true;
     public $multisortable = false;
-    public $sortingBy = [];
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -518,14 +517,23 @@ class LivewireDatatable extends Component
 
     public function initialiseSort()
     {
-        $this->sort = $this->defaultSort()
-        ? $this->defaultSort()['key']
-        : collect($this->freshColumns)->reject(function ($column) {
+        $freshColumns = collect($this->freshColumns)->reject(function ($column) {
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
-        })->keys()->first();
+        })->keys();
+
+        if ($this->multisortable){
+            $this->sort = ($columns = $this->defaultSort())
+                ? $columns->pluck('key')->toArray()
+                : $freshColumns->toArray();
+        }else{
+            $this->sort = ($column = optional($this->defaultSort())->first())
+                ? [$column['key']]
+                : [$freshColumns->first()];
+
+            $this->direction = $column && $column['direction'] === 'asc';
+        }
 
         $this->getSessionStoredSort();
-        $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 
     public function initialiseHiddenColumns()
@@ -579,19 +587,25 @@ class LivewireDatatable extends Component
 
     public function defaultSort()
     {
-        $columnIndex = collect($this->freshColumns)->search(function ($column) {
+        $columns = collect($this->freshColumns)->filter(function ($column) {
             return is_string($column['defaultSort']);
         });
 
-        return is_numeric($columnIndex) ? [
-            'key' => $columnIndex,
-            'direction' => $this->freshColumns[$columnIndex]['defaultSort'],
-        ] : null;
+        if ($columns->isEmpty() && ! $this->multisortable){
+            return null;
+        }
+
+        return $columns->map(function ($column, $index){
+            return is_numeric($index) ? [
+                'key' => $index,
+                'direction' => $this->freshColumns[$index]['defaultSort'],
+            ] : null;
+        });
     }
 
-    public function getSortString()
+    public function getSortString(int $index)
     {
-        $column = $this->freshColumns[$this->sort];
+        $column = $this->freshColumns[$index];
         $dbTable = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
@@ -636,31 +650,34 @@ class LivewireDatatable extends Component
      * @param  string|null  $direction  needs to be 'asc' or 'desc'. set to null to toggle the current direction.
      * @return void
      */
-    public function sort($index, $direction = null)
+    public function sort(array $indexes, $direction = null)
     {
+        if (! $this->multisortable){ // TEMPORARY
+            $index = $indexes[0];
+        }
         if (! in_array($direction, [null, 'asc', 'desc'])) {
             throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
         }
 
-        if ($this->sort === (int) $index) {
+        if (in_array($index, $this->sort)) {
             if ($direction === null) { // toggle direction
                 $this->direction = ! $this->direction;
             } else {
                 $this->direction = $direction === 'desc' ? false : true;
             }
         } else {
-            $this->sort = (int) $index;
+            $this->sort = [$index];
         }
         $this->page = 1;
 
         $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
         session()->put([$key . $this->name . '_sort' => $this->sort, $key . $this->name . '_direction' => $this->direction]);
-        $this->sortingBy[$this->name] = $this->direction;
+//        $this->sort[$this->name] = $this->direction;
     }
 
     public function toggle($index)
     {
-        if ($this->sort == $index) {
+        if (in_array($index, $this->sort)) {
             $this->initialiseSort();
         }
 
@@ -1351,8 +1368,15 @@ class LivewireDatatable extends Component
      */
     public function addSort()
     {
-        if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
-            $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
+        if (!empty($this->sort)){
+            $sortStrings = [];
+            foreach ($this->sort as $column){
+                if(isset($this->freshColumns[$column]) && $this->freshColumns[$column]['name']){
+                    $sortStrings[] = $this->getSortString($column);
+                }
+            }
+//            @todo: concat direction into each $sortStrings
+            $this->query->orderBy(DB::raw(implode(',', $sortStrings)), $this->direction ? 'asc' : 'desc');
         }
 
         return $this;
@@ -1567,5 +1591,14 @@ class LivewireDatatable extends Component
     {
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
+    }
+
+    private function initialiseMultisort()
+    {
+        $this->sort = collect($this->freshColumns)->whereIn('name', $this->sort)->reject(function ($column) {
+            return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
+        })->keys()->toArray();
+        $this->getSessionStoredSort();
+        $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
     }
 }

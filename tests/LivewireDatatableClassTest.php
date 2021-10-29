@@ -40,7 +40,7 @@ class LivewireDatatableClassTest extends TestCase
 
         $this->assertIsArray($subject->columns);
 
-        $this->assertEquals(0, $subject->sort);
+        $this->assertEquals([0], $subject->sort);
         $this->assertFalse($subject->direction);
     }
 
@@ -60,7 +60,7 @@ class LivewireDatatableClassTest extends TestCase
     }
 
     /** @test */
-    public function it_can_order_results()
+    public function it_can_order_results_for_a_column()
     {
         factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs']);
         factory(DummyModel::class)->create(['subject' => 'Advanced beet growing']);
@@ -71,7 +71,7 @@ class LivewireDatatableClassTest extends TestCase
         $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[1]->subject);
 
         $subject->forgetComputed();
-        $subject->sort = 1;
+        $subject->sort = [1];
         $subject->direction = true;
 
         $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
