@@ -522,17 +522,11 @@ class LivewireDatatable extends Component
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys();
 
-//        if (! $this->multisortable){
             $this->sort = ($column = optional($this->defaultSort())->first())
                 ? [$column['key']]
                 : [$freshColumns->first()];
 
             $this->direction = $column && $column['direction'] === 'asc';
-//        }else{
-//            $this->sort = ($columns = $this->defaultSort())
-//                ? $columns->pluck('key')->toArray()
-//                : $freshColumns->toArray();
-//        }
 
         $this->getSessionStoredSort();
     }
@@ -643,17 +637,16 @@ class LivewireDatatable extends Component
     /**
      * Order the table by a given column index starting from 0.
      *
-     * @param  array  $indexes  which columns to sort by
+     * @param  array  $columns  which columns to sort by
      * @param  string|null  $direction  needs to be 'asc' or 'desc'. set to null to toggle the current direction.
      * @return void
      */
-    public function sort(array $indexes, $direction = null)
+    public function sort(array $columns, $direction = null)
     {
         if (! in_array($direction, [null, 'asc', 'desc'])) {
             throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
         }
-
-            $index = $indexes[0];
+        $index = $columns[0];
             if (in_array($index, $this->sort)) {
                 if ($direction === null) { // toggle direction
                     $this->direction = ! $this->direction;

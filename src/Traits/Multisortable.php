@@ -26,28 +26,25 @@ trait Multisortable
     }
 
     /**
-     * Order the table by a given column index starting from 0.
+     * Order the table by the given columns.
      *
-     * @param  array  $indexes  which columns to sort by
-     * @param  string|null  $direction  needs to be 'asc' or 'desc'. set to null to toggle the current direction.
-     * @return void
+     * @param array $columns
+     * @param null $direction
+     * @throws \Exception
      */
-    public function sort(array $indexes, $direction = null)
+    public function sort(array $columns, $direction = null)
     {
         if (! in_array($direction, [null, 'asc', 'desc'])) {
             throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
         }
 
-        foreach ($indexes as $index){
-            if (!in_array($index, $this->sort)){
-                array_push($this->sort,$index);
+        foreach ($columns as $column){
+            if (!in_array($column, $this->sort)){
+                array_push($this->sort,$column);
             }
         }
 
         $this->page = 1;
-
-//        $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
-//        session()->put([$key . $this->name . '_sort' => $this->sort, $key . $this->name . '_direction' => $this->direction]);
     }
 
     public function initialiseSort()
@@ -59,8 +56,5 @@ trait Multisortable
         $this->sort = ($columns = $this->defaultSort())
                 ? $columns->pluck('key')->toArray()
                 : $freshColumns->toArray();
-
-
-        $this->getSessionStoredSort();
     }
 }
