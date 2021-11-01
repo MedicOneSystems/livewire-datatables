@@ -25,6 +25,15 @@ trait Multisortable
         return $this;
     }
 
+    public function columnSortDirection(string $sort):string
+    {
+        if (Str::contains($sort,'|')){
+            return Str::after($sort, '|');
+        }
+
+        return 'desc';
+    }
+
     /**
      * Order the table by the given columns.
      *
@@ -53,8 +62,8 @@ trait Multisortable
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys();
 
-        $this->sort = ($columns = $this->defaultSort())
+        $this->sort = ($columns = $this->defaultSort())->isNotEmpty()
                 ? $columns->pluck('key')->toArray()
-                : $freshColumns->toArray();
+                : [$freshColumns->first()];
     }
 }

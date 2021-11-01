@@ -1367,15 +1367,6 @@ class LivewireDatatable extends Component
         return $this;
     }
 
-    public function columnSortDirection(string $sort):string
-    {
-        if (Str::contains($sort,'|')){
-            return Str::after($sort, '|');
-        }
-
-        return 'desc';
-    }
-
     public function getCallbacksProperty()
     {
         return collect($this->freshColumns)->filter->callback->mapWithKeys(function ($column) {
