@@ -646,7 +646,7 @@ class LivewireDatatable extends Component
     /**
      * Order the table by a given column index starting from 0.
      *
-     * @param  int  $index  which column to sort by
+     * @param  array  $indexes  which columns to sort by
      * @param  string|null  $direction  needs to be 'asc' or 'desc'. set to null to toggle the current direction.
      * @return void
      */
@@ -669,7 +669,9 @@ class LivewireDatatable extends Component
             }
         } else{
             foreach ($indexes as $index){
-                $this->sort[] = $index;
+                if (!in_array($index, $this->sort)){
+                    array_push($this->sort,$index);
+                }
             }
 
         }
@@ -1373,31 +1375,25 @@ class LivewireDatatable extends Component
     {
         $sortString = $this->getSortString(0);
         if (!empty($this->sort)){
-            foreach ($this->sort as $column){
+            foreach (collect($this->sort)->toArray() as $column){
                 if (! $this->multisortable){
                     if(isset($this->freshColumns[$column]) && $this->freshColumns[$column]['name']){
-                        $sortString = $this->getSortString($column).' '. $this->getDirection();
+                        $direction = $this->direction ? 'asc' : 'desc';
+                        $sortString = $this->getSortString($column).' '.$direction;
                     }
+
                 }else if (!is_numeric($column) && !is_null(($index = optional(collect($this->freshColumns)->where('name', Str::before($column,'|')))->keys()->first()))){
-                    $sortString = Str::after($this->getSortString($index), '.').' '. $this->getDirection($this->columnSortDirection($column));
+                    $sortString = Str::after($this->getSortString($index), '.').' '. $this->columnSortDirection($column);
                 }
                 else{
-                    $sortString = Str::after($this->getSortString($column), '.').' '. $this->freshColumns[$column]['defaultSort'];
+                    $direction = $this->freshColumns[$column]['defaultSort'] ?? 'desc';
+                    $sortString = Str::after($this->getSortString($column), '.').' '.$direction;
                 }
 
                 $this->query->orderByRaw($sortString);
             }
         }
         return $this;
-    }
-
-    public function getDirection(?string $direction = null)
-    {
-        if(! $this->multisortable){
-            return $this->direction ? 'asc' : 'desc';
-        }
-
-        return !is_null($direction) ? $direction : 'desc';
     }
 
     public function columnSortDirection(string $sort):string
