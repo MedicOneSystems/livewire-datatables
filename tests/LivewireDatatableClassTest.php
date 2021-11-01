@@ -79,6 +79,52 @@ class LivewireDatatableClassTest extends TestCase
     }
 
     /** @test */
+    public function it_can_order_results_for_multiple_columns()
+    {
+        factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs',  'category' => 'A']);
+        factory(DummyModel::class)->create(['subject' => 'Advanced beet growing',   'category' => 'A']);
+        factory(DummyModel::class)->create(['subject' => 'Advanced beet growing',   'category' => 'B']);
+        factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs',  'category' => 'B']);
+
+        $subject = new DummyTable(1);
+
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('A', $subject->results->getCollection()[0]->category);
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[1]->subject);
+        $this->assertEquals('A', $subject->results->getCollection()[1]->category);
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[2]->subject);
+        $this->assertEquals('B', $subject->results->getCollection()[2]->category);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[3]->subject);
+        $this->assertEquals('B', $subject->results->getCollection()[3]->category);
+
+        $subject->forgetComputed();
+        $subject->sort = ["subject|asc", "category|desc"];
+        $subject->multisortable = true;
+
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('B', $subject->results->getCollection()[0]->category);
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[1]->subject);
+        $this->assertEquals('A', $subject->results->getCollection()[1]->category);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[2]->subject);
+        $this->assertEquals('B', $subject->results->getCollection()[2]->category);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[3]->subject);
+        $this->assertEquals('A', $subject->results->getCollection()[3]->category);
+
+        $subject->forgetComputed();
+        $subject->sort = ["subject|asc", "category|asc"];
+        $subject->multisortable = true;
+
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
+        $this->assertEquals('A', $subject->results->getCollection()[0]->category);
+        $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[1]->subject);
+        $this->assertEquals('B', $subject->results->getCollection()[1]->category);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[2]->subject);
+        $this->assertEquals('A', $subject->results->getCollection()[2]->category);
+        $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[3]->subject);
+        $this->assertEquals('B', $subject->results->getCollection()[3]->category);
+    }
+
+    /** @test */
     public function it_can_filter_results_based_on_text()
     {
         factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs']);

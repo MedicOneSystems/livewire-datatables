@@ -158,8 +158,7 @@ class LivewireDatatableTemplateTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'multisortable' => false,
-            'sort' => ['subject|asc', 'category|asc'],
+            'sort' => ['subject|asc'],
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
