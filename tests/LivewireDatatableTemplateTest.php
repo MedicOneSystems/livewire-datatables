@@ -4,6 +4,7 @@ namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Livewire\Livewire;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Tests\Classes\MultisortableDummyTable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class LivewireDatatableTemplateTest extends TestCase
@@ -173,13 +174,12 @@ class LivewireDatatableTemplateTest extends TestCase
     {
         factory(DummyModel::class)->create();
 
-        $subject = Livewire::test(LivewireDatatable::class, [
+        $subject = Livewire::test(MultisortableDummyTable::class, [
             'model' => DummyModel::class,
             'sort' => [
                 'subject|asc',
                 'category|desc',
             ],
-            'multisortable' => true
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
@@ -188,8 +188,6 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertEquals([1,2], $subject->sort);
         $this->assertEquals($subject->freshColumns[1]['defaultSort'],"asc");
         $this->assertEquals($subject->freshColumns[2]['defaultSort'],"desc");
-
-        $this->assertEquals(1, $subject->multisortable);
         $this->assertNull($subject->direction);
     }
 

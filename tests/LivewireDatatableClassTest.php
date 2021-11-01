@@ -3,6 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Livewire\Livewire;
+use Mediconesystems\LivewireDatatables\Tests\Classes\MultisortableDummyTable;
 use Mediconesystems\LivewireDatatables\Tests\Classes\DummyTable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
@@ -86,7 +87,7 @@ class LivewireDatatableClassTest extends TestCase
         factory(DummyModel::class)->create(['subject' => 'Advanced beet growing',   'category' => 'B']);
         factory(DummyModel::class)->create(['subject' => 'Beet growing for noobs',  'category' => 'B']);
 
-        $subject = new DummyTable(1);
+        $subject = new MultisortableDummyTable(1);
 
         $this->assertEquals('Beet growing for noobs', $subject->results->getCollection()[0]->subject);
         $this->assertEquals('A', $subject->results->getCollection()[0]->category);
@@ -99,7 +100,6 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject->forgetComputed();
         $subject->sort = ["subject|asc", "category|desc"];
-        $subject->multisortable = true;
 
         $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
         $this->assertEquals('B', $subject->results->getCollection()[0]->category);
@@ -112,7 +112,6 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject->forgetComputed();
         $subject->sort = ["subject|asc", "category|asc"];
-        $subject->multisortable = true;
 
         $this->assertEquals('Advanced beet growing', $subject->results->getCollection()[0]->subject);
         $this->assertEquals('A', $subject->results->getCollection()[0]->category);

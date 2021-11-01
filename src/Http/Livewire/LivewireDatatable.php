@@ -20,6 +20,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
+use Mediconesystems\LivewireDatatables\Tests\Classes\MultisortDatatable;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
@@ -66,7 +67,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
-    public $multisortable = false;
+//    public $multisortable = false;
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -521,17 +522,17 @@ class LivewireDatatable extends Component
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys();
 
-        if (! $this->multisortable){
+//        if (! $this->multisortable){
             $this->sort = ($column = optional($this->defaultSort())->first())
                 ? [$column['key']]
                 : [$freshColumns->first()];
 
             $this->direction = $column && $column['direction'] === 'asc';
-        }else{
-            $this->sort = ($columns = $this->defaultSort())
-                ? $columns->pluck('key')->toArray()
-                : $freshColumns->toArray();
-        }
+//        }else{
+//            $this->sort = ($columns = $this->defaultSort())
+//                ? $columns->pluck('key')->toArray()
+//                : $freshColumns->toArray();
+//        }
 
         $this->getSessionStoredSort();
     }
@@ -590,10 +591,6 @@ class LivewireDatatable extends Component
         $columns = collect($this->freshColumns)->filter(function ($column) {
             return is_string($column['defaultSort']);
         });
-
-        if ($columns->isEmpty() && ! $this->multisortable){
-            return null;
-        }
 
         return $columns->map(function ($column, $index){
             return is_numeric($index) ? [
@@ -656,7 +653,6 @@ class LivewireDatatable extends Component
             throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
         }
 
-        if (! $this->multisortable){
             $index = $indexes[0];
             if (in_array($index, $this->sort)) {
                 if ($direction === null) { // toggle direction
@@ -667,14 +663,6 @@ class LivewireDatatable extends Component
             } else {
                 $this->sort = [$index];
             }
-        } else{
-            foreach ($indexes as $index){
-                if (!in_array($index, $this->sort)){
-                    array_push($this->sort,$index);
-                }
-            }
-
-        }
 
         $this->page = 1;
 
@@ -1376,22 +1364,12 @@ class LivewireDatatable extends Component
         $sortString = $this->getSortString(0);
         if (!empty($this->sort)){
             foreach (collect($this->sort)->toArray() as $column){
-                if (! $this->multisortable){
-                    if(isset($this->freshColumns[$column]) && $this->freshColumns[$column]['name']){
-                        $direction = $this->direction ? 'asc' : 'desc';
-                        $sortString = $this->getSortString($column).' '.$direction;
-                    }
-
-                }else if (!is_numeric($column) && !is_null(($index = optional(collect($this->freshColumns)->where('name', Str::before($column,'|')))->keys()->first()))){
-                    $sortString = Str::after($this->getSortString($index), '.').' '. $this->columnSortDirection($column);
+                if(isset($this->freshColumns[$column]) && $this->freshColumns[$column]['name']){
+                    $direction = $this->direction ? 'asc' : 'desc';
+                    $sortString = $this->getSortString($column).' '.$direction;
                 }
-                else{
-                    $direction = $this->freshColumns[$column]['defaultSort'] ?? 'desc';
-                    $sortString = Str::after($this->getSortString($column), '.').' '.$direction;
-                }
-
-                $this->query->orderByRaw($sortString);
             }
+            $this->query->orderByRaw($sortString);
         }
         return $this;
     }
