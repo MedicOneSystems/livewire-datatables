@@ -31,6 +31,26 @@ class LivewireDatatableQueryBuilderTest extends TestCase
     }
 
     /** @test */
+    public function it_creates_a_query_builder_for_base_multisortable_columns()
+    {
+        factory(DummyModel::class)->create();
+
+        $subject = new LivewireDatatable(1);
+        $subject->multisortable = true;
+        $subject->mount(DummyModel::class, ['id', 'subject', 'category']);
+
+        $this->assertEquals('select "dummy_models"."id" as "id", "dummy_models"."subject" as "subject", "dummy_models"."category" as "category" from "dummy_models" order by `id` desc', $subject->getQuery()->toSql());
+
+        $subject->sort([1]);
+
+        $this->assertEquals('select "dummy_models"."id" as "id", "dummy_models"."subject" as "subject", "dummy_models"."category" as "category" from "dummy_models" order by `id` desc, `subject` desc', $subject->getQuery()->toSql());
+
+        $subject->sort([1]);
+
+        $this->assertEquals('select "dummy_models"."id" as "id", "dummy_models"."subject" as "subject", "dummy_models"."category" as "category" from "dummy_models" order by `id` desc, `subject` asc', $subject->getQuery()->toSql());
+    }
+
+    /** @test */
     public function it_creates_a_query_builder_for_has_one_relation_columns()
     {
         factory(DummyModel::class)->create()->dummy_has_one()->save(factory(DummyHasOneModel::class)->make());

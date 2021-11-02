@@ -67,7 +67,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
-//    public $multisortable = false;
+    public $multisortable = false;
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -522,13 +522,19 @@ class LivewireDatatable extends Component
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys();
 
-            $this->sort = ($column = optional($this->defaultSort())->first())
-                ? [$column['key']]
+        if ($this->multisortable){
+            $this->sort = ($columns = $this->defaultSort())->isNotEmpty()
+                ? $columns->pluck('key')->toArray()
                 : [$freshColumns->first()];
+            return;
+        }
 
-            $this->direction = $column && $column['direction'] === 'asc';
+        $this->sort = ($column = optional($this->defaultSort())->first())
+            ? [$column['key']]
+            : [$freshColumns->first()];
 
         $this->getSessionStoredSort();
+        $this->direction = $column && $column['direction'] === 'asc';
     }
 
     public function initialiseHiddenColumns()
@@ -629,6 +635,15 @@ class LivewireDatatable extends Component
         $this->refreshLivewireDatatable();
     }
 
+    public function columnSortDirection(string $sortString):string
+    {
+        if (Str::contains($sortString,'|')){
+            return Str::after($sortString, '|');
+        }
+
+        return 'desc';
+    }
+
     public function refreshLivewireDatatable()
     {
         $this->page = 1;
@@ -646,6 +661,22 @@ class LivewireDatatable extends Component
         if (! in_array($direction, [null, 'asc', 'desc'])) {
             throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
         }
+
+        if ($this->multisortable){
+            foreach ($columns as $column){
+                if (is_numeric($column)){
+                    $direction = $this->freshColumns[$column]['defaultSort'] ?? $direction;
+                    $column = "{$this->freshColumns[$column]['name']}|$direction";
+                }
+
+                if (!in_array($column, $this->sort)){
+                    array_push($this->sort, $column);
+                }
+            }
+            $this->page = 1;
+            return;
+        }
+
         $index = $columns[0];
             if (in_array($index, $this->sort)) {
                 if ($direction === null) { // toggle direction
@@ -1354,15 +1385,28 @@ class LivewireDatatable extends Component
      */
     public function addSort()
     {
-        $sortString = $this->getSortString(0);
         if (!empty($this->sort)){
+            if ($this->multisortable){
+                foreach (collect($this->sort)->toArray() as $sort){
+                    if (!is_numeric($sort)
+                        && !is_null(($index = optional(collect($this->freshColumns)->where('name', Str::before($sort,'|')))->keys()->last()))){
+                          $sortString = ($columnName = Str::after($this->getSortString($index), '.')).' '. ($direction = $this->columnSortDirection($sort));
+                    }else{
+                        $direction = $this->freshColumns[$sort]['defaultSort'] ?? 'desc';
+                        $sortString = ($columnName = $this->getSortString($sort)).' '.$direction;
+                    }
+                    $this->query->orderByRaw($sortString);
+                }
+                return $this;
+            }
+
             foreach (collect($this->sort)->toArray() as $column){
                 if(isset($this->freshColumns[$column]) && $this->freshColumns[$column]['name']){
                     $direction = $this->direction ? 'asc' : 'desc';
-                    $sortString = $this->getSortString($column).' '.$direction;
+                    $this->query->orderByRaw($this->getSortString($column).' '.$direction);
                 }
             }
-            $this->query->orderByRaw($sortString);
+
         }
         return $this;
     }
