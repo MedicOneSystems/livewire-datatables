@@ -50,6 +50,7 @@ class LivewireDatatable extends Component
     public $times;
     public $searchable;
     public $exportable;
+    public $export_name;
     public $hideable;
     public $params;
     public $selected = [];
@@ -170,6 +171,7 @@ class LivewireDatatable extends Component
         $hidePagination = null,
         $perPage = null,
         $exportable = false,
+        $export_name = null,
         $hideable = false,
         $beforeTableSlot = false,
         $afterTableSlot = false,
@@ -1495,7 +1497,7 @@ class LivewireDatatable extends Component
             })->all();
         });
 
-        return Excel::download(new DatatableExport($results), 'DatatableExport.xlsx');
+        return Excel::download(new DatatableExport($results), $this->export_name?$this->export_name.'.xlsx':'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)
