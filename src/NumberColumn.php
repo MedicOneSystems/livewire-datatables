@@ -19,8 +19,7 @@ class NumberColumn extends Column
         return $this;
     }
     
-    // formats & rounds a number with grouped thousands - 1000000 => 1,000,000.00 (If places set to 2)
-    public function format($places = 2)
+    public function format($places = 0)
     {
 
         $this->callback = function ($value) use ($places) {
