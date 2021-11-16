@@ -1497,7 +1497,7 @@ class LivewireDatatable extends Component
             })->all();
         });
 
-        return Excel::download(new DatatableExport($results), $this->export_name?$this->export_name.'.xlsx':'DatatableExport.xlsx');
+        return Excel::download(new DatatableExport($results), $this->export_name ? $this->export_name . '.xlsx' : 'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)
