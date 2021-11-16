@@ -21,7 +21,6 @@ class NumberColumn extends Column
     
     public function format($places = 0)
     {
-
         $this->callback = function ($value) use ($places) {
             return number_format($value, $places, '.', ',');
         };
