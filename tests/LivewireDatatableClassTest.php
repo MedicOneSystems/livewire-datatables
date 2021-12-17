@@ -93,7 +93,7 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject->forgetComputed();
         $subject->multisort = true;
-        $subject->sort = ["1|asc", "2|desc"];
+        $subject->sort = ['1|asc', '2|desc'];
 
         $this->assertEquals(['Advanced beet growing', 'B'], [$subject->results->getCollection()[0]->subject, $subject->results->getCollection()[0]->category]);
         $this->assertEquals(['Advanced beet growing', 'A'], [$subject->results->getCollection()[1]->subject, $subject->results->getCollection()[1]->category]);
@@ -101,7 +101,7 @@ class LivewireDatatableClassTest extends TestCase
         $this->assertEquals(['Beet growing for noobs', 'A'], [$subject->results->getCollection()[3]->subject, $subject->results->getCollection()[3]->category]);
 
         $subject->forgetComputed();
-        $subject->sort = ["1|asc", "2|asc"];
+        $subject->sort = ['1|asc', '2|asc'];
 
         $this->assertEquals(['Advanced beet growing', 'A'], [$subject->results->getCollection()[0]->subject, $subject->results->getCollection()[0]->category]);
         $this->assertEquals(['Advanced beet growing', 'B'], [$subject->results->getCollection()[1]->subject, $subject->results->getCollection()[1]->category]);
@@ -127,7 +127,7 @@ class LivewireDatatableClassTest extends TestCase
 
         $subject->forgetComputed();
         $subject->multisort = true;
-        $subject->sort = ["subject|asc", "category|desc"];
+        $subject->sort = ['subject|asc', 'category|desc'];
 
         $this->assertEquals(['Advanced beet growing', 'B'], [$subject->results->getCollection()[0]->subject, $subject->results->getCollection()[0]->category]);
         $this->assertEquals(['Advanced beet growing', 'A'], [$subject->results->getCollection()[1]->subject, $subject->results->getCollection()[1]->category]);
@@ -135,7 +135,7 @@ class LivewireDatatableClassTest extends TestCase
         $this->assertEquals(['Beet growing for noobs', 'A'], [$subject->results->getCollection()[3]->subject, $subject->results->getCollection()[3]->category]);
 
         $subject->forgetComputed();
-        $subject->sort = ["subject|asc", "category|asc"];
+        $subject->sort = ['subject|asc', 'category|asc'];
 
         $this->assertEquals(['Advanced beet growing', 'A'], [$subject->results->getCollection()[0]->subject, $subject->results->getCollection()[0]->category]);
         $this->assertEquals(['Advanced beet growing', 'B'], [$subject->results->getCollection()[1]->subject, $subject->results->getCollection()[1]->category]);

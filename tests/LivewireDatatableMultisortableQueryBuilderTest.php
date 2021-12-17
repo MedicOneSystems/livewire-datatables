@@ -2,7 +2,6 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Illuminate\Contracts\Session\Session;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyBelongsToManyModel;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasManyModel;

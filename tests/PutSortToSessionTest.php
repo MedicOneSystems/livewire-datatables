@@ -35,7 +35,7 @@ class PutSortToSessionTest extends TestCase
 
         $subject = Livewire::test(LivewireDatatable::class, [
             'model' => DummyModel::class,
-            'multisort' => true
+            'multisort' => true,
         ]);
 
         $subject->call('sort', 1);

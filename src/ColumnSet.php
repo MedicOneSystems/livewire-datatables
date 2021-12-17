@@ -139,6 +139,7 @@ class ColumnSet
             foreach ($sort as $arg) {
                 $this->sort($arg);
             }
+
             return $this;
         }
 

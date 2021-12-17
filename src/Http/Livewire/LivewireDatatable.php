@@ -480,6 +480,7 @@ class LivewireDatatable extends Component
 
         if (! $this->multisort) {
             $this->sort = session()->get($this->sessionStorageKey() . $this->name . '_sort', $this->sort);
+
             return;
         }
 
@@ -503,6 +504,7 @@ class LivewireDatatable extends Component
 
         if (! $this->multisort) {
             session()->put([$this->sessionStorageKey() . $this->name . '_sort' => $this->sort]);
+
             return;
         }
 
@@ -537,6 +539,7 @@ class LivewireDatatable extends Component
                 return $column['key'] . '|' . $column['direction'];
             })->values()->toArray();
             $this->getSessionStoredSort();
+
             return;
         }
 
@@ -710,6 +713,7 @@ class LivewireDatatable extends Component
 
             $this->page = 1;
             session()->put([$key . $this->name . '_multisort' => $this->sort]);
+
             return;
         }
 
@@ -1421,11 +1425,11 @@ class LivewireDatatable extends Component
      */
     public function addSort()
     {
-        if (!empty($this->sort)) {
+        if (! empty($this->sort)) {
             foreach ($this->sort as $sort) {
                 $index = Str::before($sort, '|');
-                if (!is_numeric($index)
-                    && !is_null(($index = optional(collect($this->freshColumns)->where('name', $index))->keys()->first()))) {
+                if (! is_numeric($index)
+                    && ! is_null(($index = optional(collect($this->freshColumns)->where('name', $index))->keys()->first()))) {
                     $columnName = Str::after($this->getSortString($index), '.');
                 } else {
                     $columnName = $this->getSortString($index);
@@ -1656,9 +1660,9 @@ class LivewireDatatable extends Component
         }
 
         switch ($direction) {
-            case $direction === self::DEFAULT_DIRECTION :
+            case self::DEFAULT_DIRECTION:
                 return 'asc';
-            default :
+            default:
                 return self::DEFAULT_DIRECTION;
         }
     }
