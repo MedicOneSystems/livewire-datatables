@@ -2,6 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
@@ -152,7 +153,7 @@ class LivewireDatatableTemplateTest extends TestCase
     }
 
     /** @test */
-    public function it_can_set_sort_from_a_property()
+    public function it_can_set_sort_from_property_using_column_name_and_direction()
     {
         factory(DummyModel::class)->create();
 
@@ -164,7 +165,82 @@ class LivewireDatatableTemplateTest extends TestCase
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
         $this->assertIsArray($subject->columns);
 
-        $this->assertEquals(1, $subject->sort);
-        $this->assertTrue($subject->direction);
+        $this->assertEquals(['1|asc'], $subject->sort);
+    }
+
+    /** @test */
+    public function it_can_set_sort_from_property_using_column_index()
+    {
+        factory(DummyModel::class)->create();
+
+        $subject = Livewire::test(LivewireDatatable::class, [
+            'model' => DummyModel::class,
+            'sort' => 1,
+        ]);
+
+        $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
+        $this->assertIsArray($subject->columns);
+
+        $this->assertEquals(['1|desc'], $subject->sort);
+    }
+
+    /** @test */
+    public function it_can_set_sort_from_property_using_column_index_and_direction()
+    {
+        factory(DummyModel::class)->create();
+
+        $subject = Livewire::test(LivewireDatatable::class, [
+            'model' => DummyModel::class,
+            'sort' => '1|asc',
+        ]);
+
+        $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
+        $this->assertIsArray($subject->columns);
+
+        $this->assertEquals(['1|asc'], $subject->sort);
+    }
+
+    /** @test */
+    public function it_can_set_multisort_from_property_using_array()
+    {
+        factory(DummyModel::class)->create();
+
+        $subject = Livewire::test(LivewireDatatable::class, [
+            'model' => DummyModel::class,
+            'multisort' => true,
+            'sort' => [
+                'subject|asc',
+                'category|desc',
+            ],
+        ]);
+
+        $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
+        $this->assertIsArray($subject->columns);
+
+        $this->assertEquals(['1|asc', '2|desc'], $subject->sort);
+        $this->assertEquals($subject->freshColumns[1]['defaultSort'], "asc");
+        $this->assertEquals($subject->freshColumns[2]['defaultSort'], "desc");
+        $this->assertNull($subject->direction);
+    }
+
+    /** @test */
+    public function it_can_forget_multisort_session_on_demand()
+    {
+        factory(DummyModel::class)->create();
+
+        $subject = Livewire::test(LivewireDatatable::class, [
+            'model' => DummyModel::class,
+            'multisort' => true,
+        ]);
+
+        $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);
+        $this->assertIsArray($subject->columns);
+
+        $subject->assertDontSee('Reset Columns Sort');
+        $subject->call('sort', 1);
+        $subject->assertSee('Reset Columns Sort');
+        $subject->assertSessionHas($multisortSessionKey = Str::snake(Str::afterLast(LivewireDatatable::class, '\\')) . '_multisort');
+        $subject->call('forgetSortSession');
+        $subject->assertSessionMissing($multisortSessionKey);
     }
 }

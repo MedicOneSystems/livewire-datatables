@@ -187,7 +187,7 @@ class LivewireDatatableQueryBuilderTest extends TestCase
     }
 
     /** @test */
-    public function it_creates_a__where_query_for_belongs_to_many_relation_columns()
+    public function it_creates_a_where_query_for_belongs_to_many_relation_columns()
     {
         factory(DummyModel::class)->create()->dummy_belongs_to_many()->attach(factory(DummyBelongsToManyModel::class)->create());
 

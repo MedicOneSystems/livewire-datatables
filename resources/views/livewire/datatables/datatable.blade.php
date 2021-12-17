@@ -6,6 +6,14 @@
     @endif
     <div class="relative">
         <div class="flex justify-between items-center mb-1">
+            @if(isset($this->multisort) && $this->multisort === true && count($this->sort) > 1)
+                <button wire:loading.class="opacity-50" wire:click="forgetSortSession"
+                        class="px-3 py-2 border border-blue-400 rounded-md bg-white text-blue-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-blue-200 focus:outline-none">
+                    <div class="flex items-center h-2">
+                        {{ __('Reset Columns Sort')}}
+                    </div>
+                </button>
+            @endif
             <div class="h-10 flex items-center">
                 @if($this->searchableColumns()->count())
                 <div class="w-96 flex rounded-lg shadow-sm">

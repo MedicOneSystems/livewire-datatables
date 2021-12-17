@@ -6,7 +6,7 @@
 ### Features
 - Use a model or query builder to supply data
 - Mutate and format columns using preset or custom callbacks
-- Sort data using column or computed column
+- Sort data using one or more columns or computed columns
 - Filter using booleans, times, dates, selects or free text
 - Create complex combined filters using the [complex query builder](#complex-query-builder)
 - Show / hide columns
@@ -77,7 +77,8 @@ somewhere in your CSS
 |**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob\|lS F y', 'created_at']"```|
 |**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime\|g:i A'```|
 |**searchable**|*String\|Array* of column names | Defines columns to be included in global search | ```searchable="name, email"```|
-|**sort**|*String* of column definition [and optional 'asc' or 'desc' (default: 'desc') in \| delimited string]|Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name\|asc"```|
+|**sort**|*String, int or array* of column(s) definition [and optional 'asc' or 'desc' (default: 'desc') Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name\|asc"```|
+|**multisort**|*Boolean default: false*|When set to true, sort is done using multiple columns.
 |**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
 |**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
 |**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
@@ -87,6 +88,22 @@ somewhere in your CSS
 |**afterTableSlot**| _String_ |blade view to be included immediately after the table in the component, which can therefore access public properties| [demo](https://livewire-datatables.com/complex) |
 ---
 
+## Sorting by multiple columns (multisort)
+![Multisort Demo](http://g.recordit.co/u5nCxb7hTp.gif "Multisort Demo")
+### Enable multisort
+Multisort is disabled by default. To enable it set ```multisort = true``` on your ```livewire-datatable``` component.
+```html
+...
+
+<livewire:datatable model="App\User" multisort=true />
+
+...
+```
+### How does it work?
+There's 3 possible states a column can have when multisort is enabled. Clicking on a column will advance its state.
+- 1st click: column added to the sort with direction `desc`.
+- 2nd click: direction changes to `asc`.
+- 3rd click: column removed from sort. 
 
 ## Component Syntax
 
