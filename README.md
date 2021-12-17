@@ -89,7 +89,7 @@ somewhere in your CSS
 ---
 
 ## Sorting by multiple columns (multisort)
-![Multisort Demo](http://g.recordit.co/u5nCxb7hTp.gif "Multisort Demo")
+![Multisort Demo](http://g.recordit.co/V0FOLGGPjO.gif "Multisort Demo")
 ### Enable multisort
 Multisort is disabled by default. To enable it set ```multisort = true``` on your ```livewire-datatable``` component.
 ```html
