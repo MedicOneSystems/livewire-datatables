@@ -98,7 +98,7 @@ somewhere in your CSS
 ### Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
 > ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
 
-### Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
+### Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Columns\Column```
 
 
 ## Columns

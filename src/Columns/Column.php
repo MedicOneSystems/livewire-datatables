@@ -1,6 +1,6 @@
 <?php
 
-namespace Mediconesystems\LivewireDatatables;
+namespace Mediconesystems\LivewireDatatables\Columns;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

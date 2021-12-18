@@ -1,12 +1,12 @@
 <?php
 
-namespace Mediconesystems\LivewireDatatables;
+namespace Mediconesystems\LivewireDatatables\Columns;
 
 use Illuminate\Support\Carbon;
 
-class TimeColumn extends Column
+class DateColumn extends Column
 {
-    public $type = 'time';
+    public $type = 'date';
     public $callback;
 
     public function __construct()
@@ -17,7 +17,7 @@ class TimeColumn extends Column
     public function format($format = null)
     {
         $this->callback = function ($value) use ($format) {
-            return $value ? Carbon::parse($value)->format($format ?? config('livewire-datatables.default_time_format')) : null;
+            return $value ? Carbon::parse($value)->format($format ?? config('livewire-datatables.default_date_format')) : null;
         };
 
         return $this;

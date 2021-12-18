@@ -1,6 +1,6 @@
 <?php
 
-namespace Mediconesystems\LivewireDatatables;
+namespace Mediconesystems\LivewireDatatables\Columns;
 
 class NumberColumn extends Column
 {
