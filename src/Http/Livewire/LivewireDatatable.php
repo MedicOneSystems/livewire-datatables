@@ -66,6 +66,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
+    public $row = 1;
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -941,6 +942,8 @@ class LivewireDatatable extends Component
 
     public function getResultsProperty()
     {
+        $this->row = 1;
+
         return $this->mapCallbacks(
             $this->getQuery()->paginate($this->perPage)
         );
