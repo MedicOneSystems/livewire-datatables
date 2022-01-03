@@ -63,7 +63,7 @@ class Column
         $column = new static;
         $column->name = $attribute;
         $column->label = '#';
-        $column->callback = function () use($datatable) {
+        $column->callback = function () use ($datatable) {
             return $datatable->page * $datatable->perPage - $datatable->perPage + $datatable->row++;
         };
 
