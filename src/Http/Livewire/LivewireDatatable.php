@@ -582,7 +582,7 @@ class LivewireDatatable extends Component
 
         session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
     }
-  
+
     public function initialiseSearch()
     {
         if (! $this->persistSearch) {
@@ -762,7 +762,6 @@ class LivewireDatatable extends Component
             $this->showGroup($group);
         }
     }
-
 
     public function showGroup($group)
     {
