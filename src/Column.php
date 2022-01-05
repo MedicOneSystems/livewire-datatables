@@ -4,6 +4,7 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class Column
 {
@@ -31,6 +32,8 @@ class Column
     public $align = 'left';
     public $preventExport;
     public $width;
+    public $minWidth;
+    public $maxWidth;
     public $exportCallback;
 
     /**
@@ -53,6 +56,18 @@ class Column
             $column->label = array_reverse(preg_split('/ as /i', $name))[1];
             $column->base = preg_split('/ as /i', $name)[0];
         }
+
+        return $column;
+    }
+
+    public static function index(LivewireDatatable $datatable, $attribute = 'id')
+    {
+        $column = new static;
+        $column->name = $attribute;
+        $column->label = '#';
+        $column->callback = function () use ($datatable) {
+            return $datatable->page * $datatable->perPage - $datatable->perPage + $datatable->row++;
+        };
 
         return $column;
     }
@@ -385,6 +400,36 @@ class Column
         }
 
         $this->width = $width;
+
+        return $this;
+    }
+
+    public function minWidth($minWidth)
+    {
+        if (preg_match('/^\\d*\\.?\\d+$/i', $minWidth) === 1) {
+            $minWidth .= 'px';
+        }
+
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $minWidth) === 0) {
+            return $this;
+        }
+
+        $this->minWidth = $minWidth;
+
+        return $this;
+    }
+
+    public function maxWidth($maxWidth)
+    {
+        if (preg_match('/^\\d*\\.?\\d+$/i', $maxWidth) === 1) {
+            $maxWidth .= 'px';
+        }
+
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $maxWidth) === 0) {
+            return $this;
+        }
+
+        $this->maxWidth = $maxWidth;
 
         return $this;
     }

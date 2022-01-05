@@ -13,8 +13,8 @@
         <path stroke-miterlimit="10" d="M313.66 206.75H.5V1.49l157.65 204.9L313.66 1.49v205.26z" />
     </svg>
 </div>
-<div
-    class="@if($column['hidden']) hidden @else relative h-12 overflow-hidden align-top flex table-cell @endif" @if (isset($column['width']))style="width:{{ $column['width'] }}"@endif>
+<div class="@if($column['hidden']) hidden @else relative h-12 overflow-hidden align-top flex table-cell @endif" @include('datatables::style-width')>
+
     @if($column['unsortable'])
         <div class="w-full h-full px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex justify-between items-center focus:outline-none">
             <span class="inline flex-grow @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @endif"">{{ str_replace('_', ' ', $column['label']) }}</span>
