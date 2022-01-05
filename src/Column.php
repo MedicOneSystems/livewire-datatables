@@ -129,7 +129,7 @@ class Column
         return $this;
     }
 
-    public function index($index)
+    public function setIndex($index)
     {
         $this->index = $index;
 

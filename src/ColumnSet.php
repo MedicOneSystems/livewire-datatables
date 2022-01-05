@@ -27,7 +27,7 @@ class ColumnSet
             collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
                 return in_array($name, $model->getHidden());
             })->map(function ($attribute, $index) {
-                return Column::name($attribute)->index($index);
+                return Column::name($attribute)->setIndex($index);
             })
         );
     }
@@ -43,7 +43,7 @@ class ColumnSet
     public static function squeezeIndex($columns)
     {
         foreach ($columns as $index => $column) {
-            $column->index($index);
+            $column->setIndex($index);
         }
 
         return $columns;
