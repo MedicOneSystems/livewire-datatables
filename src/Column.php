@@ -4,6 +4,7 @@ namespace Mediconesystems\LivewireDatatables;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class Column
 {
@@ -53,6 +54,18 @@ class Column
             $column->label = array_reverse(preg_split('/ as /i', $name))[1];
             $column->base = preg_split('/ as /i', $name)[0];
         }
+
+        return $column;
+    }
+
+    public static function index(LivewireDatatable $datatable, $attribute = 'id')
+    {
+        $column = new static;
+        $column->name = $attribute;
+        $column->label = '#';
+        $column->callback = function () use ($datatable) {
+            return $datatable->page * $datatable->perPage - $datatable->perPage + $datatable->row++;
+        };
 
         return $column;
     }
