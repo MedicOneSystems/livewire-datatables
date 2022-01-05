@@ -32,6 +32,8 @@ class Column
     public $align = 'left';
     public $preventExport;
     public $width;
+    public $minWidth;
+    public $maxWidth;
     public $exportCallback;
 
     /**
@@ -398,6 +400,36 @@ class Column
         }
 
         $this->width = $width;
+
+        return $this;
+    }
+
+    public function minWidth($minWidth)
+    {
+        if (preg_match('/^\\d*\\.?\\d+$/i', $minWidth) === 1) {
+            $minWidth .= 'px';
+        }
+
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $minWidth) === 0) {
+            return $this;
+        }
+
+        $this->minWidth = $minWidth;
+
+        return $this;
+    }
+
+    public function maxWidth($maxWidth)
+    {
+        if (preg_match('/^\\d*\\.?\\d+$/i', $maxWidth) === 1) {
+            $maxWidth .= 'px';
+        }
+
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $maxWidth) === 0) {
+            return $this;
+        }
+
+        $this->maxWidth = $maxWidth;
 
         return $this;
     }
