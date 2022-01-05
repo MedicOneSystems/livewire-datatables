@@ -889,7 +889,7 @@ class LivewireDatatable extends Component
 
         $query->when($column['type'] === 'boolean', function ($query) use ($filter, $relation, $field, $aggregate) {
             $query->where(function ($query) use ($filter, $relation, $field, $aggregate) {
-                if ($filter) {
+                if (Arr::wrap($filter)[0]) {
                     $query->hasAggregate($relation, $field, $aggregate);
                 } else {
                     $query->hasAggregate($relation, $field, $aggregate, '<');
@@ -1212,6 +1212,7 @@ class LivewireDatatable extends Component
                 } elseif ($this->columnIsAggregateRelation($this->freshColumns[$index])) {
                     $this->addAggregateFilter($query, $index, $value);
                 } elseif ($this->freshColumns[$index]['type'] === 'string') {
+                    ray($this->freshColumns[$index], $value)->red();
                     if ($value == 1) {
                         $query->whereNotNull($this->getColumnFilterStatement($index)[0])
                             ->where($this->getColumnFilterStatement($index)[0], '<>', '');
