@@ -26,15 +26,27 @@ class ColumnSet
         return new static(
             collect($model->getAttributes())->keys()->reject(function ($name) use ($model) {
                 return in_array($name, $model->getHidden());
-            })->map(function ($attribute) {
-                return Column::name($attribute);
+            })->map(function ($attribute, $index) {
+                return Column::name($attribute)->index($index);
             })
         );
     }
 
     public static function fromArray($columns)
     {
-        return new static(collect($columns));
+        return new static(collect(static::squeezeIndex($columns)));
+    }
+
+    /**
+     * Takes an array of columns and squeezes the consecutive index inside each element.
+     */
+    public static function squeezeIndex($columns)
+    {
+        foreach ($columns as $index => $column) {
+            $column->index($index);
+        }
+
+        return $columns;
     }
 
     public function include($include)

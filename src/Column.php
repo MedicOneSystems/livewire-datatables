@@ -9,6 +9,7 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 class Column
 {
     public $type = 'string';
+    public $index = 0;
     public $label;
     public $name;
     public $select;
@@ -124,6 +125,13 @@ class Column
     public function label($label)
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function index($index)
+    {
+        $this->index = $index;
 
         return $this;
     }
