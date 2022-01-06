@@ -2,13 +2,13 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Str;
 use Livewire\LivewireServiceProvider;
 use Maatwebsite\Excel\ExcelServiceProvider;
+use Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Reedware\LaravelRelationJoins\LaravelRelationJoinServiceProvider;
-use Mediconesystems\LivewireDatatables\LivewireDatatablesServiceProvider;
 
 class TestCase extends Orchestra
 {
