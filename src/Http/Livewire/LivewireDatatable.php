@@ -313,22 +313,16 @@ class LivewireDatatable extends Component
             ->sort($this->sort);
     }
 
-    public function resolveColumnName($column)
-    {
-        return $column->isBaseColumn()
-            ? $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'))
-            : $column->select ?? $this->resolveRelationColumn($column->base ?? $column->name, $column->aggregate);
-    }
-
     public function resolveCheckboxColumnName($column)
     {
-        $column = is_object($column)
-            ? $column->toArray()
-            : $column;
+        // $column = is_object($column)
+        //     ? $column->toArray()
+        //     : $column;
 
-        return Str::contains($column['base'], '.')
-            ? $this->resolveRelationColumn($column['base'], $column['aggregate'])
-            : $this->query->getModel()->getTable() . '.' . $column['base'];
+        return $this->resolveColumnName($column);
+        // return Str::contains($column['base'], '.')
+        //     ? $this->resolveRelationColumn($column['base'], $column['aggregate'])
+        //     : $this->query->getModel()->getTable() . '.' . $column['base'];
     }
 
     public function resolveAdditionalSelects($column)
@@ -372,13 +366,13 @@ class LivewireDatatable extends Component
                 }
 
                 if (Str::startsWith($column->name, 'callback_')) {
+                    ray($column)->red();
                     $column->select = $this->resolveAdditionalSelects($column);
 
                     return $column;
                 }
 
                 $column->select = $this->resolveColumnName($column);
-
                 if ($column->isEditable()) {
                     $column->select = $this->resolveEditableColumnName($column);
                 }
@@ -410,6 +404,44 @@ class LivewireDatatable extends Component
             }, function ($columns) {
                 return $columns->map->select;
             });
+    }
+
+    protected function resolveColumnName($column)
+    {
+        if ($column->isBaseColumn()) {
+            return $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
+        }
+
+        $relations = explode('.', Str::before($column->name, ':'));
+        $aggregate = Str::after($column->name, ':');
+
+        if (! method_exists($this->query->getModel(), $relations[0])) {
+            return $column->name;
+        }
+
+        $columnName = array_pop($relations);
+        $aggregateName = implode('.', $relations);
+
+        $relatedQuery = $this->query;
+
+        while (count($relations) > 0) {
+            $relation = array_shift($relations);
+
+            $useThrough = collect($relatedQuery->getQuery()->joins)
+                ->pluck('table')
+                ->contains($relatedQuery->getRelation($relation)->getRelated()->getTable());
+
+            // BAIL HERE AND DO THE AGGREGATE THING
+
+            if ($relatedQuery->getRelation($relation) instanceof HasMany || $relatedQuery->getRelation($relation) instanceof BelongsToMany) {
+                $this->query->customWithAggregate($aggregateName, $column->aggregate ?? 'count', $columnName, $column->name);
+                return null;
+            }
+
+            $relatedQuery = $this->query->joinRelation($relation, null, 'left', $useThrough, $relatedQuery);
+        }
+
+        return $relatedQuery->getQuery()->from . '.' . $columnName;
     }
 
     protected function resolveRelationColumn($name, $aggregate = null, $alias = null)
