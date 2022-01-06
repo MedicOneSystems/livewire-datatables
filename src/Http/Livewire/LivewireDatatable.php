@@ -3,12 +3,9 @@
 namespace Mediconesystems\LivewireDatatables\Http\Livewire;
 
 use Exception;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -313,7 +310,6 @@ class LivewireDatatable extends Component
             ->sort($this->sort);
     }
 
-
     public function resolveAdditionalSelects($column)
     {
         $selects = collect($column->additionalSelects)->map(function ($select) use ($column) {
@@ -417,6 +413,7 @@ class LivewireDatatable extends Component
 
             if ($relatedQuery->getRelation($relation) instanceof HasMany || $relatedQuery->getRelation($relation) instanceof HasManyThrough || $relatedQuery->getRelation($relation) instanceof BelongsToMany) {
                 $this->query->customWithAggregate($aggregateName, $column->aggregate ?? 'count', $columnName, $column->name);
+
                 return null;
             }
 
