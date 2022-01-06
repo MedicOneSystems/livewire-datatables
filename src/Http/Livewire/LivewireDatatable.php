@@ -313,31 +313,20 @@ class LivewireDatatable extends Component
             ->sort($this->sort);
     }
 
-    public function resolveCheckboxColumnName($column)
-    {
-        // $column = is_object($column)
-        //     ? $column->toArray()
-        //     : $column;
-
-        return $this->resolveColumnName($column);
-        // return Str::contains($column['base'], '.')
-        //     ? $this->resolveRelationColumn($column['base'], $column['aggregate'])
-        //     : $this->query->getModel()->getTable() . '.' . $column['base'];
-    }
 
     public function resolveAdditionalSelects($column)
     {
         $selects = collect($column->additionalSelects)->map(function ($select) use ($column) {
             return Str::contains($select, '.')
-                ? $this->resolveRelationColumn($select, Str::contains($select, ':') ? Str::after($select, ':') : null, $column->name)
+                ? $this->resolveColumnName($column, $select)
                 : $this->query->getModel()->getTable() . '.' . $select;
         });
 
         return $selects->count() > 1
             ? new Expression("CONCAT_WS('" . static::SEPARATOR . "' ," .
-                collect($selects)->map(function ($select) {
-                    return "COALESCE($select, '')";
-                })->join(', ') . ')')
+            collect($selects)->map(function ($select) {
+                return "COALESCE($select, '')";
+            })->join(', ') . ')')
             : $selects->first();
     }
 
@@ -345,7 +334,7 @@ class LivewireDatatable extends Component
     {
         return [
             $column->select,
-            $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName(),
+            $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName() . ' AS ' . $column->name . '_edit_id',
         ];
     }
 
@@ -359,23 +348,18 @@ class LivewireDatatable extends Component
                     return $column;
                 }
 
-                if ($column->isType('checkbox')) {
-                    $column->select = $this->resolveCheckboxColumnName($column);
-
-                    return $column;
-                }
-
                 if (Str::startsWith($column->name, 'callback_')) {
-                    ray($column)->red();
                     $column->select = $this->resolveAdditionalSelects($column);
 
                     return $column;
                 }
 
                 $column->select = $this->resolveColumnName($column);
+
                 if ($column->isEditable()) {
                     $column->select = $this->resolveEditableColumnName($column);
                 }
+                // ray($column)->red();
 
                 return $column;
             })->when($withAlias, function ($columns) {
@@ -406,14 +390,14 @@ class LivewireDatatable extends Component
             });
     }
 
-    protected function resolveColumnName($column)
+    protected function resolveColumnName($column, $additional = null)
     {
         if ($column->isBaseColumn()) {
             return $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
         }
 
-        $relations = explode('.', Str::before($column->name, ':'));
-        $aggregate = Str::after($column->name, ':');
+        $relations = explode('.', Str::before(($additional ?: $column->name), ':'));
+        $aggregate = Str::after(($additional ?: $column->name), ':');
 
         if (! method_exists($this->query->getModel(), $relations[0])) {
             return $column->name;
@@ -431,8 +415,6 @@ class LivewireDatatable extends Component
                 ->pluck('table')
                 ->contains($relatedQuery->getRelation($relation)->getRelated()->getTable());
 
-            // BAIL HERE AND DO THE AGGREGATE THING
-
             if ($relatedQuery->getRelation($relation) instanceof HasMany || $relatedQuery->getRelation($relation) instanceof HasManyThrough || $relatedQuery->getRelation($relation) instanceof BelongsToMany) {
                 $this->query->customWithAggregate($aggregateName, $column->aggregate ?? 'count', $columnName, $column->name);
                 return null;
@@ -442,96 +424,6 @@ class LivewireDatatable extends Component
         }
 
         return $relatedQuery->getQuery()->from . '.' . $columnName;
-    }
-
-    protected function resolveRelationColumn($name, $aggregate = null, $alias = null)
-    {
-        $parts = explode('.', Str::before($name, ':'));
-        $columnName = array_pop($parts);
-        $relation = implode('.', $parts);
-
-        return  method_exists($this->query->getModel(), $parts[0])
-            ? $this->joinRelation($relation, $columnName, $aggregate, $alias ?? $name)
-            : $name;
-    }
-
-    protected function joinRelation($relation, $relationColumn, $aggregate = null, $alias = null)
-    {
-        $table = '';
-        $model = '';
-        $lastQuery = $this->query;
-        foreach (explode('.', $relation) as $eachRelation) {
-            $model = $lastQuery->getRelation($eachRelation);
-
-            switch (true) {
-                case $model instanceof HasOne:
-                    $table = $model->getRelated()->getTable();
-                    $foreign = $model->getQualifiedForeignKeyName();
-                    $other = $model->getQualifiedParentKeyName();
-                    break;
-
-                case $model instanceof HasMany:
-                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
-                    $table = null;
-                    break;
-
-                case $model instanceof BelongsTo:
-                    $table = $model->getRelated()->getTable();
-                    $foreign = $model->getQualifiedForeignKeyName();
-                    $other = $model->getQualifiedOwnerKeyName();
-                    break;
-
-                case $model instanceof BelongsToMany:
-                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
-                    $table = null;
-                    break;
-
-                case $model instanceof HasOneThrough:
-                    $pivot = explode('.', $model->getQualifiedParentKeyName())[0];
-                    $pivotPK = $model->getQualifiedFirstKeyName();
-                    $pivotFK = $model->getQualifiedLocalKeyName();
-                    $this->performJoin($pivot, $pivotPK, $pivotFK);
-
-                    $related = $model->getRelated();
-                    $table = $related->getTable();
-                    $tablePK = $related->getForeignKey();
-                    $foreign = $pivot . '.' . $tablePK;
-                    $other = $related->getQualifiedKeyName();
-
-                    break;
-
-                default:
-                    $this->query->customWithAggregate($relation, $aggregate ?? 'count', $relationColumn, $alias);
-            }
-            if ($table) {
-                $this->performJoin($table, $foreign, $other);
-            }
-            $lastQuery = $model->getQuery();
-        }
-
-        if ($model instanceof HasOne || $model instanceof BelongsTo || $model instanceof HasOneThrough) {
-            return $table . '.' . $relationColumn;
-        }
-
-        if ($model instanceof HasMany) {
-            return;
-        }
-
-        if ($model instanceof BelongsToMany) {
-            return;
-        }
-    }
-
-    protected function performJoin($table, $foreign, $other, $type = 'left')
-    {
-        $joins = [];
-        foreach ((array) $this->query->getQuery()->joins as $key => $join) {
-            $joins[] = $join->table;
-        }
-
-        if (! in_array($table, $joins)) {
-            $this->query->join($table, $foreign, '=', $other, $type);
-        }
     }
 
     public function getFreshColumnsProperty()
@@ -1524,10 +1416,8 @@ class LivewireDatatable extends Component
                         'value' => $value,
                         'key' => $this->builder()->getModel()->getQualifiedKeyName(),
                         'column' => Str::after($name, '.'),
-                        'rowId' => $row->{$this->builder()->getModel()->getTable() . '.' . $this->builder()->getModel()->getKeyName()} ?? $row->{$this->builder()->getModel()->getKeyName()},
+                        'rowId' => $row->{$name . '_edit_id'},
                     ]);
-                } elseif ($export && isset($this->export_callbacks[$name])) {
-                    $row->$name = $this->export_callbacks[$name]($value, $row);
                 } elseif (isset($this->callbacks[$name]) && is_string($this->callbacks[$name])) {
                     $row->$name = $this->{$this->callbacks[$name]}($value, $row);
                 } elseif (Str::startsWith($name, 'callback_')) {
@@ -1643,8 +1533,6 @@ class LivewireDatatable extends Component
 
     public function checkboxQuery()
     {
-        $this->resolveCheckboxColumnName(collect($this->freshColumns)->firstWhere('type', 'checkbox'));
-
         return $this->query->reorder()->get()->map(function ($row) {
             return (string) $row->checkbox_attribute;
         });

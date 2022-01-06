@@ -353,7 +353,7 @@ class Column
 
     public function isBaseColumn()
     {
-        return ! Str::contains($this->name, '.') && ! $this->raw;
+        return ! Str::startsWith($this->name, 'callback_') && ! Str::contains($this->name, '.') && ! $this->raw;
     }
 
     public function field()
