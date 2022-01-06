@@ -414,8 +414,6 @@ class Column
                 $query->leftJoinRelation($model);
             }
 
-
-
             $lastQuery = $model->getQuery();
         }
 

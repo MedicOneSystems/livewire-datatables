@@ -435,6 +435,7 @@ class LivewireDatatable extends Component
 
             if ($relatedQuery->getRelation($relation) instanceof HasMany || $relatedQuery->getRelation($relation) instanceof HasManyThrough || $relatedQuery->getRelation($relation) instanceof BelongsToMany) {
                 $this->query->customWithAggregate($aggregateName, $column->aggregate ?? 'count', $columnName, $column->name);
+
                 return null;
             }
 
