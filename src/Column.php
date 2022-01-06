@@ -373,55 +373,6 @@ class Column
         return $this;
     }
 
-    public function resolveName($query)
-    {
-        return $this->isBaseColumn()
-        ? $query->getModel()->getTable() . '.' . ($this->base ?? Str::before($this->name, ':'))
-        : $this->joinRelations($query);
-    }
-
-    public function joinRelations($query)
-    {
-        $parts = explode('.', Str::before($this->name, ':'));
-
-        $columnName = array_pop($parts);
-        // callsign
-
-        $relation = implode('.', $parts);
-        // job.crew
-
-        $table = '';
-        $model = '';
-        $lastQuery = $query;
-        foreach (explode('.', $relation) as $eachRelation) {
-            $model = $lastQuery->getRelation($eachRelation);
-
-            ray(
-                $eachRelation,
-                $lastQuery
-            //     collect($lastQuery->getQuery()->joins)->pluck('table'),
-            //     $model->getQuery()->from,
-            //     collect($lastQuery->getQuery()->joins)->pluck('table')->contains(
-            //         $model->getQuery()->from
-            //     )
-            )->purple();
-            if (
-                ! collect($lastQuery->getQuery()->joins)->pluck('table')->contains(
-                    $model->getQuery()->from
-                )
-            ) {
-                ray($eachRelation, collect($lastQuery->getQuery()->joins)->pluck('table'), $model->getQuery()->from)->red();
-                $query->leftJoinRelation($model);
-            }
-
-
-
-            $lastQuery = $model->getQuery();
-        }
-
-        return $lastQuery->getQuery()->from . '.' . $columnName;
-    }
-
     public function relations()
     {
         return $this->isBaseColumn() ? null : collect(explode('.', Str::beforeLast($this->name, '.')));
