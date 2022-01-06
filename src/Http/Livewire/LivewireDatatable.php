@@ -390,13 +390,13 @@ class LivewireDatatable extends Component
                 }
 
                 if (Str::startsWith($column->name, 'callback_')) {
+                    ray($column)->red();
                     $column->select = $this->resolveAdditionalSelects($column);
 
                     return $column;
                 }
 
                 $column->select = $this->resolveColumnName($column);
-
                 if ($column->isEditable()) {
                     $column->select = $this->resolveEditableColumnName($column);
                 }
