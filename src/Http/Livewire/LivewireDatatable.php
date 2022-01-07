@@ -355,7 +355,6 @@ class LivewireDatatable extends Component
                 if ($column->isEditable()) {
                     $column->select = $this->resolveEditableColumnName($column);
                 }
-                // ray($column)->red();
 
                 return $column;
             })->when($withAlias, function ($columns) {
@@ -396,7 +395,7 @@ class LivewireDatatable extends Component
         $aggregate = Str::after(($additional ?: $column->name), ':');
 
         if (! method_exists($this->query->getModel(), $relations[0])) {
-            return $column->name;
+            return ($additional ?: $column->name);
         }
 
         $columnName = array_pop($relations);
