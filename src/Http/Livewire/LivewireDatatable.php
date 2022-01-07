@@ -395,7 +395,7 @@ class LivewireDatatable extends Component
         $aggregate = Str::after(($additional ?: $column->name), ':');
 
         if (! method_exists($this->query->getModel(), $relations[0])) {
-            return ($additional ?: $column->name);
+            return $additional ?: $column->name;
         }
 
         $columnName = array_pop($relations);
