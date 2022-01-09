@@ -231,7 +231,7 @@ class LivewireDatatable extends Component
         $this->initialiseFilters();
         $this->initialisePerPage();
         $this->initialiseColumnGroups();
-	$this->model = is_null($this->model) ? get_class($this->builder()->getModel()) : $this->model;
+        $this->model = is_null($this->model) ? get_class($this->builder()->getModel()) : $this->model;
     }
 
     // save settings
