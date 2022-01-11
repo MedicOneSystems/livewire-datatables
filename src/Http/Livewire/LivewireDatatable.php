@@ -184,7 +184,7 @@ class LivewireDatatable extends Component
     }
 
     public function mount(
-        $model = null,
+        $model = false,
         $include = [],
         $exclude = [],
         $hide = [],
@@ -231,6 +231,7 @@ class LivewireDatatable extends Component
         $this->initialiseFilters();
         $this->initialisePerPage();
         $this->initialiseColumnGroups();
+        $this->model = $this->model ?: get_class($this->builder()->getModel());
     }
 
     // save settings
