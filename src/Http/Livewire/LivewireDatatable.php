@@ -56,6 +56,7 @@ class LivewireDatatable extends Component
     public $selected = [];
     public $beforeTableSlot;
     public $afterTableSlot;
+    public $buttonsSlot;
     public $complex;
     public $complexQuery;
     public $title;
@@ -200,6 +201,7 @@ class LivewireDatatable extends Component
         $hideable = false,
         $beforeTableSlot = false,
         $afterTableSlot = false,
+        $buttonsSlot = false,
         $params = []
     ) {
         foreach ([
@@ -217,6 +219,7 @@ class LivewireDatatable extends Component
             'hideable',
             'beforeTableSlot',
             'afterTableSlot',
+            'buttonsSlot',
         ] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
