@@ -113,9 +113,7 @@ class LivewireDatatable extends Component
 
         if (isset($options['hiddenColumns']) && is_array($options['hiddenColumns'])) {
             // first display all columns,
-            foreach ($this->columns as $key => $column) {
-                $this->columns[$key]['hidden'] = false;
-            }
+            $this->resetHiddenColumns();
 
             // then hide all columns that should be hidden:
             foreach ($options['hiddenColumns'] as $columnToHide) {
@@ -140,6 +138,7 @@ class LivewireDatatable extends Component
     public function resetTable()
     {
         $this->perPage = config('livewire-datatables.default_per_page', 10);
+        $this->sort = $this->defaultSort();
         $this->search = null;
         $this->page = 1;
         $this->activeSelectFilters = [];
@@ -149,7 +148,19 @@ class LivewireDatatable extends Component
         $this->activeBooleanFilters = [];
         $this->activeNumberFilters = [];
         $this->hide = null;
+        $this->resetHiddenColumns();
         $this->selected = [];
+    }
+
+    /**
+     * Display all columns, also those that are currently hidden.
+     * Should get called when resetting the table.
+     */
+    public function resetHiddenColumns()
+    {
+        foreach ($this->columns as $key => $column) {
+            $this->columns[$key]['hidden'] = false;
+        }
     }
 
     public function updatedSearch()
