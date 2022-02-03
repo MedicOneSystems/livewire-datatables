@@ -52,7 +52,7 @@ somewhere in your CSS
 ```html
 ...
 
-<livewire:datatable model="App\User" />
+<livewire:datatable model="App\User" name="all-my-users" />
 
 ...
 ```
@@ -62,10 +62,13 @@ somewhere in your CSS
 ```html
 <livewire:datatable
     model="App\User"
+    name="users"
     include="id, name, dob, created_at"
     dates="dob"
 />
 ```
+
+- *Attention*: Please note that having multiple datatables on the same page _or_ more than one datatable of the same type on different pages needs to have a unique `name` attribute assigned to each one so they do not conflict with each other as in the example above.
 
 ### Props
 | Property | Arguments | Result | Example |
@@ -99,7 +102,6 @@ somewhere in your CSS
 > ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
 
 ### Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
-
 
 ## Columns
 Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
