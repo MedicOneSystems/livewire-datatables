@@ -238,7 +238,7 @@ class LivewireDatatable extends Component
 
         $this->columns = $this->getViewColumns();
         $this->actions = $this->getMassActions();
-      
+        
         $this->initialiseSearch();
         $this->initialiseSort();
         $this->initialiseHiddenColumns();
