@@ -98,6 +98,9 @@ class ColumnTest extends TestCase
             'filterOn' => null,
             'group' => null,
             'hideable' => null,
+            'index' => 0,
+            'minWidth' => null,
+            'maxWidth' => null,
         ], $subject);
     }
 
@@ -138,6 +141,9 @@ class ColumnTest extends TestCase
             'filterOn' => null,
             'group' => null,
             'hideable' => null,
+            'index' => 0,
+            'minWidth' => null,
+            'maxWidth' => null,
         ], $subject);
     }
 
@@ -168,7 +174,6 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => null,
             'joins' => null,
-
             'aggregate' => 'group_concat',
             'align' => 'left',
             'preventExport' => null,
@@ -178,6 +183,9 @@ class ColumnTest extends TestCase
             'filterOn' => null,
             'group' => null,
             'hideable' => null,
+            'index' => 0,
+            'minWidth' => null,
+            'maxWidth' => null,
         ], $subject);
     }
 
