@@ -268,6 +268,7 @@ class LivewireDatatable extends Component
                 'hidden',
                 'label',
                 'group',
+                'summary',
                 'content',
                 'align',
                 'type',
@@ -710,6 +711,34 @@ class LivewireDatatable extends Component
                     ? new Expression('"' . $column['name'] . '"')
                     : new Expression('`' . $column['name'] . '`');
                 break;
+        }
+    }
+
+    /**
+     * @return bool has the user defined at least one column to display a summary row?
+     */
+    public function hasSummaryRow()
+    {
+        foreach ($this->columns as $column) {
+            if ($column['summary']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Attempt so summarize each data cell of the given column.
+     * In case we have a string or any other value that is not summarizable,
+     * we return a empty string.
+     */
+    public function summarize($column)
+    {
+        try {
+            return $this->results->sum($column);
+        } catch (\TypeError $e) {
+            return '';
         }
     }
 

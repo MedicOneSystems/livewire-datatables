@@ -160,7 +160,10 @@ class ComplexDemoTable extends LivewireDatatable
 
             (new LabelColumn())
                 ->label('My custom heading')
-                ->content('This fixed string appears in every row')
+                ->content('This fixed string appears in every row'),
+
+            NumberColumn::name('dollars_spent')
+                ->enableSummary(),
         ];
     }
 }
@@ -239,6 +242,23 @@ public function columns()
             ->group('group2')
             ->label('Planet'),
 ```
+
+### Summary row
+If you need to summarize all cells of a specific column, you can use `enableSummary()`:
+
+```php
+public function columns()
+{
+    return [
+        Column::name('dollars_spent')
+            ->label('Expenses in Dollar')
+            ->enableSummary(),
+
+        Column::name('euro_spent')
+            ->label('Expenses in Euro')
+            ->enableSummary(),
+```
+
 
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
