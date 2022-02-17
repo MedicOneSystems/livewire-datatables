@@ -103,12 +103,7 @@
                                     <div class="table-cell w-5 overflow-hidden align-top bg-blue-100"></div>
                                 @endif
                             @elseif($column['type'] === 'checkbox')
-                                <div class="overflow-hidden align-top bg-blue-100 px-6 py-5 border-b border-gray-200 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex h-full flex-col items-center space-y-2 focus:outline-none">
-                                    <div>SELECT ALL</div>
-                                    <div>
-                                        <input type="checkbox" wire:click="toggleSelectAll" @if(count($selected) === $this->results->total()) checked @endif class="form-checkbox mt-1 h-4 w-4 text-blue-600 transition duration-150 ease-in-out" />
-                                    </div>
-                                </div>
+                                @include('datatables::filters.checkbox')
                             @elseif($column['type'] === 'label')
                                 <div class="table-cell overflow-hidden align-top">
                                     {{ $column['label'] ?? '' }}
