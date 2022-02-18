@@ -145,9 +145,9 @@ class Column
 
     public function disableSummary()
     {
-   	$this->summary = false;
+        $this->summary = false;
 
-	return $this;
+        return $this;
     }
 
     public function setIndex($index)
@@ -156,12 +156,12 @@ class Column
 
         return $this;
     }
-    
+
     public function tooltip($text, $label = null)
     {
         $this->tooltip = [
             'text' => $text,
-            'label' => $label
+            'label' => $label,
         ];
 
         return $this;

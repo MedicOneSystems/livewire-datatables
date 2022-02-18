@@ -1088,6 +1088,7 @@ class LivewireDatatable extends Component
     public function getResultsProperty()
     {
         $this->row = 1;
+
         return $this->mapCallbacks(
             $this->getQuery()->paginate($this->perPage)
         );
