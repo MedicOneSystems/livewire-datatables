@@ -54,7 +54,7 @@ somewhere in your CSS
 ```html
 ...
 
-<livewire:datatable model="App\User" />
+<livewire:datatable model="App\User" name="all-users" />
 
 ...
 ```
@@ -64,10 +64,15 @@ somewhere in your CSS
 ```html
 <livewire:datatable
     model="App\User"
+    name="users"
     include="id, name, dob, created_at"
     dates="dob"
 />
 ```
+
+*Attention*: Please note that having multiple datatables on the same page _or_ more than one datatable of the same
+type on different pages needs to have a unique `name` attribute assigned to each one so they do not conflict with each
+other as in the example above.
 
 ### Props
 | Property | Arguments | Result | Example |
