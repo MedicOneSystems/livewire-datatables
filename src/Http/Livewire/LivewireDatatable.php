@@ -267,6 +267,7 @@ class LivewireDatatable extends Component
                 'index',
                 'hidden',
                 'label',
+                'tooltip',
                 'group',
                 'summary',
                 'content',
