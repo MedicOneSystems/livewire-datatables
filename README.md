@@ -10,6 +10,8 @@
 - Filter using booleans, times, dates, selects or free text
 - Create complex combined filters using the [complex query builder](#complex-query-builder)
 - Show / hide columns
+- Column groups
+- Mass Action (Bulk) Support
 
 ## [Live Demo App](https://livewire-datatables.com)
 
@@ -18,7 +20,7 @@
 ![screenshot](resources/images/screenshot.png "Screenshot")
 
 ## Requirements
-- [Laravel 7](https://laravel.com/docs/7.x)
+- [Laravel 7, 8 or 9](https://laravel.com/docs/9.x)
 - [Livewire](https://laravel-livewire.com/)
 - [Tailwind](https://tailwindcss.com/)
 - [Alpine JS](https://github.com/alpinejs/alpine)
@@ -52,7 +54,7 @@ somewhere in your CSS
 ```html
 ...
 
-<livewire:datatable model="App\User" name="all-my-users" />
+<livewire:datatable model="App\User" />
 
 ...
 ```
@@ -62,13 +64,10 @@ somewhere in your CSS
 ```html
 <livewire:datatable
     model="App\User"
-    name="users"
     include="id, name, dob, created_at"
     dates="dob"
 />
 ```
-
-- *Attention*: Please note that having multiple datatables on the same page _or_ more than one datatable of the same type on different pages needs to have a unique `name` attribute assigned to each one so they do not conflict with each other as in the example above.
 
 ### Props
 | Property | Arguments | Result | Example |
@@ -160,7 +159,10 @@ class ComplexDemoTable extends LivewireDatatable
 
             (new LabelColumn())
                 ->label('My custom heading')
-                ->content('This fixed string appears in every row')
+                ->content('This fixed string appears in every row'),
+
+            NumberColumn::name('dollars_spent')
+                ->enableSummary(),
         ];
     }
 }
@@ -238,6 +240,50 @@ public function columns()
         Column::name('planets.name')
             ->group('group2')
             ->label('Planet'),
+```
+
+### Summary row
+If you need to summarize all cells of a specific column, you can use `enableSummary()`:
+
+```php
+public function columns()
+{
+    return [
+        Column::name('dollars_spent')
+            ->label('Expenses in Dollar')
+            ->enableSummary(),
+
+        Column::name('euro_spent')
+            ->label('Expenses in Euro')
+            ->enableSummary(),
+```
+
+### Mass (Bulk) Action
+
+If you want to be able to act upon several records at once, you can use the `buildActions()` method in your Table:
+
+```php
+public function buildActions()
+    {
+        return [
+
+            Action::value('edit')->label('Edit Selected')->group('Default Options')->callback(function ($mode, $items) {
+                // $items contains an array with the primary keys of the selected items
+            }),
+
+            Action::value('update')->label('Update Selected')->group('Default Options')->callback(function ($mode, $items) {
+                // $items contains an array with the primary keys of the selected items
+            }),
+
+            Action::groupBy('Export Options', function () {
+                return [
+                    Action::value('csv')->label('Export CSV')->export('SalesOrders.csv'),
+                    Action::value('html')->label('Export HTML')->export('SalesOrders.html'),
+                    Action::value('xlsx')->label('Export XLSX')->export('SalesOrders.xlsx')->styles($this->exportStyles)->widths($this->exportWidths)
+                ];
+            }),
+        ];
+    }
 ```
 
 ### Custom column names
