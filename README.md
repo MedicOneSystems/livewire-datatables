@@ -10,6 +10,8 @@
 - Filter using booleans, times, dates, selects or free text
 - Create complex combined filters using the [complex query builder](#complex-query-builder)
 - Show / hide columns
+- Column groups
+- Mass Action (Bulk) Support
 
 ## [Live Demo App](https://livewire-datatables.com)
 
@@ -18,7 +20,7 @@
 ![screenshot](resources/images/screenshot.png "Screenshot")
 
 ## Requirements
-- [Laravel 7](https://laravel.com/docs/7.x)
+- [Laravel 7, 8 or 9](https://laravel.com/docs/9.x)
 - [Livewire](https://laravel-livewire.com/)
 - [Tailwind](https://tailwindcss.com/)
 - [Alpine JS](https://github.com/alpinejs/alpine)
@@ -52,7 +54,7 @@ somewhere in your CSS
 ```html
 ...
 
-<livewire:datatable model="App\User" name="all-my-users" />
+<livewire:datatable model="App\User" name="all-users" />
 
 ...
 ```
@@ -68,7 +70,9 @@ somewhere in your CSS
 />
 ```
 
-- *Attention*: Please note that having multiple datatables on the same page _or_ more than one datatable of the same type on different pages needs to have a unique `name` attribute assigned to each one so they do not conflict with each other as in the example above.
+*Attention*: Please note that having multiple datatables on the same page _or_ more than one datatable of the same
+type on different pages needs to have a unique `name` attribute assigned to each one so they do not conflict with each
+other as in the example above.
 
 ### Props
 | Property | Arguments | Result | Example |
@@ -259,6 +263,56 @@ public function columns()
             ->enableSummary(),
 ```
 
+### Mass (Bulk) Action
+
+If you want to be able to act upon several records at once, you can use the `buildActions()` method in your Table:
+
+```php
+public function buildActions()
+    {
+        return [
+
+            Action::value('edit')->label('Edit Selected')->group('Default Options')->callback(function ($mode, $items) {
+                // $items contains an array with the primary keys of the selected items
+            }),
+
+            Action::value('update')->label('Update Selected')->group('Default Options')->callback(function ($mode, $items) {
+                // $items contains an array with the primary keys of the selected items
+            }),
+
+            Action::groupBy('Export Options', function () {
+                return [
+                    Action::value('csv')->label('Export CSV')->export('SalesOrders.csv'),
+                    Action::value('html')->label('Export HTML')->export('SalesOrders.html'),
+                    Action::value('xlsx')->label('Export XLSX')->export('SalesOrders.xlsx')->styles($this->exportStyles)->widths($this->exportWidths)
+                ];
+            }),
+        ];
+    }
+```
+
+### Mass Action Style
+
+If you only have small style adjustments to the Bulk Action Dropdown you can adjust some settings here:
+
+```php
+public function getExportStylesProperty()
+    {
+        return [
+            '1'  => ['font' => ['bold' => true]],
+            'B2' => ['font' => ['italic' => true]],
+            'C'  => ['font' => ['size' => 16]],
+        ];
+    }
+
+    public function getExportWidthsProperty()
+    {
+        return [
+            'A' => 55,
+            'B' => 45,
+        ];
+    }
+```
 
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:

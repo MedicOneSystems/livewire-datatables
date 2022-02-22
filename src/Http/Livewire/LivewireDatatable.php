@@ -16,7 +16,6 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
@@ -71,6 +70,9 @@ class LivewireDatatable extends Component
     public $row = 1;
 
     public $tablePrefix = '';
+
+    public $actions;
+    public $massActionOption;
 
     /**
      * @var array List your groups and the corresponding label (or translation) here.
@@ -235,7 +237,7 @@ class LivewireDatatable extends Component
         $this->params = $params;
 
         $this->columns = $this->getViewColumns();
-
+        $this->actions = $this->getMassActions();
         $this->initialiseSearch();
         $this->initialiseSort();
         $this->initialiseHiddenColumns();
@@ -1635,7 +1637,14 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        $results = $this->mapCallbacks(
+        $export = new DatatableExport($this->getExportResultsSet());
+
+        return $export->download();
+    }
+
+    public function getExportResultsSet()
+    {
+        return $this->mapCallbacks(
             $this->getQuery()->when(count($this->selected), function ($query) {
                 return $query->havingRaw('checkbox_attribute IN (' . implode(',', $this->selected) . ')');
             })->get(),
@@ -1647,8 +1656,6 @@ class LivewireDatatable extends Component
                 return [$value['label'] ?? $value['name'] => $item->{$value['name']}];
             })->all();
         });
-
-        return Excel::download(new DatatableExport($results), $this->export_name ? $this->export_name . '.xlsx' : 'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)
@@ -1697,6 +1704,11 @@ class LivewireDatatable extends Component
         // Override this method with your own method for getting saved queries
     }
 
+    public function buildActions()
+    {
+        // Override this method with your own method for creating mass actions
+    }
+
     public function rowClasses($row, $loop)
     {
         // Override this method with your own method for adding classes to a row
@@ -1715,5 +1727,72 @@ class LivewireDatatable extends Component
     {
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
+    }
+
+    public function getMassActions()
+    {
+        return collect($this->massActions)->map(function ($action) {
+            return collect($action)->only(['group', 'value', 'label'])->toArray();
+        })->toArray();
+    }
+
+    public function getMassActionsProperty()
+    {
+        $actions = collect($this->buildActions())->flatten();
+
+        $duplicates = $actions->pluck('value')->duplicates();
+
+        if ($duplicates->count()) {
+            throw new Exception('Duplicate Mass Action(s): ' . implode(', ', $duplicates->toArray()));
+        }
+
+        return $actions->toArray();
+    }
+
+    public function getMassActionsOptionsProperty()
+    {
+        return collect($this->actions)->groupBy(function ($item) {
+            return $item['group'];
+        }, true);
+    }
+
+    public function massActionOptionHandler()
+    {
+        if (! $this->massActionOption) {
+            return;
+        }
+
+        $option = $this->massActionOption;
+
+        $action = collect($this->massActions)->filter(function ($item) use ($option) {
+            return $item->value === $option;
+        })->shift();
+
+        $collection = collect($action);
+
+        if ($collection->get('isExport')) {
+            $datatableExport = new DatatableExport($this->getExportResultsSet());
+
+            $datatableExport->setFileName($collection->get('fileName'));
+
+            $datatableExport->setStyles($collection->get('styles'));
+
+            $datatableExport->setColumnWidths($collection->get('widths'));
+
+            return $datatableExport->download();
+        }
+
+        if (! count($this->selected)) {
+            $this->massActionOption = null;
+
+            return;
+        }
+
+        if ($collection->has('callable') && is_callable($action->callable)) {
+            $action->callable($option, $this->selected);
+        }
+
+        $this->massActionOption = null;
+        $this->selected = [];
     }
 }
