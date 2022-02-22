@@ -291,6 +291,29 @@ public function buildActions()
     }
 ```
 
+### Mass Action Style
+
+If you only have small style adjustments to the Bulk Action Dropdown you can adjust some settings here:
+
+```php
+public function getExportStylesProperty()
+    {
+        return [
+            '1'  => ['font' => ['bold' => true]],
+            'B2' => ['font' => ['italic' => true]],
+            'C'  => ['font' => ['size' => 16]],
+        ];
+    }
+
+    public function getExportWidthsProperty()
+    {
+        return [
+            'A' => 55,
+            'B' => 45,
+        ];
+    }
+```
+
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
 
