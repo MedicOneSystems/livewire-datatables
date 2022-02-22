@@ -267,6 +267,7 @@ class LivewireDatatable extends Component
                 'index',
                 'hidden',
                 'label',
+                'tooltip',
                 'group',
                 'summary',
                 'content',
@@ -769,10 +770,13 @@ class LivewireDatatable extends Component
             if ($direction === null) { // toggle direction
                 $this->direction = ! $this->direction;
             } else {
-                $this->direction = $direction === 'desc' ? false : true;
+                $this->direction = $direction === 'asc' ? true : false;
             }
         } else {
             $this->sort = (int) $index;
+        }
+        if ($direction !== null) {
+            $this->direction = $direction === 'asc' ? true : false;
         }
         $this->setPage(1);
 

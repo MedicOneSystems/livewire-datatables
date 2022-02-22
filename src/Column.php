@@ -11,6 +11,7 @@ class Column
     public $type = 'string';
     public $index = 0;
     public $label;
+    public $tooltip;
     public $name;
     public $select;
     public $joins;
@@ -152,6 +153,16 @@ class Column
     public function setIndex($index)
     {
         $this->index = $index;
+
+        return $this;
+    }
+
+    public function tooltip($text, $label = null)
+    {
+        $this->tooltip = [
+            'text' => $text,
+            'label' => $label,
+        ];
 
         return $this;
     }

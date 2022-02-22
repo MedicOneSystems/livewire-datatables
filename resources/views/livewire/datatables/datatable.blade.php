@@ -5,20 +5,20 @@
         </div>
     @endif
     <div class="relative">
-        <div class="flex justify-between items-center mb-1">
-            <div class="h-10 flex items-center">
+        <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center h-10">
                 @if($this->searchableColumns()->count())
-                <div class="w-96 flex rounded-lg shadow-sm">
+                <div class="flex rounded-lg w-96 shadow-sm">
                     <div class="relative flex-grow focus-within:z-10">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" stroke="currentColor" fill="none">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
-                        <input wire:model.debounce.500ms="search" class="w-full pl-10 py-3 text-sm leading-4 block rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 focus:outline-none" placeholder="{{__('Search in')}} {{ $this->searchableColumns()->map->label->join(', ') }}" type="text" />
-                        <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                        <input wire:model.debounce.500ms="search" class="block w-full py-3 pl-10 text-sm border-gray-300 leading-4 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 focus:outline-none" placeholder="{{__('Search in')}} {{ $this->searchableColumns()->map->label->join(', ') }}" type="text" />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2">
                             <button wire:click="$set('search', null)" class="text-gray-300 hover:text-red-600 focus:outline-none">
-                                <x-icons.x-circle class="h-5 w-5 stroke-current" />
+                                <x-icons.x-circle class="w-5 h-5 stroke-current" />
                             </button>
                         </div>
                     </div>
@@ -31,10 +31,10 @@
             @endif
 
             <div class="flex flex-wrap items-center space-x-1">
-                <x-icons.cog wire:loading class="h-9 w-9 animate-spin text-gray-400" />
+                <x-icons.cog wire:loading class="text-gray-400 h-9 w-9 animate-spin" />
 
                 @if($this->activeFilters)
-                <button wire:click="clearAllFilters" class="flex items-center space-x-2 px-3 border border-red-400 rounded-md bg-white text-red-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-red-200 focus:outline-none"><span>{{ __('Reset') }}</span>
+                <button wire:click="clearAllFilters" class="flex items-center px-3 text-xs font-medium tracking-wider text-red-500 uppercase bg-white border border-red-400 space-x-2 rounded-md leading-4 hover:bg-red-200 focus:outline-none"><span>{{ __('Reset') }}</span>
                     <x-icons.x-circle class="m-2" />
                 </button>
                 @endif
@@ -43,7 +43,7 @@
                 <div x-data="{ init() {
                     window.livewire.on('startDownload', link => window.open(link, '_blank'))
                 } }" x-init="init">
-                    <button wire:click="export" class="flex items-center space-x-2 px-3 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none"><span>{{ __('Export') }}</span>
+                    <button wire:click="export" class="flex items-center px-3 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 space-x-2 rounded-md leading-4 hover:bg-green-200 focus:outline-none"><span>{{ __('Export') }}</span>
                         <x-icons.excel class="m-2" /></button>
                 </div>
                 @endif
@@ -54,7 +54,7 @@
 
                 @foreach ($columnGroups as $name => $group)
                     <button wire:click="toggleGroup('{{ $name }}')"
-                        class="px-3 py-2 border border-green-400 rounded-md bg-white text-green-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-green-200 focus:outline-none">
+                        class="px-3 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none">
                         <span class="flex items-center h-5">{{ isset($this->groupLabels[$name]) ? __($this->groupLabels[$name]) : __('Toggle :group', ['group' => $name]) }}</span>
                     </button>
                 @endforeach
@@ -76,7 +76,7 @@
 
         <div wire:loading.class="opacity-50" class="rounded-lg @unless($complex || $this->hidePagination) rounded-b-none @endunless shadow-lg bg-white max-w-screen overflow-x-scroll border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
             <div>
-                <div class="table align-middle min-w-full">
+                <div class="table min-w-full align-middle">
                     @unless($this->hideHeader)
                     <div class="table-row divide-x divide-gray-200">
                         @foreach($this->columns as $index => $column)
@@ -84,7 +84,7 @@
                                 @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
                             @elseif($column['type'] === 'checkbox')
                                 @unless($column['hidden'])
-                                    <div class=" table-cell h-12 w-32 py-4 flex justify-center overflow-hidden align-top px-6 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider focus:outline-none">
+                                    <div class="flex justify-center table-cell w-32 h-12 px-6 py-4 overflow-hidden text-xs font-medium tracking-wider text-left text-gray-500 uppercase align-top border-b border-gray-200 bg-gray-50 leading-4 focus:outline-none">
                                         <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
                                             {{ count($selected) }}
                                         </div>
@@ -96,7 +96,7 @@
                         @endforeach
                     </div>
 
-                    <div class="table-row divide-x divide-blue-200 bg-blue-100">
+                    <div class="table-row bg-blue-100 divide-x divide-blue-200">
                         @foreach($this->columns as $index => $column)
                             @if($column['hidden'])
                                 @if($hideable === 'inline')
@@ -169,11 +169,11 @@
 
         @unless($this->hidePagination)
             <div class="max-w-screen bg-white @unless($complex) rounded-b-lg @endunless border-4 border-t-0 border-b-0 @if($this->activeFilters) border-blue-500 @else border-transparent @endif">
-                <div class="p-2 sm:flex items-center justify-between">
+                <div class="items-center justify-between p-2 sm:flex">
                     {{-- check if there is any data --}}
                     @if(count($this->results))
-                        <div class="my-2 sm:my-0 flex items-center">
-                            <select name="perPage" class="mt-1 form-select block w-full pl-3 pr-10 py-2 text-base leading-6 border-gray-300 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5" wire:model="perPage">
+                        <div class="flex items-center my-2 sm:my-0">
+                            <select name="perPage" class="block w-full py-2 pl-3 pr-10 mt-1 text-base border-gray-300 form-select leading-6 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5" wire:model="perPage">
                                 @foreach(config('livewire-datatables.per_page_options', [ 10, 25, 50, 100 ]) as $per_page_option)
                                     <option value="{{ $per_page_option }}">{{ $per_page_option }}</option>
                                 @endforeach
@@ -186,7 +186,7 @@
                                 <span class="space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
                             </div>
 
-                            <div class="hidden lg:flex justify-center">
+                            <div class="justify-center hidden lg:flex">
                                 <span>{{ $this->results->links('datatables::tailwind-pagination') }}</span>
                             </div>
                         </div>
@@ -212,5 +212,5 @@
         @include($afterTableSlot)
     </div>
     @endif
-    <span class="hidden text-sm leading-5 text-gray-900 text-left text-center text-right bg-gray-50 bg-gray-100 bg-yellow-100"></span>
+    <span class="hidden text-sm text-left text-center text-right text-gray-900 bg-gray-100 bg-yellow-100 leading-5 bg-gray-50"></span>
 </div>
