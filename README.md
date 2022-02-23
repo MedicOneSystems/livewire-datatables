@@ -314,6 +314,30 @@ public function getExportStylesProperty()
     }
 ```
 
+### Pin Records
+
+If you want to give your users the ability to pin specific records to be able to, for example, compare
+them with each other, you can use the CanPinRecords trait. Ensure to have at least one Checkbox Column
+so the user can select records:
+
+```php
+use Mediconesystems\LivewireDatatables\Traits\CanPinRecords;
+
+class RecordTable extends LivewireDatatable
+{
+    use CanPinRecords;
+
+    public $model = Record::class;
+
+    public function columns()
+    {
+        return [
+            Column::checkbox(),
+
+            // ...
+
+```
+
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
 
@@ -342,7 +366,6 @@ public function columns()
 }
 
 ```
-
 
 ### Callbacks
 Callbacks give you the freedom to perform any mutations you like on the data before displaying in the table.

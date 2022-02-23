@@ -121,22 +121,7 @@
                                 @endif
                             @endforeach
                         </div>
-
-                        <div class="table-row bg-blue-100 divide-x divide-blue-200">
-                            @foreach($this->columns as $index => $column)
-                                @if($column['hidden'])
-                                    @if($hideable === 'inline')
-                                        <div class="table-cell w-5 overflow-hidden align-top bg-blue-100"></div>
-                                    @endif
-                                @elseif($column['type'] === 'checkbox')
-                                    @include('datatables::filters.checkbox')
-                                @endunless
-                            @else
-                                @include('datatables::header-no-hide', ['column' => $column, 'sort' => $sort])
-                            @endif
-                        @endforeach
-                    </div>
-
+                    @endunless
                     <div class="table-row bg-blue-100 divide-x divide-blue-200">
                         @foreach($this->columns as $index => $column)
                             @if($column['hidden'])
@@ -166,7 +151,6 @@
                                 @endif
                             @endforeach
                         </div>
-                    @endif
                     @forelse($this->results as $row)
                         <div class="table-row p-1 {{ $this->rowClasses($row, $loop) }}">
                             @foreach($this->columns as $column)
