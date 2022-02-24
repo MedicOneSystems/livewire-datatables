@@ -20,7 +20,7 @@ trait CanPinRecords
 {
     public array $pinnedRecords = [];
 
-    public string $sessionKeyPrefix = '_pinned_records';
+    public string $sessionKeyPostfix = '_pinned_records';
 
     public function buildActions()
     {
@@ -45,6 +45,12 @@ trait CanPinRecords
         ]);
     }
 
+    public function resetTable()
+    {
+        parent::resetTable();
+        $this->pinnedRecords = [];
+    }
+
     protected function initialisePinnedRecords()
     {
         if (session()->has($this->sessionKey())) {
@@ -54,8 +60,23 @@ trait CanPinRecords
         $this->selected = $this->pinnedRecords;
     }
 
+    /**
+     * This function should be called after every filter method to ensure pinned records appear
+     * in every possible filter combination.
+     * Ensures to have at least _one other_ where applied to the current query build
+     * to apply this orWhere() on top of that.
+     */
+    protected function applyPinnedRecords(): self
+    {
+        if (isset($this->pinnedRecords) && $this->pinnedRecords && $this->query->getQuery()->wheres) {
+            $this->query->orWhereIn('id', $this->pinnedRecords);
+        }
+
+        return $this;
+    }
+
     private function sessionKey(): string
     {
-        return $this->sessionStorageKey() . $this->sessionKeyPrefix;
+        return $this->sessionStorageKey() . $this->sessionKeyPostfix;
     }
 }

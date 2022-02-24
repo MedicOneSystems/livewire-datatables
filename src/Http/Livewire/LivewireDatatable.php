@@ -179,9 +179,6 @@ class LivewireDatatable extends Component
         $this->hide = null;
         $this->resetHiddenColumns();
         $this->selected = [];
-        if (isset($this->pinnedRecords)) {
-            $this->pinnedRecords = [];
-        }
     }
 
     /**
@@ -1187,6 +1184,7 @@ class LivewireDatatable extends Component
             ->addDateRangeFilter()
             ->addTimeRangeFilter()
             ->addComplexQuery()
+            ->applyPinnedRecords()
             ->addSort();
     }
 
