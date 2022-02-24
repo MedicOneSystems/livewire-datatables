@@ -1184,8 +1184,11 @@ class LivewireDatatable extends Component
             ->addDateRangeFilter()
             ->addTimeRangeFilter()
             ->addComplexQuery()
-            ->applyPinnedRecords()
             ->addSort();
+
+        if (isset($this->pinnedRecors)) {
+            $this->applyPinnedRecords();
+        }
     }
 
     public function complexQuery($rules)
