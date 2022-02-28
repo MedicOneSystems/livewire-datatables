@@ -156,6 +156,9 @@ class ComplexDemoTable extends LivewireDatatable
                 ->hideable()
                 ->filterable($this->planets),
 
+            // Column that counts every line from 1 upwards, independent of content
+            Column::index($this);
+
             DateColumn::name('dob')
                 ->label('DOB')
                 ->group('group2')
