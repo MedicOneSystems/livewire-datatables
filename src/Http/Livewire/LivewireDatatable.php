@@ -16,7 +16,6 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\ColumnSet;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
@@ -73,6 +72,9 @@ class LivewireDatatable extends Component
 
     public $tablePrefix = '';
 
+    public $actions;
+    public $massActionOption;
+
     /**
      * @var array List your groups and the corresponding label (or translation) here.
      *            The label can be a i18n placeholder like 'app.my_string' and it will be automatically translated via __().
@@ -127,9 +129,7 @@ class LivewireDatatable extends Component
 
         if (isset($options['hiddenColumns']) && is_array($options['hiddenColumns'])) {
             // first display all columns,
-            foreach ($this->columns as $key => $column) {
-                $this->columns[$key]['hidden'] = false;
-            }
+            $this->resetHiddenColumns();
 
             // then hide all columns that should be hidden:
             foreach ($options['hiddenColumns'] as $columnToHide) {
@@ -167,6 +167,7 @@ class LivewireDatatable extends Component
     public function resetTable()
     {
         $this->perPage = config('livewire-datatables.default_per_page', 10);
+        $this->sort = $this->defaultSort();
         $this->search = null;
         $this->setPage(1);
         $this->activeSelectFilters = [];
@@ -176,7 +177,19 @@ class LivewireDatatable extends Component
         $this->activeBooleanFilters = [];
         $this->activeNumberFilters = [];
         $this->hide = null;
+        $this->resetHiddenColumns();
         $this->selected = [];
+    }
+
+    /**
+     * Display all columns, also those that are currently hidden.
+     * Should get called when resetting the table.
+     */
+    public function resetHiddenColumns()
+    {
+        foreach ($this->columns as $key => $column) {
+            $this->columns[$key]['hidden'] = false;
+        }
     }
 
     public function updatedSearch()
@@ -227,7 +240,7 @@ class LivewireDatatable extends Component
         $this->params = $params;
 
         $this->columns = $this->getViewColumns();
-
+        $this->actions = $this->getMassActions();
         $this->initialiseSearch();
         $this->initialiseSort();
         $this->initialiseHiddenColumns();
@@ -259,7 +272,9 @@ class LivewireDatatable extends Component
                 'index',
                 'hidden',
                 'label',
+                'tooltip',
                 'group',
+                'summary',
                 'content',
                 'align',
                 'type',
@@ -705,6 +720,34 @@ class LivewireDatatable extends Component
         }
     }
 
+    /**
+     * @return bool has the user defined at least one column to display a summary row?
+     */
+    public function hasSummaryRow()
+    {
+        foreach ($this->columns as $column) {
+            if ($column['summary']) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Attempt so summarize each data cell of the given column.
+     * In case we have a string or any other value that is not summarizable,
+     * we return a empty string.
+     */
+    public function summarize($column)
+    {
+        try {
+            return $this->results->sum($column);
+        } catch (\TypeError $e) {
+            return '';
+        }
+    }
+
     public function updatingPerPage()
     {
         $this->refreshLivewireDatatable();
@@ -732,10 +775,13 @@ class LivewireDatatable extends Component
             if ($direction === null) { // toggle direction
                 $this->direction = ! $this->direction;
             } else {
-                $this->direction = $direction === 'desc' ? false : true;
+                $this->direction = $direction === 'asc' ? true : false;
             }
         } else {
             $this->sort = (int) $index;
+        }
+        if ($direction !== null) {
+            $this->direction = $direction === 'asc' ? true : false;
         }
         $this->setPage(1);
 
@@ -1594,7 +1640,14 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        $results = $this->mapCallbacks(
+        $export = new DatatableExport($this->getExportResultsSet());
+
+        return $export->download();
+    }
+
+    public function getExportResultsSet()
+    {
+        return $this->mapCallbacks(
             $this->getQuery()->when(count($this->selected), function ($query) {
                 return $query->havingRaw('checkbox_attribute IN (' . implode(',', $this->selected) . ')');
             })->get(),
@@ -1606,8 +1659,6 @@ class LivewireDatatable extends Component
                 return [$value['label'] ?? $value['name'] => $item->{$value['name']}];
             })->all();
         });
-
-        return Excel::download(new DatatableExport($results), $this->export_name ? $this->export_name . '.xlsx' : 'DatatableExport.xlsx');
     }
 
     public function getQuery($export = false)
@@ -1656,6 +1707,11 @@ class LivewireDatatable extends Component
         // Override this method with your own method for getting saved queries
     }
 
+    public function buildActions()
+    {
+        // Override this method with your own method for creating mass actions
+    }
+
     public function rowClasses($row, $loop)
     {
         // Override this method with your own method for adding classes to a row
@@ -1674,5 +1730,72 @@ class LivewireDatatable extends Component
     {
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
+    }
+
+    public function getMassActions()
+    {
+        return collect($this->massActions)->map(function ($action) {
+            return collect($action)->only(['group', 'value', 'label'])->toArray();
+        })->toArray();
+    }
+
+    public function getMassActionsProperty()
+    {
+        $actions = collect($this->buildActions())->flatten();
+
+        $duplicates = $actions->pluck('value')->duplicates();
+
+        if ($duplicates->count()) {
+            throw new Exception('Duplicate Mass Action(s): ' . implode(', ', $duplicates->toArray()));
+        }
+
+        return $actions->toArray();
+    }
+
+    public function getMassActionsOptionsProperty()
+    {
+        return collect($this->actions)->groupBy(function ($item) {
+            return $item['group'];
+        }, true);
+    }
+
+    public function massActionOptionHandler()
+    {
+        if (! $this->massActionOption) {
+            return;
+        }
+
+        $option = $this->massActionOption;
+
+        $action = collect($this->massActions)->filter(function ($item) use ($option) {
+            return $item->value === $option;
+        })->shift();
+
+        $collection = collect($action);
+
+        if ($collection->get('isExport')) {
+            $datatableExport = new DatatableExport($this->getExportResultsSet());
+
+            $datatableExport->setFileName($collection->get('fileName'));
+
+            $datatableExport->setStyles($collection->get('styles'));
+
+            $datatableExport->setColumnWidths($collection->get('widths'));
+
+            return $datatableExport->download();
+        }
+
+        if (! count($this->selected)) {
+            $this->massActionOption = null;
+
+            return;
+        }
+
+        if ($collection->has('callable') && is_callable($action->callable)) {
+            $action->callable($option, $this->selected);
+        }
+
+        $this->massActionOption = null;
+        $this->selected = [];
     }
 }

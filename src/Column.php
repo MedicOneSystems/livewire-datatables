@@ -11,6 +11,7 @@ class Column
     public $type = 'string';
     public $index = 0;
     public $label;
+    public $tooltip;
     public $name;
     public $select;
     public $joins;
@@ -36,6 +37,12 @@ class Column
     public $minWidth;
     public $maxWidth;
     public $exportCallback;
+
+    /**
+     * @var bool should the sum of all summarizable cells in this column be
+     *           displayed as a summary at the bottom of the table?
+     */
+    public $summary = false;
 
     /**
      * @var string (optional) you can group your columns to let the user toggle the visibility of a group at once.
@@ -129,9 +136,33 @@ class Column
         return $this;
     }
 
+    public function enableSummary()
+    {
+        $this->summary = true;
+
+        return $this;
+    }
+
+    public function disableSummary()
+    {
+        $this->summary = false;
+
+        return $this;
+    }
+
     public function setIndex($index)
     {
         $this->index = $index;
+
+        return $this;
+    }
+
+    public function tooltip($text, $label = null)
+    {
+        $this->tooltip = [
+            'text' => $text,
+            'label' => $label,
+        ];
 
         return $this;
     }
