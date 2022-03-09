@@ -80,6 +80,7 @@
                             <span class="flex items-center h-5">{{ isset($this->groupLabels[$name]) ? __($this->groupLabels[$name]) : __('Toggle :group', ['group' => $name]) }}</span>
                         </button>
                     @endforeach
+                    @includeIf($buttonsSlot)
             </div>
         </div>
 
