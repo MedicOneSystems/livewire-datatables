@@ -200,7 +200,7 @@
 
         @unless($this->hidePagination)
             <div class="max-w-screen bg-white @unless($complex) rounded-b-lg @endunless border-4 border-t-0 border-b-0 @if($this->activeFilters) border-blue-500 @else border-transparent @endif">
-                <div class="p-2 sm:flex items-center justify-between">
+                <div class="items-center justify-between p-2 sm:flex">
                     {{-- check if there is any data --}}
                     @if(count($this->results))
                         <div class="flex items-center my-2 sm:my-0">
@@ -240,5 +240,5 @@
 
     @includeIf($afterTableSlot)
 
-    <span class="hidden text-sm leading-5 text-gray-900 text-left text-center text-right bg-gray-50 bg-gray-100 bg-yellow-100"></span>
+    <span class="hidden text-sm text-left text-center text-right text-gray-900 bg-gray-100 bg-yellow-100 leading-5 bg-gray-50"></span>
 </div>
