@@ -1,9 +1,5 @@
 <div>
-    @if($beforeTableSlot)
-        <div class="mt-8">
-            @include($beforeTableSlot)
-        </div>
-    @endif
+    @includeIf($beforeTableSlot)
     <div class="relative">
         <div class="flex justify-between items-center mb-1">
             <div class="h-10 flex items-center">
@@ -59,9 +55,7 @@
                     </button>
                 @endforeach
 
-                @if($buttonsSlot)
-                    @include($buttonsSlot)
-                @endif
+                @includeIf($buttonsSlot)
             </div>
         </div>
 
@@ -202,10 +196,7 @@
         </div>
     @endif
 
-    @if($afterTableSlot)
-    <div class="mt-8">
-        @include($afterTableSlot)
-    </div>
-    @endif
+    @includeIf($afterTableSlot)
+
     <span class="hidden text-sm leading-5 text-gray-900 text-left text-center text-right bg-gray-50 bg-gray-100 bg-yellow-100"></span>
 </div>
