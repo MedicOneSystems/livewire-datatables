@@ -618,8 +618,8 @@ class LivewireDatatable extends Component
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys()->first();
 
-        $this->getSessionStoredSort();
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
+        $this->getSessionStoredSort();
     }
 
     public function initialiseHiddenColumns()
