@@ -118,29 +118,22 @@
                                 @endif
                             @endforeach
                         </div>
-
-                        <div class="table-row bg-blue-100 divide-x divide-blue-200">
-                            @foreach($this->columns as $index => $column)
-                                @if($column['hidden'])
-                                    @if($hideable === 'inline')
-                                        <div class="table-cell w-5 overflow-hidden align-top bg-blue-100"></div>
-                                    @endif
-                                @elseif($column['type'] === 'checkbox')
-                                    <div
-                                        @if (isset($column['tooltip']['text'])) title="{{ $column['tooltip']['text'] }}" @endif
-                                                                                class="flex flex-col items-center h-full px-6 py-5 overflow-hidden text-xs font-medium tracking-wider text-left text-gray-500 uppercase align-top bg-blue-100 border-b border-gray-200 leading-4 space-y-2 focus:outline-none">
-                                        <div>{{ __('SELECT ALL') }}</div>
-                                        <div>
-                                            <input type="checkbox" wire:click="toggleSelectAll" @if(count($selected) === $this->results->total()) checked @endif class="w-4 h-4 mt-1 text-blue-600 form-checkbox transition duration-150 ease-in-out" />
-                                        </div>
-                                    </div>
-                                @elseif($column['type'] === 'label')
-                                    <div class="table-cell overflow-hidden align-top">
-                                        {{ $column['label'] ?? '' }}
-                                    </div>
-                                @else
-                                    <div class="table-cell overflow-hidden align-top">
-                                        @isset($column['filterable'])
+                    @endunless
+                    <div class="table-row bg-blue-100 divide-x divide-blue-200">
+                        @foreach($this->columns as $index => $column)
+                            @if($column['hidden'])
+                                @if($hideable === 'inline')
+                                    <div class="table-cell w-5 overflow-hidden align-top bg-blue-100"></div>
+                                @endif
+                            @elseif($column['type'] === 'checkbox')
+                                @include('datatables::filters.checkbox')
+                            @elseif($column['type'] === 'label')
+                                <div class="table-cell overflow-hidden align-top">
+                                    {{ $column['label'] ?? '' }}
+                                </div>
+                            @else
+                                <div class="table-cell overflow-hidden align-top">
+                                    @isset($column['filterable'])
                                         @if( is_iterable($column['filterable']) )
                                             <div wire:key="{{ $index }}">
                                                 @include('datatables::filters.select', ['index' => $index, 'name' => $column['label'], 'options' => $column['filterable']])
@@ -155,7 +148,6 @@
                                 @endif
                             @endforeach
                         </div>
-                    @endif
                     @forelse($this->results as $row)
                         <div class="table-row p-1 {{ $this->rowClasses($row, $loop) }}">
                             @foreach($this->columns as $column)

@@ -152,6 +152,7 @@ class LivewireDatatable extends Component
             'activeNumberFilters',
             'hide',
             'selected',
+            'pinnedRecords',
         ] as $property) {
             if (isset($options[$property])) {
                 $this->$property = $options[$property];
@@ -248,6 +249,10 @@ class LivewireDatatable extends Component
         $this->initialisePerPage();
         $this->initialiseColumnGroups();
         $this->model = $this->model ?: get_class($this->builder()->getModel());
+
+        if (isset($this->pinnedRecords)) {
+            $this->initialisePinnedRecords();
+        }
     }
 
     // save settings
@@ -621,8 +626,8 @@ class LivewireDatatable extends Component
             return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
         })->keys()->first();
 
-        $this->getSessionStoredSort();
         $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
+        $this->getSessionStoredSort();
     }
 
     public function initialiseHiddenColumns()
@@ -1183,6 +1188,10 @@ class LivewireDatatable extends Component
             ->addTimeRangeFilter()
             ->addComplexQuery()
             ->addSort();
+
+        if (isset($this->pinnedRecors)) {
+            $this->applyPinnedRecords();
+        }
     }
 
     public function complexQuery($rules)
@@ -1505,6 +1514,9 @@ class LivewireDatatable extends Component
     public function addSort()
     {
         if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
+            if (isset($this->pinnedRecords) && $this->pinnedRecords) {
+                $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
+            }
             $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
         }
 
@@ -1796,6 +1808,5 @@ class LivewireDatatable extends Component
         }
 
         $this->massActionOption = null;
-        $this->selected = [];
     }
 }
