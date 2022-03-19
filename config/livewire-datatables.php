@@ -72,6 +72,6 @@ return [
             'odd' => 'divide-x divide-gray-100 text-sm text-gray-900 bg-gray-50',
             'selected' => 'divide-x divide-gray-100 text-sm text-gray-900 bg-yellow-100',
         ],
-        'cell' => 'text-sm text-gray-900',
+        'cell' => 'whitespace-no-wrap text-sm text-gray-900 px-6 py-2',
     ],
 ];
