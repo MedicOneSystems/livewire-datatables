@@ -12,7 +12,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function component_is_created_by_make_command()
     {
-        Artisan::call('livewire:datatable', ['name' => 'foo']);
+        Artisan::call('make:livewire-datatable', ['name' => 'foo']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('Foo.php')));
     }
@@ -20,7 +20,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function dot_nested_component_is_created_by_make_command()
     {
-        Artisan::call('livewire:datatable', ['name' => 'foo.bar']);
+        Artisan::call('make:livewire-datatable', ['name' => 'foo.bar']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('Foo/Bar.php')));
     }
@@ -28,7 +28,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function forward_slash_nested_component_is_created_by_make_command()
     {
-        Artisan::call('livewire:datatable', ['name' => 'foo/bar']);
+        Artisan::call('make:livewire-datatable', ['name' => 'foo/bar']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('Foo/Bar.php')));
     }
@@ -36,7 +36,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function multiword_component_is_created_by_make_command()
     {
-        Artisan::call('livewire:datatable', ['name' => 'foo-bar']);
+        Artisan::call('make:livewire-datatable', ['name' => 'foo-bar']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('FooBar.php')));
     }
@@ -44,7 +44,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function pascal_case_component_is_automatically_converted_by_make_command()
     {
-        Artisan::call('livewire:datatable', ['name' => 'FooBar.FooBar']);
+        Artisan::call('make:livewire-datatable', ['name' => 'FooBar.FooBar']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('FooBar/FooBar.php')));
     }
@@ -52,7 +52,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function snake_case_component_is_automatically_converted_by_make_command()
     {
-        Artisan::call('livewire:datatable', ['name' => 'text_replace']);
+        Artisan::call('make:livewire-datatable', ['name' => 'text_replace']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('TextReplace.php')));
     }
@@ -60,7 +60,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function snake_case_component_is_automatically_converted_by_make_command_on_nested_component()
     {
-        Artisan::call('livewire:datatable', ['name' => 'TextManager.text_replace']);
+        Artisan::call('make:livewire-datatable', ['name' => 'TextManager.text_replace']);
 
         $this->assertTrue(File::exists($this->livewireClassesPath('TextManager/TextReplace.php')));
     }
@@ -79,7 +79,7 @@ class MakeDatatableCommandTest extends TestCase
     /** @test */
     public function a_component_is_not_created_with_a_reserved_class_name()
     {
-        Artisan::call('livewire:datatable', ['name' => 'component']);
+        Artisan::call('make:livewire-datatable', ['name' => 'component']);
 
         $this->assertFalse(File::exists($this->livewireClassesPath('Component.php')));
     }
