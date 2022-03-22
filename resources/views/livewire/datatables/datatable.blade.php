@@ -160,7 +160,8 @@
                                 @elseif($column['type'] === 'label')
                                     @include('datatables::label')
                                 @else
-                                    <div class="table-cell @unless($column['wrappable']) whitespace-nowrap truncate @endunless @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
+
+                                    <div class="table-cell px-6 py-2 @unless($column['wrappable']) whitespace-nowrap truncate @endunless @if($column['contentAlign'] === 'right') text-right @elseif($column['contentAlign'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
                                         {!! $row->{$column['name']} !!}
                                     </div>
                                 @endif
@@ -173,7 +174,7 @@
                             @foreach($this->columns as $column)
                                 @unless($column['hidden'])
                                     @if ($column['summary'])
-                                        <div class="table-cell @if($column['align'] === 'right') text-right @elseif($column['align'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
+                                        <div class="table-cell px-6 py-2 @unless ($column['wrappable']) whitespace-nowrap truncate @endunless @if($column['contentAlign'] === 'right') text-right @elseif($column['contentAlign'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
                                             {{ $this->summarize($column['name']) }}
                                         </div>
                                     @else

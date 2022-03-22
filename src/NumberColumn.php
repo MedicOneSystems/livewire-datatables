@@ -5,10 +5,11 @@ namespace Mediconesystems\LivewireDatatables;
 class NumberColumn extends Column
 {
     public $type = 'number';
-    public $align = 'right';
+    public $headerAlign = 'right';
+    public $contentAlign = 'right';
     public $round;
 
-    public function round($places = 0)
+    public function round($places = 0): self
     {
         $this->round = $places;
 
@@ -19,7 +20,7 @@ class NumberColumn extends Column
         return $this;
     }
 
-    public function format($places = 0)
+    public function format(int $places = 0): self
     {
         $this->callback = function ($value) use ($places) {
             return number_format($value, $places, '.', ',');
