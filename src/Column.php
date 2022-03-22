@@ -18,11 +18,11 @@ class Column
     public $base;
     public $raw;
     public $searchable;
+    public $sortable;
     public $filterOn;
     public $filterable;
     public $hideable;
     public $sort;
-    public $unsortable;
     public $defaultSort;
     public $callback;
     public $hidden;
@@ -51,6 +51,11 @@ class Column
 
     /** @var array list all column types that are not sortable by SQL here */
     public const UNSORTABLE_TYPES = ['label', 'checkbox'];
+
+    public function __construct()
+    {
+        $this->sortable = config('livewire-datatables.default_sortable', true);
+    }
 
     public static function name($name)
     {
@@ -188,9 +193,16 @@ class Column
         return $this;
     }
 
+    public function sortable()
+    {
+        $this->sortable = true;
+
+        return $this;
+    }
+
     public function unsortable()
     {
-        $this->unsortable = true;
+        $this->sortable = false;
 
         return $this;
     }
