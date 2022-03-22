@@ -287,6 +287,7 @@ class LivewireDatatable extends Component
                 'filterView',
                 'name',
                 'params',
+                'wrappable',
                 'width',
                 'minWidth',
                 'maxWidth',
