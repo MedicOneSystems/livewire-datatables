@@ -2,6 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
@@ -18,11 +19,11 @@ class Column
     public $base;
     public $raw;
     public $searchable;
+    public $sortable;
     public $filterOn;
     public $filterable;
     public $hideable;
     public $sort;
-    public $unsortable;
     public $defaultSort;
     public $callback;
     public $hidden;
@@ -45,12 +46,22 @@ class Column
     public $summary = false;
 
     /**
+     * @var bool allow the content of the column to wrap into multiple lines.
+     */
+    public $wrappable = true;
+
+    /**
      * @var string (optional) you can group your columns to let the user toggle the visibility of a group at once.
      */
     public $group;
 
     /** @var array list all column types that are not sortable by SQL here */
     public const UNSORTABLE_TYPES = ['label', 'checkbox'];
+
+    public function __construct()
+    {
+        $this->sortable = config('livewire-datatables.default_sortable', true);
+    }
 
     public static function name($name)
     {
@@ -92,11 +103,25 @@ class Column
         return $column;
     }
 
-    public static function callback($columns, $callback, $params = [])
-    {
+    /**
+     * Make a callback function.
+     *
+     * @param $columns      string  The (comma separated) columns that should be retrieved from the database.
+     *                              Is being translated directly into the `.sql`.
+     * @param $callback     Closure A callback that defines how the retrieved columns are processed.
+     * @param $params       Array   Optional additional parameters that are passed to the given Closure.
+     * @param $callbackName string  Optional string that defines the 'name' of the column.
+     *                              Leave empty to let livewire autogenerate a distinct value.
+     */
+    public static function callback(
+        string $columns,
+        Closure $callback,
+        array $params = [],
+        ?string $callbackName = null
+    ) {
         $column = new static;
 
-        $column->name = 'callback_' . crc32(json_encode(func_get_args()));
+        $column->name = 'callback_' . ($callbackName ?? crc32(json_encode(func_get_args())));
         $column->callback = $callback;
         $column->additionalSelects = is_array($columns) ? $columns : array_map('trim', explode(',', $columns));
         $column->params = $params;
@@ -132,6 +157,20 @@ class Column
     public function label($label)
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function wrap()
+    {
+        $this->wrappable = true;
+
+        return $this;
+    }
+
+    public function unwrap()
+    {
+        $this->wrappable = false;
 
         return $this;
     }
@@ -188,9 +227,16 @@ class Column
         return $this;
     }
 
+    public function sortable()
+    {
+        $this->sortable = true;
+
+        return $this;
+    }
+
     public function unsortable()
     {
-        $this->unsortable = true;
+        $this->sortable = false;
 
         return $this;
     }
