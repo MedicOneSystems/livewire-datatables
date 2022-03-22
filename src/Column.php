@@ -32,7 +32,8 @@ class Column
     public $params = [];
     public $additionalSelects = [];
     public $filterView;
-    public $align = 'left';
+    public $headerAlign = 'left';
+    public $contentAlign = 'left';
     public $preventExport;
     public $width;
     public $minWidth;
@@ -399,14 +400,44 @@ class Column
 
     public function alignRight()
     {
-        $this->align = 'right';
+        $this->headerAlign = 'right';
+        $this->contentAlign = 'right';
 
         return $this;
     }
 
-    public function alignCenter()
+    public function alignCener()
     {
-        $this->align = 'center';
+        $this->headerAlign = 'center';
+        $this->contentAlign = 'center';
+
+        return $this;
+    }
+
+    public function headerAlignRight()
+    {
+        $this->headerAlign = 'right';
+
+        return $this;
+    }
+
+    public function contentAlignRight()
+    {
+        $this->contentAlign = 'right';
+
+        return $this;
+    }
+
+    public function headerAlignCenter()
+    {
+        $this->headerAlign = 'center';
+
+        return $this;
+    }
+
+    public function contentAlignCenter()
+    {
+        $this->contentAlign = 'center';
 
         return $this;
     }

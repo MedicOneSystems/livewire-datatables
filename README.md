@@ -202,8 +202,12 @@ class ComplexDemoTable extends LivewireDatatable
 |**filterOn**|*String/Array* $statement|Allows you to specify a column name or sql statement upon which to perform the filter (must use SQL syntax, not Eloquent eg. ```'users.name'``` instead of ```'user.name'```). Useful if using a callback to modify the displayed values. Can pass a single string or array of strings which will be combined with ```OR```|```Column::callback(['name', 'allegiance'], function ($name, $allegiance) { return "$name is allied to $allegiance"; })->filterable(['Rebellion', 'Empire'])->filterOn('users.allegiance')```|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
-|**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
-|**alignRight**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
+|**alignCenter**| | Center-aligns column header _and_ contents |```Column::delete()->alignCenter()```|
+|**alignRight**| | Right-aligns column header _and_ contents |```Column::delete()->alignRight()```|
+|**contentAlignCenter**| | Center-aligns column contents |```Column::delete()->contentAlignCenter()```|
+|**contentAlignRight**| | Right-aligns column contents |```Column::delete()->contentAlignRight()```|
+|**headerAlignCenter**| | Center-aligns column header |```Column::delete()->headerAlignCenter()```|
+|**headerAlignRight**| | Right-aligns column header |```Column::delete()->headerAlignRight()```|
 |**editable**| | Marks the column as editable | _(see below)_|
 |**exportCallback**| Closure $callback | Reformats the result when exporting | _(see below)_ |
 |**excludeFromExport**| | Excludes the column from export |```Column::name('email')->excludeFromExport()```|
