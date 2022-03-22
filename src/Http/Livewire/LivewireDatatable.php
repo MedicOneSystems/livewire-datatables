@@ -1548,6 +1548,9 @@ class LivewireDatatable extends Component
     {
         $paginatedCollection->collect()->map(function ($row, $i) use ($export) {
             foreach ($row as $name => $value) {
+                if ($this->search && ! config('livewire-datatables.suppress_search_highlights') && $this->searchableColumns()->firstWhere('name', $name)) {
+                    $row->$name = $this->highlight($row->$name, $this->search);
+                }
                 if ($export && isset($this->export_callbacks[$name])) {
                     $values = Str::contains($value, static::SEPARATOR) ? explode(static::SEPARATOR, $value) : [$value, $row];
                     $row->$name = $this->export_callbacks[$name](...$values);
@@ -1566,10 +1569,6 @@ class LivewireDatatable extends Component
                     $row->$name = $this->callbacks[$name](...explode(static::SEPARATOR, $value));
                 } elseif (isset($this->callbacks[$name]) && is_callable($this->callbacks[$name])) {
                     $row->$name = $this->callbacks[$name]($value, $row);
-                }
-
-                if ($this->search && ! config('livewire-datatables.suppress_search_highlights') && $this->searchableColumns()->firstWhere('name', $name)) {
-                    $row->$name = $this->highlight($row->$name, $this->search);
                 }
             }
 
