@@ -406,7 +406,7 @@ class Column
         return $this;
     }
 
-    public function alignCener()
+    public function alignCenter()
     {
         $this->headerAlign = 'center';
         $this->contentAlign = 'center';
