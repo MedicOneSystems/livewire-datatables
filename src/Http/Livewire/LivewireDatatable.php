@@ -282,6 +282,7 @@ class LivewireDatatable extends Component
                 'type',
                 'filterable',
                 'hideable',
+                'sortable',
                 'complex',
                 'filterView',
                 'name',
@@ -289,7 +290,6 @@ class LivewireDatatable extends Component
                 'width',
                 'minWidth',
                 'maxWidth',
-                'unsortable',
                 'preventExport',
             ])->toArray();
         })->toArray();
