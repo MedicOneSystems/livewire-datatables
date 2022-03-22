@@ -8,7 +8,7 @@ use Livewire\LivewireComponentsFinder;
 
 class MakeDatatableCommand extends FileManipulationCommand
 {
-    protected $signature = 'livewire:datatable {name} {--model=}';
+    protected $signature = 'make:livewire-datatable {name} {--model=}';
 
     protected $desciption = 'Create a new Livewire Datatable';
 
