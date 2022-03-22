@@ -18,7 +18,7 @@ class NumberColumn extends Column
 
         return $this;
     }
-    
+
     public function format($places = 0)
     {
         $this->callback = function ($value) use ($places) {
