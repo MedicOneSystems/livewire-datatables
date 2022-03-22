@@ -2,6 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
@@ -97,11 +98,25 @@ class Column
         return $column;
     }
 
-    public static function callback($columns, $callback, $params = [])
-    {
+    /**
+     * Make a callback function.
+     *
+     * @param $columns      string  The (comma separated) columns that should be retrieved from the database.
+     *                              Is being translated directly into the `.sql`.
+     * @param $callback     Closure A callback that defines how the retrieved columns are processed.
+     * @param $params       Array   Optional additional parameters that are passed to the given Closure.
+     * @param $callbackName string  Optional string that defines the 'name' of the column.
+     *                              Leave empty to let livewire autogenerate a distinct value.
+     */
+    public static function callback(
+        string $columns,
+        Closure $callback,
+        array $params = [],
+        ?string $callbackName = null
+    ) {
         $column = new static;
 
-        $column->name = 'callback_' . crc32(json_encode(func_get_args()));
+        $column->name = 'callback_' . ($callbackName ?? crc32(json_encode(func_get_args())));
         $column->callback = $callback;
         $column->additionalSelects = is_array($columns) ? $columns : array_map('trim', explode(',', $columns));
         $column->params = $params;
