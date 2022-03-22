@@ -45,6 +45,11 @@ class Column
     public $summary = false;
 
     /**
+     * @var bool allow the content of the column to wrap into multiple lines.
+     */
+    public $wrappable = true;
+
+    /**
      * @var string (optional) you can group your columns to let the user toggle the visibility of a group at once.
      */
     public $group;
@@ -132,6 +137,20 @@ class Column
     public function label($label)
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function wrap()
+    {
+        $this->wrappable = true;
+
+        return $this;
+    }
+
+    public function unwrap()
+    {
+        $this->wrappable = false;
 
         return $this;
     }
