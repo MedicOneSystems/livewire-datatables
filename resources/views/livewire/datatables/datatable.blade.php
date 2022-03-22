@@ -1,9 +1,5 @@
 <div>
-    @if($beforeTableSlot)
-        <div class="mt-8">
-            @include($beforeTableSlot)
-        </div>
-    @endif
+    @includeIf($beforeTableSlot)
     <div class="relative">
         <div class="flex items-center justify-between mb-1">
             <div class="flex items-center h-10">
@@ -27,63 +23,64 @@
             </div>
 
             @if($this->activeFilters)
-                <span class="text-xl text-blue-400 uppercase">FILTERS ACTIVE</span>
+                <span class="text-xl text-blue-400 uppercase">@lang('Filter active')</span>
             @endif
 
             <div class="flex flex-wrap items-center space-x-1">
                 <x-icons.cog wire:loading class="text-gray-400 h-9 w-9 animate-spin" />
 
-                    @if($this->activeFilters)
-                        <button wire:click="clearAllFilters" class="flex items-center px-3 text-xs font-medium tracking-wider text-red-500 uppercase bg-white border border-red-400 space-x-2 rounded-md leading-4 hover:bg-red-200 focus:outline-none"><span>{{ __('Reset') }}</span>
-                            <x-icons.x-circle class="m-2" />
-                        </button>
-                    @endif
+                @if($this->activeFilters)
+                    <button wire:click="clearAllFilters" class="flex items-center px-3 text-xs font-medium tracking-wider text-red-500 uppercase bg-white border border-red-400 space-x-2 rounded-md leading-4 hover:bg-red-200 focus:outline-none"><span>{{ __('Reset') }}</span>
+                        <x-icons.x-circle class="m-2" />
+                    </button>
+                @endif
 
-                    @if(count($this->massActionsOptions))
-                        <div class="flex items-center justify-center space-x-1">
-                            <label for="datatables_mass_actions">{{ __('With selected') }}:</label>
-                            <select wire:model="massActionOption" class="px-3 text-xs font-medium tracking-wider uppercase bg-white border border-green-400 space-x-2 rounded-md leading-4 focus:outline-none" id="datatables_mass_actions">
-                                <option value="">{{ __('Choose...') }}</option>
-                                @foreach($this->massActionsOptions as $group => $items)
-                                    @if(!$group)
+                @if(count($this->massActionsOptions))
+                    <div class="flex items-center justify-center space-x-1">
+                        <label for="datatables_mass_actions">{{ __('With selected') }}:</label>
+                        <select wire:model="massActionOption" class="px-3 text-xs font-medium tracking-wider uppercase bg-white border border-green-400 space-x-2 rounded-md leading-4 focus:outline-none" id="datatables_mass_actions">
+                            <option value="">{{ __('Choose...') }}</option>
+                            @foreach($this->massActionsOptions as $group => $items)
+                                @if(!$group)
+                                    @foreach($items as $item)
+                                        <option value="{{$item['value']}}">{{$item['label']}}</option>
+                                    @endforeach
+                                @else
+                                    <optgroup label="{{$group}}">
                                         @foreach($items as $item)
                                             <option value="{{$item['value']}}">{{$item['label']}}</option>
                                         @endforeach
-                                    @else
-                                        <optgroup label="{{$group}}">
-                                            @foreach($items as $item)
-                                                <option value="{{$item['value']}}">{{$item['label']}}</option>
-                                            @endforeach
-                                        </optgroup>
-                                    @endif
-                                @endforeach
-                            </select>
-                            <button
-                                wire:click="massActionOptionHandler"
-                                class="flex items-center px-4 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none" type="submit" title="Submit"
-                                                                                                                                                                                                                                          >Go</button>
-                        </div>
-                    @endif
+                                    </optgroup>
+                                @endif
+                            @endforeach
+                        </select>
+                        <button
+                            wire:click="massActionOptionHandler"
+                            class="flex items-center px-4 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none" type="submit" title="Submit"
+                        >Go</button>
+                    </div>
+                @endif
 
-                    @if($exportable)
-                        <div x-data="{ init() {
+                @if($exportable)
+                    <div x-data="{ init() {
                         window.livewire.on('startDownload', link => window.open(link, '_blank'))
                         } }" x-init="init">
                         <button wire:click="export" class="flex items-center px-3 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 space-x-2 rounded-md leading-4 hover:bg-green-200 focus:outline-none"><span>{{ __('Export') }}</span>
                             <x-icons.excel class="m-2" /></button>
-                        </div>
-                    @endif
+                    </div>
+                @endif
 
-                    @if($hideable === 'select')
-                        @include('datatables::hide-column-multiselect')
-                    @endif
+                @if($hideable === 'select')
+                    @include('datatables::hide-column-multiselect')
+                @endif
 
-                    @foreach ($columnGroups as $name => $group)
-                        <button wire:click="toggleGroup('{{ $name }}')"
-                                class="px-3 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none">
-                            <span class="flex items-center h-5">{{ isset($this->groupLabels[$name]) ? __($this->groupLabels[$name]) : __('Toggle :group', ['group' => $name]) }}</span>
-                        </button>
-                    @endforeach
+                @foreach ($columnGroups as $name => $group)
+                    <button wire:click="toggleGroup('{{ $name }}')"
+                            class="px-3 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none">
+                        <span class="flex items-center h-5">{{ isset($this->groupLabels[$name]) ? __($this->groupLabels[$name]) : __('Toggle :group', ['group' => $name]) }}</span>
+                    </button>
+                @endforeach
+                @includeIf($buttonsSlot)
             </div>
         </div>
 
@@ -100,7 +97,7 @@
             </div>
         @endif
 
-        <div wire:loading.class="opacity-50" class="rounded-lg @unless($complex || $this->hidePagination) rounded-b-none @endunless shadow-lg bg-white max-w-screen overflow-x-scroll border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
+        <div wire:loading.class="opacity-50" class="rounded-lg @unless($complex || $this->hidePagination) rounded-b-none @endunless shadow-lg bg-white max-w-screen overflow-x-scroll border-2 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
             <div>
                 <div class="table min-w-full align-middle">
                     @unless($this->hideHeader)
@@ -147,11 +144,11 @@
                                             </div>
                                         @endif
                                     @endisset
-                                    </div>
-                                @endif
-                            @endforeach
-                        </div>
-                    @forelse($this->results as $row)
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                    @foreach($this->results as $row)
                         <div class="table-row p-1 {{ $this->rowClasses($row, $loop) }}">
                             @foreach($this->columns as $column)
                                 @if($column['hidden'])
@@ -163,17 +160,14 @@
                                 @elseif($column['type'] === 'label')
                                     @include('datatables::label')
                                 @else
+
                                     <div class="table-cell px-6 py-2 @unless($column['wrappable']) whitespace-nowrap truncate @endunless @if($column['contentAlign'] === 'right') text-right @elseif($column['contentAlign'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
                                         {!! $row->{$column['name']} !!}
                                     </div>
                                 @endif
                             @endforeach
                         </div>
-                    @empty
-                        <p class="p-3 text-lg text-teal-600">
-                            {{ __("There's Nothing to show at the moment") }}
-                        </p>
-                    @endforelse
+                    @endforeach
 
                     @if ($this->hasSummaryRow())
                         <div class="table-row p-1">
@@ -192,6 +186,11 @@
                     @endif
                 </div>
             </div>
+            @if($this->results->isEmpty())
+                <p class="p-3 text-lg text-center">
+                    {{ __("There's Nothing to show at the moment") }}
+                </p>
+            @endif
         </div>
 
         @unless($this->hidePagination)
@@ -229,15 +228,12 @@
     </div>
 
     @if($complex)
-        <div class="bg-gray-50 px-4 py-4 rounded-b-lg rounded-t-none shadow-lg border-4 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) border-t-0 @endif">
+        <div class="bg-gray-50 px-4 py-4 rounded-b-lg rounded-t-none shadow-lg border-2 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) border-t-0 @endif">
             <livewire:complex-query :columns="$this->complexColumns" :persistKey="$this->persistKey" :savedQueries="method_exists($this, 'getSavedQueries') ? $this->getSavedQueries() : null" />
         </div>
     @endif
 
-    @if($afterTableSlot)
-        <div class="mt-8">
-            @include($afterTableSlot)
-        </div>
-    @endif
+    @includeIf($afterTableSlot)
+
     <span class="hidden text-sm text-left text-center text-right text-gray-900 bg-gray-100 bg-yellow-100 leading-5 bg-gray-50"></span>
 </div>
