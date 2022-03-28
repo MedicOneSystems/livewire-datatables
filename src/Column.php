@@ -2,7 +2,6 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
@@ -109,14 +108,14 @@ class Column
      *
      * @param $columns      Array|string    The (comma separated) columns that should be retrieved from the database.
      *                                      Is being translated directly into the `.sql`.
-     * @param $callback     Closure         A callback that defines how the retrieved columns are processed.
-     * @param $params       Array           Optional additional parameters that are passed to the given Closure.
+     * @param $callback     callable        A callback that defines how the retrieved columns are processed.
+     * @param $params       Array           Optional additional parameters that are passed to the given callable.
      * @param $callbackName string          Optional string that defines the 'name' of the column.
      *                                      Leave empty to let livewire autogenerate a distinct value.
      */
     public static function callback(
         array|string $columns,
-        Closure $callback,
+        callable $callback,
         array $params = [],
         ?string $callbackName = null
     ) {
