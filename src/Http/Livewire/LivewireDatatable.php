@@ -115,6 +115,31 @@ class LivewireDatatable extends Component
         'does not include' => '<>',
     ];
 
+    protected $viewColumns = [
+        'index',
+        'hidden',
+        'label',
+        'tooltip',
+        'group',
+        'summary',
+        'content',
+        'headerAlign',
+        'contentAlign',
+        'type',
+        'filterable',
+        'hideable',
+        'sortable',
+        'complex',
+        'filterView',
+        'name',
+        'params',
+        'wrappable',
+        'width',
+        'minWidth',
+        'maxWidth',
+        'preventExport',
+    ];
+
     /**
      * This events allows to control the options of the datatable from foreign livewire components
      * by using $emit.
@@ -273,30 +298,9 @@ class LivewireDatatable extends Component
     public function getViewColumns()
     {
         return collect($this->freshColumns)->map(function ($column) {
-            return collect($column)->only([
-                'index',
-                'hidden',
-                'label',
-                'tooltip',
-                'group',
-                'summary',
-                'content',
-                'headerAlign',
-                'contentAlign',
-                'type',
-                'filterable',
-                'hideable',
-                'sortable',
-                'complex',
-                'filterView',
-                'name',
-                'params',
-                'wrappable',
-                'width',
-                'minWidth',
-                'maxWidth',
-                'preventExport',
-            ])->toArray();
+            return collect($column)
+                ->only($this->viewColumns)
+                ->toArray();
         })->toArray();
     }
 
