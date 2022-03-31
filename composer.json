@@ -17,14 +17,14 @@
     ],
     "require": {
         "php": "^7.2.5|^8.0",
-        "illuminate/support": "^7.0|^8.0",
+        "illuminate/support": "^7.0|^8.0|^9.0",
         "livewire/livewire": "^2.4.4",
         "maatwebsite/excel": "^3.1"
     },
     "require-dev": {
         "laravel/legacy-factories": "^1.0.4",
-        "orchestra/testbench": "^4.0|5.0|6.0",
-        "phpunit/phpunit": "^8.0|9.0"
+        "orchestra/testbench": "^4.0|5.0|6.0|^7.0",
+        "phpunit/phpunit": "^8.0|9.0|^9.5.10"
     },
     "autoload": {
         "psr-4": {
@@ -39,7 +39,6 @@
     "scripts": {
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-
     },
     "config": {
         "sort-packages": true
