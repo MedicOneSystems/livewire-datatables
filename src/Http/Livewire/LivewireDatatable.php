@@ -1695,7 +1695,7 @@ class LivewireDatatable extends Component
 
     public function toggleSelectAll()
     {
-        if (count($this->selected) === $this->getQuery()->count()) {
+        if (count($this->selected) === $this->getQuery()->getCountForPagination()) {
             $this->selected = [];
         } else {
             $this->selected = $this->checkboxQuery()->values()->toArray();
