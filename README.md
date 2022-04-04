@@ -470,7 +470,7 @@ Just add ```$complex = true``` to your Datatable Class and all filterable column
 
 ![image](https://user-images.githubusercontent.com/7000886/128855344-25035758-ca90-42d2-bd19-518c9de45148.png)
 ---
-**Persisting Queries** (Requires AlpineJS v3 with $perist plugin)
+**Persisting Queries** (Requires AlpineJS v3 with $persist plugin)
 - Add ```$persistComplexQuery = true``` to your class and queries will be stored in browser localstorage.
 - By default the localstorage key will be the class name. You can provide your own by setting the public property ```$persistKey``` or overriding ```getPersistKeyProperty()``` on the Datatable Class
 - eg: for user-specific persistence:
@@ -484,7 +484,7 @@ public function getPersistKeyProperty()
 ---
 **Saving Queries**
 
-If you want to save permanently save queries you must provide 3 methods for adding, deleting and retrieving your saved queries using whatever logic you like:
+If you want to permanently save queries you must provide 3 methods for adding, deleting and retrieving your saved queries using whatever logic you like:
 
 - ```public function saveQuery(String $name, Array $rules)```
 - ```public function deleteQuery(Int $id)```
@@ -528,7 +528,7 @@ class ComplexQuery extends BaseModel
 
 /* Datatable Class */
 
-class TableWithSaving extends Livewire Datatable
+class TableWithSaving extends LivewireDatatable
 {
     ...
 
