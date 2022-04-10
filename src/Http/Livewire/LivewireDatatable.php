@@ -702,7 +702,7 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        $dbTable = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $dbTable = $this->builder()->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
             case $column['sort']:
