@@ -47,6 +47,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default connection
+    |--------------------------------------------------------------------------
+    | Sets the default database connection to use. Setting to null will use
+    | the default connection.
+    |
+    */
+
+    'default_connection' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Model Namespace
     |--------------------------------------------------------------------------
     | Sets the default namespace to be used when generating a new Datatables

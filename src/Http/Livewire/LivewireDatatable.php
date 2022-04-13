@@ -326,6 +326,16 @@ class LivewireDatatable extends Component
         return $this->model::query();
     }
 
+    public function connection()
+    {
+        return config('livewire-datatables.default_connection', config('database.default'));
+    }
+
+    public function driver()
+    {
+        return config('database.connections.' . $this->connection() . '.driver');
+    }
+
     public function delete($id)
     {
         $this->model::destroy($id);
@@ -420,7 +430,7 @@ class LivewireDatatable extends Component
                         return null;
                     }
                     if ($column->select instanceof Expression) {
-                        $sep_string = config('database.default') === 'pgsql' ? '"' : '`';
+                        $sep_string = $this->driver() === 'pgsql' ? '"' : '`';
 
                         return new Expression($column->select->getValue() . ' AS ' . $sep_string . $column->name . $sep_string);
                     }
@@ -702,7 +712,6 @@ class LivewireDatatable extends Component
     public function getSortString()
     {
         $column = $this->freshColumns[$this->sort];
-        $dbTable = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
             case $column['sort']:
@@ -721,8 +730,8 @@ class LivewireDatatable extends Component
                 return Str::before($column['select'], ' AS ');
                 break;
 
-             default:
-                return $dbTable == 'pgsql' || $dbTable == 'sqlsrv'
+            default:
+                return $this->driver() == 'pgsql' || $this->driver() == 'sqlsrv'
                     ? new Expression('"' . $column['name'] . '"')
                     : new Expression("'" . $column['name'] . "'");
                 break;
