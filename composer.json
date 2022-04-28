@@ -1,5 +1,5 @@
 {
-    "name": "shaneburrell/livewire-datatables",
+    "name": "mediconesystems/livewire-datatables",
     "description": "",
     "keywords": [
         "mediconesystems",
@@ -12,11 +12,6 @@
         {
             "name": "Mark Salmon",
             "email": "mark.salmon@mediconesystems.com",
-            "role": "Developer"
-        },
-        {
-            "name": "Shane Burrell",
-            "email": "shane@shaneburrell.com",
             "role": "Developer"
         }
     ],
