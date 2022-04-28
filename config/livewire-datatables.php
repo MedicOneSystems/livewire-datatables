@@ -14,7 +14,6 @@ return [
     'default_time_format' => 'H:i',
     'default_date_format' => 'd/m/Y',
 
-
     /*
     |--------------------------------------------------------------------------
     | Default Carbon Formats
@@ -31,7 +30,6 @@ return [
     // Defaults that work with smalldatetime in SQL Server
     //  'default_time_start' => '1900-01-01',
     //  'default_time_end' => '2079-06-06',
-
 
     /*
     |--------------------------------------------------------------------------
