@@ -1,9 +1,8 @@
 {
     "name": "shaneburrell/livewire-datatables",
-    "description": "",
+    "description": "Fork of the livewire-datatables package. This has several modifications and additions.",
     "keywords": [
-        "mediconesystems",
-        "livewire-datatables"
+        "livewire-datatables-fork"
     ],
     "homepage": "https://github.com/mediconesystems/livewire-datatables",
     "license": "MIT",

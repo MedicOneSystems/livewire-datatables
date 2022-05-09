@@ -619,10 +619,9 @@ class LivewireDatatable extends Component
         ] : null;
     }
 
-    public function getSortString()
+    public function getSortString($dbtable)
     {
         $column = $this->freshColumns[$this->sort];
-        $dbTable = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
         switch (true) {
             case $column['sort']:
@@ -642,10 +641,20 @@ class LivewireDatatable extends Component
                 break;
 
              default:
-                return $dbTable == 'pgsql' || $dbTable == 'sqlsrv'
-                    ? new Expression('"' . $column['name'] . '"')
-                    : new Expression("'" . $column['name'] . "'");
-                break;
+
+                 switch($dbtable) {
+                     case 'mysql':
+                         return new Expression("`" . $column['name'] . "`");
+                         break;
+                     case 'pgsql':
+                         return new Expression('"' . $column['name'] . '"');
+                         break;
+                     case 'sqlsrv':
+                         return new Expression("'" . $column['name'] . "'");
+                         break;
+                     default:
+                         return new Expression("'" . $column['name'] . "'");
+                 }
         }
     }
 
@@ -1441,7 +1450,7 @@ class LivewireDatatable extends Component
             if (isset($this->pinnedRecords) && $this->pinnedRecords) {
                 $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
             }
-            $this->query->orderBy(DB::raw($this->getSortString()), $this->direction ? 'asc' : 'desc');
+            $this->query->orderBy(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
         }
 
         return $this;
