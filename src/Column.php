@@ -350,10 +350,10 @@ class Column
         return $this;
     }
 
-    public function view($view)
+    public function view($view, $data = [])
     {
-        $this->callback = function ($value, $row) use ($view) {
-            return view($view, ['value' => $value, 'row' => $row]);
+        $this->callback = function ($value, $row) use ($view, $data) {
+            return view($view, ['value' => $value, 'row' => $row, ...$data]);
         };
 
         $this->exportCallback = function ($value) {
