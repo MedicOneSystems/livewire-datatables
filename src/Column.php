@@ -3,7 +3,6 @@
 namespace Mediconesystems\LivewireDatatables;
 
 use Closure;
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
