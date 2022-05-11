@@ -642,9 +642,9 @@ class LivewireDatatable extends Component
 
              default:
 
-                 switch($dbtable) {
+                 switch ($dbtable) {
                      case 'mysql':
-                         return new Expression("`" . $column['name'] . "`");
+                         return new Expression('`' . $column['name'] . '`');
                          break;
                      case 'pgsql':
                          return new Expression('"' . $column['name'] . '"');
