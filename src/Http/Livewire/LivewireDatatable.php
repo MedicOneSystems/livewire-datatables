@@ -1111,9 +1111,9 @@ class LivewireDatatable extends Component
                                     $query->whereNotNull($column);
                                 } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean') {
                                     if ($rule['content']['value'] === 'true') {
-                                        $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                        $query->where(Str::contains($column, '(') ? DB::raw($column) : $column, 1);
                                     } else {
-                                        $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                        $query->where(Str::contains($column, '(') ? DB::raw($column) : $column, '<>', 1);
                                     }
                                 } else {
                                     $col = (isset($this->freshColumns[$rule['content']['column']]['round']) && $this->freshColumns[$rule['content']['column']]['round'] !== null)
