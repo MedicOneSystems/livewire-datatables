@@ -395,7 +395,7 @@ class LivewireDatatable extends Component
         $aggregate = Str::after(($additional ?: $column->name), ':');
 
         if (! method_exists($this->query->getModel(), $relations[0])) {
-            return $additional ?: $column->name;
+            return ($additional ?: $column->name);
         }
 
         $columnName = array_pop($relations);
@@ -1111,9 +1111,15 @@ class LivewireDatatable extends Component
                                     $query->whereNotNull($column);
                                 } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean') {
                                     if ($rule['content']['value'] === 'true') {
-                                        $query->where(Str::contains($column, '(') ? DB::raw($column) : $column, 1);
+                                        $query->where(function ($query) use ($column) {
+                                            $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column)
+                                            ->where($column, '<>', 0);
+                                        });
                                     } else {
-                                        $query->where(Str::contains($column, '(') ? DB::raw($column) : $column, '<>', 1);
+                                        $query->where(function ($query) use ($column) {
+                                            $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column)
+                                                ->orWhere(Str::contains($column, '(') ? DB::raw($column) : $column, 0);
+                                        });
                                     }
                                 } else {
                                     $col = (isset($this->freshColumns[$rule['content']['column']]['round']) && $this->freshColumns[$rule['content']['column']]['round'] !== null)
