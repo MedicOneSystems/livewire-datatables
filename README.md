@@ -32,6 +32,11 @@ You can install the package via composer:
 ```bash
 composer require mediconesystems/livewire-datatables
 ```
+If you use laravel 9 first execute
+```bash
+composer require psr/simple-cache:^1.0 maatwebsite/excel
+```
+
 ### Optional
 You don't need to, but if you like you can publish the config file and blade template assets:
 ```bash
