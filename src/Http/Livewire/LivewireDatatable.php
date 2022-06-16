@@ -351,7 +351,7 @@ class LivewireDatatable extends Component
         return $selects->count() > 1
             ? new Expression("CONCAT_WS('" . static::SEPARATOR . "' ," .
             collect($selects)->map(function ($select) {
-                return "COALESCE($select, '')";
+                return "COALESCE($this->tablePrefix$select, '')";
             })->join(', ') . ')')
             : $selects->first();
     }
