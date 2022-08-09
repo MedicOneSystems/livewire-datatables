@@ -1,0 +1,49 @@
+<?php
+
+namespace Mediconesystems\LivewireDatatables\Traits;
+
+use Mediconesystems\LivewireDatatables\Exceptions\PageNameNotFoundException;
+use Illuminate\Support\Str;
+
+trait WithMultiTablePaginator
+{
+
+    /**
+     * @throws \App\Exceptions\PageNameNotFoundException
+     */
+    public function getPageName(): string
+    {
+        if (!($this->pageName ?? $this->name))
+        {
+            throw new PageNameNotFoundException(static::class);
+        }
+        return $this->pageName ?? Str::slug($this->name) . 'Page';
+    }
+
+    public function previousPage($pageName = 'page')
+    {
+        parent::previousPage($this->getPageName());
+    }
+
+    public function nextPage($pageName = 'page')
+    {
+        parent::nextPage($this->getPageName());
+    }
+
+    public function gotoPage($page, $pageName = 'page'): void
+    {
+        parent::setPage($page, $this->getPageName());
+    }
+
+    public function resetPage($pageName = 'page')
+    {
+        parent::setPage(1, $this->getPageName());
+    }
+
+    public function getResultsProperty()
+    {
+        return $this->mapCallbacks(
+            $this->getQuery()->paginate($this->perPage, ['*'], $this->getPageName())
+        );
+    }
+}
