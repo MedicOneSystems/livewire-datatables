@@ -3,7 +3,6 @@
 namespace Mediconesystems\LivewireDatatables\Exceptions;
 
 use Exception;
-use JetBrains\PhpStorm\Internal\LanguageLevelTypeAware;
 
 class PageNameNotFoundException extends Exception
 {
