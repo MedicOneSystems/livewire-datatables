@@ -10,3 +10,8 @@ All notable changes to `livewire-datatables` will be documented in this file
 
 - Breaking Change: 'unsortable' has been renamed to 'sortable', which is more intuitive. Please adjust your overwritten views, if any (thyseus).
 
+
+## 0.9.0 ( 2022-03-22 )
+
+- Breaking Change: 'unsortable' has been renamed to 'sortable', which is more intuitive. Please adjust your overwritten views, if any (thyseus).
+
