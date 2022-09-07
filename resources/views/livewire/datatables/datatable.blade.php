@@ -69,6 +69,32 @@
                     </div>
                 @endif
 
+                @if(count($this->massActionsOptions))
+                    <div class="flex items-center justify-center space-x-1">
+                        <label for="datatables_mass_actions">{{ __('With selected') }}:</label>
+                        <select wire:model="massActionOption" class="px-3 text-xs font-medium tracking-wider uppercase bg-white border border-green-400 space-x-2 rounded-md leading-4 focus:outline-none" id="datatables_mass_actions">
+                            <option value="">{{ __('Choose...') }}</option>
+                            @foreach($this->massActionsOptions as $group => $items)
+                                @if(!$group)
+                                    @foreach($items as $item)
+                                        <option value="{{$item['value']}}">{{$item['label']}}</option>
+                                    @endforeach
+                                @else
+                                    <optgroup label="{{$group}}">
+                                        @foreach($items as $item)
+                                            <option value="{{$item['value']}}">{{$item['label']}}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                            @endforeach
+                        </select>
+                        <button
+                            wire:click="massActionOptionHandler"
+                            class="flex items-center px-4 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none" type="submit" title="Submit"
+                        >Go</button>
+                    </div>
+                @endif
+
                 @if($exportable)
                     <div x-data="{ init() {
                         window.livewire.on('startDownload', link => window.open(link, '_blank'))
