@@ -8,7 +8,7 @@ use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasManyModel;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasOneModel;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
-class LivewireDatatableMultisortQueryBuilderTest extends TestCase
+class LivewireDatatableMultisortableQueryBuilderTest extends TestCase
 {
     /** @test */
     public function it_toggles_sort_status_on_each_sort_trigger()
@@ -143,22 +143,22 @@ class LivewireDatatableMultisortQueryBuilderTest extends TestCase
         $subject->multisort = true;
         $subject->mount(DummyHasManyModel::class, ['id', 'dummy_model.name']);
 
-        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_has_many_models"."dummy_model_id" = "dummy_models"."id" order by `id` desc', $subject->getQuery()->toSql());
+        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_models"."id" = "dummy_has_many_models"."dummy_model_id" order by `id` desc', $subject->getQuery()->toSql());
 
         $subject->sort(1);
         $subject->forgetComputed();
 
-        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_has_many_models"."dummy_model_id" = "dummy_models"."id" order by dummy_has_many_models.id desc, dummy_models.name desc', $subject->getQuery()->toSql());
+        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_models"."id" = "dummy_has_many_models"."dummy_model_id" order by dummy_has_many_models.id desc, dummy_models.name desc', $subject->getQuery()->toSql());
 
         $subject->sort(1);
         $subject->forgetComputed();
 
-        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_has_many_models"."dummy_model_id" = "dummy_models"."id" order by dummy_has_many_models.id desc, dummy_models.name asc', $subject->getQuery()->toSql());
+        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_models"."id" = "dummy_has_many_models"."dummy_model_id" order by dummy_has_many_models.id desc, dummy_models.name asc', $subject->getQuery()->toSql());
 
         $subject->sort(0);
         $subject->forgetComputed();
 
-        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_has_many_models"."dummy_model_id" = "dummy_models"."id" order by dummy_models.name asc, dummy_has_many_models.id asc', $subject->getQuery()->toSql());
+        $this->assertEquals('select "dummy_has_many_models"."id" as "id", "dummy_models"."name" as "dummy_model.name" from "dummy_has_many_models" left join "dummy_models" on "dummy_models"."id" = "dummy_has_many_models"."dummy_model_id" order by dummy_models.name asc, dummy_has_many_models.id asc', $subject->getQuery()->toSql());
     }
 
     /** @test */
