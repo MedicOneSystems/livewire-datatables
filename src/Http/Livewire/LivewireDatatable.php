@@ -648,32 +648,41 @@ class LivewireDatatable extends Component
         });
     }
 
-    public function getSortString(int $index)
+    public function getSortString(int $index, string $dbTable)
     {
         $column = $this->freshColumns[$index];
-        $dbTable = DB::connection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
+
         switch (true) {
             case $column['sort']:
                 return $column['sort'];
-                break;
 
             case $column['base']:
                 return $column['base'];
-                break;
 
             case is_array($column['select']):
                 return Str::before($column['select'][0], ' AS ');
-                break;
 
             case $column['select']:
                 return Str::before($column['select'], ' AS ');
-                break;
 
-            default:
+             default:
                 return $dbTable == 'pgsql' || $dbTable == 'sqlsrv'
                     ? new Expression('"' . $column['name'] . '"')
                     : new Expression('`' . $column['name'] . '`');
-                break;
+        }
+    }
+
+    /**
+     * Attempt so summarize each data cell of the given column.
+     * In case we have a string or any other value that is not summarizable,
+     * we return a empty string.
+     */
+    public function summarize($column)
+    {
+        try {
+            return $this->results->sum($column);
+        } catch (\TypeError $e) {
+            return '';
         }
     }
 
@@ -689,20 +698,6 @@ class LivewireDatatable extends Component
         }
 
         return false;
-    }
-
-    /**
-     * Attempt so summarize each data cell of the given column.
-     * In case we have a string or any other value that is not summarizable,
-     * we return a empty string.
-     */
-    public function summarize($column)
-    {
-        try {
-            return $this->results->sum($column);
-        } catch (\TypeError $e) {
-            return '';
-        }
     }
 
     public function updatingPerPage()
@@ -1508,20 +1503,21 @@ class LivewireDatatable extends Component
     public function addSort()
     {
         if (! empty($this->sort)) {
+            $dbTable = $this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
             foreach ($this->sort as $sort) {
                 $index = Str::before($sort, '|');
                 if (! is_numeric($index)
                     && ! is_null(($index = optional(collect($this->freshColumns)->where('name', $index))->keys()->first()))) {
-                    $columnName = Str::after($this->getSortString($index), '.');
+                    $columnName = Str::after($this->getSortString($index, $dbTable), '.');
                 } else {
-                    $columnName = $this->getSortString($index);
+                    $columnName = $this->getSortString($index, $dbTable);
                 }
 
                 if (isset($this->pinnedRecords) && $this->pinnedRecords) {
                     $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
                 }
 
-                $this->query->orderBy(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
+                $this->query->orderByRaw($columnName . ' ' . ($direction = Str::after($sort, '|') == $index ? self::DEFAULT_DIRECTION : Str::after($sort, '|')));
             }
         }
 
@@ -1737,6 +1733,8 @@ class LivewireDatatable extends Component
                 return config('livewire-datatables.default_classes.row.odd', 'divide-x divide-gray-100 text-sm text-gray-900 bg-gray-50');
             }
         }
+
+        $this->setSessionStoredHidden();
     }
 
     public function cellClasses($row, $column)
