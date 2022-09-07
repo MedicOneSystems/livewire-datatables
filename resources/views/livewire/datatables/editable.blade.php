@@ -2,8 +2,8 @@
     edit: false,
     edited: false,
     init() {
-        window.livewire.on('fieldEdited', (id) => {
-            if (id === '{{ $rowId }}') {
+        window.livewire.on('fieldEdited', (id, column) => {
+            if (id === '{{ $rowId }}' && column === '{{ $column }}') {
                 this.edited = true
                 setTimeout(() => {
                     this.edited = false
@@ -11,7 +11,7 @@
             }
         })
     }
-}" x-init="init()" :key="{{ $rowId }}">
+}" x-init="init()" wire:key="{{ $rowId }}_{{ $column }}">
     <button class="min-h-[28px] w-full text-left hover:bg-blue-100 px-2 py-1 -mx-2 -my-1 rounded focus:outline-none" x-bind:class="{ 'text-green-600': edited }" x-show="!edit"
         x-on:click="edit = true; $nextTick(() => { $refs.input.focus() })">{!! htmlspecialchars($value) !!}</button>
     <span x-cloak x-show="edit">

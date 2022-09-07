@@ -2,24 +2,28 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class Column
 {
     public $type = 'string';
+    public $index = 0;
     public $label;
+    public $tooltip;
     public $name;
     public $select;
     public $joins;
     public $base;
     public $raw;
     public $searchable;
+    public $sortable;
     public $filterOn;
     public $filterable;
     public $hideable;
     public $sort;
-    public $unsortable;
     public $defaultSort;
     public $callback;
     public $hidden;
@@ -28,10 +32,24 @@ class Column
     public $params = [];
     public $additionalSelects = [];
     public $filterView;
-    public $align = 'left';
+    public $headerAlign = 'left';
+    public $contentAlign = 'left';
     public $preventExport;
     public $width;
+    public $minWidth;
+    public $maxWidth;
     public $exportCallback;
+
+    /**
+     * @var bool should the sum of all summarizable cells in this column be
+     *           displayed as a summary at the bottom of the table?
+     */
+    public $summary = false;
+
+    /**
+     * @var bool allow the content of the column to wrap into multiple lines.
+     */
+    public $wrappable = true;
 
     /**
      * @var string (optional) you can group your columns to let the user toggle the visibility of a group at once.
@@ -40,6 +58,11 @@ class Column
 
     /** @var array list all column types that are not sortable by SQL here */
     public const UNSORTABLE_TYPES = ['label', 'checkbox'];
+
+    public function __construct()
+    {
+        $this->sortable = config('livewire-datatables.default_sortable', true);
+    }
 
     public static function name($name)
     {
@@ -57,6 +80,18 @@ class Column
         return $column;
     }
 
+    public static function index(LivewireDatatable $datatable, $attribute = 'id')
+    {
+        $column = new static;
+        $column->name = $attribute;
+        $column->label = '#';
+        $column->callback = function () use ($datatable) {
+            return $datatable->page * $datatable->perPage - $datatable->perPage + $datatable->row++;
+        };
+
+        return $column;
+    }
+
     public static function raw($raw)
     {
         $column = new static;
@@ -69,11 +104,25 @@ class Column
         return $column;
     }
 
-    public static function callback($columns, $callback, $params = [])
-    {
+    /**
+     * Make a callback function.
+     *
+     * @param $columns      Array|string    The (comma separated) columns that should be retrieved from the database.
+     *                                      Is being translated directly into the `.sql`.
+     * @param $callback     Closure|string  A callback that defines how the retrieved columns are processed.
+     * @param $params       Array           Optional additional parameters that are passed to the given Closure.
+     * @param $callbackName string          Optional string that defines the 'name' of the column.
+     *                                      Leave empty to let livewire autogenerate a distinct value.
+     */
+    public static function callback(
+        array|string $columns,
+        Closure|string $callback,
+        array $params = [],
+        ?string $callbackName = null
+    ) {
         $column = new static;
 
-        $column->name = 'callback_' . crc32(json_encode(func_get_args()));
+        $column->name = 'callback_' . ($callbackName ?? crc32(json_encode(func_get_args())));
         $column->callback = $callback;
         $column->additionalSelects = is_array($columns) ? $columns : array_map('trim', explode(',', $columns));
         $column->params = $params;
@@ -113,6 +162,51 @@ class Column
         return $this;
     }
 
+    public function wrap()
+    {
+        $this->wrappable = true;
+
+        return $this;
+    }
+
+    public function unwrap()
+    {
+        $this->wrappable = false;
+
+        return $this;
+    }
+
+    public function enableSummary()
+    {
+        $this->summary = true;
+
+        return $this;
+    }
+
+    public function disableSummary()
+    {
+        $this->summary = false;
+
+        return $this;
+    }
+
+    public function setIndex($index)
+    {
+        $this->index = $index;
+
+        return $this;
+    }
+
+    public function tooltip($text, $label = null)
+    {
+        $this->tooltip = [
+            'text' => $text,
+            'label' => $label,
+        ];
+
+        return $this;
+    }
+
     public function sortBy($column)
     {
         $this->sort = $column;
@@ -134,9 +228,16 @@ class Column
         return $this;
     }
 
+    public function sortable()
+    {
+        $this->sortable = true;
+
+        return $this;
+    }
+
     public function unsortable()
     {
-        $this->unsortable = true;
+        $this->sortable = false;
 
         return $this;
     }
@@ -249,10 +350,10 @@ class Column
         return $this;
     }
 
-    public function view($view)
+    public function view($view, $data = [])
     {
-        $this->callback = function ($value, $row) use ($view) {
-            return view($view, ['value' => $value, 'row' => $row]);
+        $this->callback = function ($value, $row) use ($view, $data) {
+            return view($view, ['value' => $value, 'row' => $row, ...$data]);
         };
 
         $this->exportCallback = function ($value) {
@@ -299,14 +400,44 @@ class Column
 
     public function alignRight()
     {
-        $this->align = 'right';
+        $this->headerAlign = 'right';
+        $this->contentAlign = 'right';
 
         return $this;
     }
 
     public function alignCenter()
     {
-        $this->align = 'center';
+        $this->headerAlign = 'center';
+        $this->contentAlign = 'center';
+
+        return $this;
+    }
+
+    public function headerAlignRight()
+    {
+        $this->headerAlign = 'right';
+
+        return $this;
+    }
+
+    public function contentAlignRight()
+    {
+        $this->contentAlign = 'right';
+
+        return $this;
+    }
+
+    public function headerAlignCenter()
+    {
+        $this->headerAlign = 'center';
+
+        return $this;
+    }
+
+    public function contentAlignCenter()
+    {
+        $this->contentAlign = 'center';
 
         return $this;
     }
@@ -330,7 +461,7 @@ class Column
 
     public function isBaseColumn()
     {
-        return ! Str::contains($this->name, '.') && ! $this->raw;
+        return ! Str::startsWith($this->name, 'callback_') && ! Str::contains($this->name, '.') && ! $this->raw;
     }
 
     public function field()
@@ -385,6 +516,36 @@ class Column
         }
 
         $this->width = $width;
+
+        return $this;
+    }
+
+    public function minWidth($minWidth)
+    {
+        if (preg_match('/^\\d*\\.?\\d+$/i', $minWidth) === 1) {
+            $minWidth .= 'px';
+        }
+
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $minWidth) === 0) {
+            return $this;
+        }
+
+        $this->minWidth = $minWidth;
+
+        return $this;
+    }
+
+    public function maxWidth($maxWidth)
+    {
+        if (preg_match('/^\\d*\\.?\\d+$/i', $maxWidth) === 1) {
+            $maxWidth .= 'px';
+        }
+
+        if (preg_match('/^(\\d*\\.?\\d+)\\s?(cm|mm|in|px|pt|pc|em|ex|ch|rem|vw|vmin|vmax|%+)$/i', $maxWidth) === 0) {
+            return $this;
+        }
+
+        $this->maxWidth = $maxWidth;
 
         return $this;
     }

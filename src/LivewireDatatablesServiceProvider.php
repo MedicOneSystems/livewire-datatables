@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use Mediconesystems\LivewireDatatables\Commands\DatatableMakeCommand;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
 use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
 use Mediconesystems\LivewireDatatables\Http\Livewire\ComplexQuery;
@@ -48,7 +49,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
                 __DIR__ . '/../resources/views/icons' => resource_path('views/livewire/datatables/icons'),
             ], 'views');
 
-            $this->commands([MakeDatatableCommand::class]);
+            $this->commands([MakeDatatableCommand::class, DatatableMakeCommand::class]);
         }
 
         Route::get('/datatables/{filename}', [FileExportController::class, 'handle'])
@@ -149,6 +150,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
             }
 
             $expression = $aggregate === 'group_concat'
+
                 ? $distinct_aggregate
                 : new Expression('COALESCE(' . $aggregate . "({$column}),0)");
 
