@@ -10,6 +10,8 @@
 - Filter using booleans, times, dates, selects or free text
 - Create complex combined filters using the [complex query builder](#complex-query-builder)
 - Show / hide columns
+- Column groups
+- Mass Action (Bulk) Support
 
 ## [Live Demo App](https://livewire-datatables.com)
 
@@ -18,7 +20,7 @@
 ![screenshot](resources/images/screenshot.png "Screenshot")
 
 ## Requirements
-- [Laravel 7](https://laravel.com/docs/7.x)
+- [Laravel 7, 8 or 9](https://laravel.com/docs/9.x)
 - [Livewire](https://laravel-livewire.com/)
 - [Tailwind](https://tailwindcss.com/)
 - [Alpine JS](https://github.com/alpinejs/alpine)
@@ -30,6 +32,11 @@ You can install the package via composer:
 ```bash
 composer require mediconesystems/livewire-datatables
 ```
+If you use laravel 9 first execute
+```bash
+composer require psr/simple-cache:^1.0 maatwebsite/excel
+```
+
 ### Optional
 You don't need to, but if you like you can publish the config file and blade template assets:
 ```bash
@@ -52,7 +59,7 @@ somewhere in your CSS
 ```html
 ...
 
-<livewire:datatable model="App\User" />
+<livewire:datatable model="App\User" name="all-users" />
 
 ...
 ```
@@ -62,30 +69,36 @@ somewhere in your CSS
 ```html
 <livewire:datatable
     model="App\User"
+    name="users"
     include="id, name, dob, created_at"
     dates="dob"
 />
 ```
 
+*Attention*: Please note that having multiple datatables on the same page _or_ more than one datatable of the same
+type on different pages needs to have a unique `name` attribute assigned to each one so they do not conflict with each
+other as in the example above.
+
 ### Props
-| Property | Arguments | Result | Example |
-|----|----|----|----|
-|**model**|*String* full model name|Define the base model for the table| ```model="App\Post"```|
-|**include**|*String\|Array* of column definitions|specify columns to be shown in table, label can be specified by using \| delimter | ```include="name, email, dob\|Birth Date, role"```|
-|**exclude**|*String\|Array* of column definitions|columns are excluded from table| ```:exclude="['created_at', 'updated_at']"```|
-|**hide**|*String\|Array* of column definitions|columns are present, but start hidden|```hidden="email_verified_at"```|
-|**dates**|*String\|Array* of column definitions [ and optional format in \| delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob\|lS F y', 'created_at']"```|
-|**times**|*String\|Array* of column definitions [optional format in \| delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime\|g:i A'```|
-|**searchable**|*String\|Array* of column names | Defines columns to be included in global search | ```searchable="name, email"```|
+| Property | Arguments | Result                                                                                                                                         | Example |
+|----|----|------------------------------------------------------------------------------------------------------------------------------------------------|----|
+|**model**|*String* full model name| Define the base model for the table                                                                                                            | ```model="App\Post"```|
+|**include**|*String\| Array* of column definitions                                                                                                                   |specify columns to be shown in table, label can be specified by using \| delimter | ```include="name, email, dob\|Birth Date, role"```|
+|**exclude**|*String\| Array* of column definitions                                                                                                                   |columns are excluded from table| ```:exclude="['created_at', 'updated_at']"```|
+|**hide**|*String\| Array* of column definitions                                                                                                                   |columns are present, but start hidden|```hidden="email_verified_at"```|
+|**dates**|*String\| Array* of column definitions [ and optional format in \                                                                                        | delimited string]|column values are formatted as per the default date format, or format can be included in string with \| separator | ```:dates="['dob\|lS F y', 'created_at']"```|
+|**times**|*String\| Array* of column definitions [optional format in \                                                                                             | delimited string]|column values are formatted as per the default time format, or format can be included in string with \| separator | ```'bedtime\|g:i A'```|
+|**searchable**|*String\| Array* of column names                                                                                                                         | Defines columns to be included in global search | ```searchable="name, email"```|
 |**sort**|*String, int or array* of column(s) definition [and optional 'asc' or 'desc' (default: 'desc') Specifies the column and direction for initial table sort. Default is column 0 descending | ```sort="name\|asc"```|
 |**multisort**|*Boolean default: false*|When set to true, sort is done using multiple columns.
-|**hide-header**|*Boolean* default: *false*|The top row of the table including the column titles is removed if this is ```true```| |
-|**hide-pagination**|*Boolean* default: *false*|Pagination controls are removed if this is ```true```| |
-|**per-page**|*Integer* default: 10|Number of rows per page| ```per-page="20"``` |
-|**exportable**|*Boolean*  default: *false*|Allows table to be exported| ```<livewire:datatable model="App/Post" exportable />``` |
-|**hideable**| _String_ | gives ability to show/hide columns, accepts strings 'inline', 'buttons', or 'select'| ```<livewire:datatable model="App/Post" hideable="inline" />``` |
-|**beforeTableSlot**| _String_ |blade view to be included immediately before the table in the component, which can therefore access public properties|  |
-|**afterTableSlot**| _String_ |blade view to be included immediately after the table in the component, which can therefore access public properties| [demo](https://livewire-datatables.com/complex) |
+|**hide-header**|*Boolean* default: *false*| The top row of the table including the column titles is removed if this is ```true```                                                          | |
+|**hide-pagination**|*Boolean* default: *false*| Pagination controls are removed if this is ```true```                                                                                          | |
+|**per-page**|*Integer* default: 10| Number of rows per page                                                                                                                        | ```per-page="20"``` |
+|**exportable**|*Boolean*  default: *false*| Allows table to be exported                                                                                                                    | ```<livewire:datatable model="App/Post" exportable />``` |
+|**hideable**| _String_ | gives ability to show/hide columns, accepts strings 'inline', 'buttons', or 'select'                                                           | ```<livewire:datatable model="App/Post" hideable="inline" />``` |
+|**buttonsSlot**| _String_ | blade view to be included immediately after the buttons at the top of the table in the component, which can therefore access public properties |  |
+|**beforeTableSlot**| _String_ | blade view to be included immediately before the table in the component, which can therefore access public properties                          |  |
+|**afterTableSlot**| _String_ | blade view to be included immediately after the table in the component, which can therefore access public properties                           | [demo](https://livewire-datatables.com/complex) |
 ---
 
 ## Sorting by multiple columns (multisort)
@@ -108,15 +121,14 @@ There's 3 possible states a column can have when multisort is enabled. Clicking 
 ## Component Syntax
 
 ### Create a livewire component that extends ```Mediconesystems\LivewireDatatables\LivewireDatatable```
-> ```php artisan livewire:datatable foo``` --> 'app/Http/Livewire/Foo.php'
+> ```php artisan make:livewire-datatable foo``` --> 'app/Http/Livewire/Foo.php'
 
-> ```php artisan livewire:datatable tables.bar``` --> 'app/Http/Livewire/Tables/Bar.php'
+> ```php artisan make:livewire-datatable tables.bar``` --> 'app/Http/Livewire/Tables/Bar.php'
 
 ### Provide a datasource by declaring public property ```$model``` **OR** public method ```builder()``` that returns an instance of ```Illuminate\Database\Eloquent\Builder```
-> ```php artisan livewire:datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
+> ```php artisan make:livewire-datatable users-table --model=user``` --> 'app/Http/Livewire/UsersTable.php' with ```public $model = User::class```
 
 ### Declare a public method ```columns``` that returns an array containing one or more ```Mediconesystems\LivewireDatatables\Column```
-
 
 ## Columns
 Columns can be built using any of the static methods below, and then their attributes assigned using fluent method chains.
@@ -167,6 +179,9 @@ class ComplexDemoTable extends LivewireDatatable
                 ->hideable()
                 ->filterable($this->planets),
 
+            // Column that counts every line from 1 upwards, independent of content
+            Column::index($this);
+
             DateColumn::name('dob')
                 ->label('DOB')
                 ->group('group2')
@@ -175,7 +190,10 @@ class ComplexDemoTable extends LivewireDatatable
 
             (new LabelColumn())
                 ->label('My custom heading')
-                ->content('This fixed string appears in every row')
+                ->content('This fixed string appears in every row'),
+
+            NumberColumn::name('dollars_spent')
+                ->enableSummary(),
         ];
     }
 }
@@ -203,11 +221,16 @@ class ComplexDemoTable extends LivewireDatatable
 |**searchable**| |Includes the column in the global search|```Column::name('name')->searchable()```|
 |**hideable**| |The user is able to toggle the visibility of this column|```Column::name('name')->hideable()```|
 |**filterable**|[*Array* $options], [*String* $filterScope]|Adds a filter to the column, according to Column type. If an array of options is passed it wil be used to populate a select input. If the column is a scope column then the name of the filter scope must also be passed|```Column::name('allegiance')->filterable(['Rebellion', 'Empire'])```|
+|**unwrap**| | Prevents the content of the column from being wrapped in multiple lines |```Column::name('oneliner')->unwrap()```|
 |**filterOn**|*String/Array* $statement|Allows you to specify a column name or sql statement upon which to perform the filter (must use SQL syntax, not Eloquent eg. ```'users.name'``` instead of ```'user.name'```). Useful if using a callback to modify the displayed values. Can pass a single string or array of strings which will be combined with ```OR```|```Column::callback(['name', 'allegiance'], function ($name, $allegiance) { return "$name is allied to $allegiance"; })->filterable(['Rebellion', 'Empire'])->filterOn('users.allegiance')```|
 |**view**|*String* $viewName| Passes the column value, whole row of values, and any additional parameters to a view template | _(see below)_|
 |**editable**| | Marks the column as editable | _(see below)_|
-|**alignCenter**| | Center-aligns column header and contents |```Column::delete()->alignCenter()```|
-|**alignRight**| | Right-aligns column header and contents |```Column::delete()->alignRight()```|
+|**alignCenter**| | Center-aligns column header _and_ contents |```Column::delete()->alignCenter()```|
+|**alignRight**| | Right-aligns column header _and_ contents |```Column::delete()->alignRight()```|
+|**contentAlignCenter**| | Center-aligns column contents |```Column::delete()->contentAlignCenter()```|
+|**contentAlignRight**| | Right-aligns column contents |```Column::delete()->contentAlignRight()```|
+|**headerAlignCenter**| | Center-aligns column header |```Column::delete()->headerAlignCenter()```|
+|**headerAlignRight**| | Right-aligns column header |```Column::delete()->headerAlignRight()```|
 |**editable**| | Marks the column as editable | _(see below)_|
 |**exportCallback**| Closure $callback | Reformats the result when exporting | _(see below)_ |
 |**excludeFromExport**| | Excludes the column from export |```Column::name('email')->excludeFromExport()```|
@@ -255,6 +278,97 @@ public function columns()
             ->label('Planet'),
 ```
 
+### Summary row
+If you need to summarize all cells of a specific column, you can use `enableSummary()`:
+
+```php
+public function columns()
+{
+    return [
+        Column::name('dollars_spent')
+            ->label('Expenses in Dollar')
+            ->enableSummary(),
+
+        Column::name('euro_spent')
+            ->label('Expenses in Euro')
+            ->enableSummary(),
+```
+
+### Mass (Bulk) Action
+
+If you want to be able to act upon several records at once, you can use the `buildActions()` method in your Table:
+
+```php
+public function buildActions()
+    {
+        return [
+
+            Action::value('edit')->label('Edit Selected')->group('Default Options')->callback(function ($mode, $items) {
+                // $items contains an array with the primary keys of the selected items
+            }),
+
+            Action::value('update')->label('Update Selected')->group('Default Options')->callback(function ($mode, $items) {
+                // $items contains an array with the primary keys of the selected items
+            }),
+
+            Action::groupBy('Export Options', function () {
+                return [
+                    Action::value('csv')->label('Export CSV')->export('SalesOrders.csv'),
+                    Action::value('html')->label('Export HTML')->export('SalesOrders.html'),
+                    Action::value('xlsx')->label('Export XLSX')->export('SalesOrders.xlsx')->styles($this->exportStyles)->widths($this->exportWidths)
+                ];
+            }),
+        ];
+    }
+```
+
+### Mass Action Style
+
+If you only have small style adjustments to the Bulk Action Dropdown you can adjust some settings here:
+
+```php
+public function getExportStylesProperty()
+    {
+        return [
+            '1'  => ['font' => ['bold' => true]],
+            'B2' => ['font' => ['italic' => true]],
+            'C'  => ['font' => ['size' => 16]],
+        ];
+    }
+
+    public function getExportWidthsProperty()
+    {
+        return [
+            'A' => 55,
+            'B' => 45,
+        ];
+    }
+```
+
+### Pin Records
+
+If you want to give your users the ability to pin specific records to be able to, for example, compare
+them with each other, you can use the CanPinRecords trait. Ensure to have at least one Checkbox Column
+so the user can select records:
+
+```php
+use Mediconesystems\LivewireDatatables\Traits\CanPinRecords;
+
+class RecordTable extends LivewireDatatable
+{
+    use CanPinRecords;
+
+    public $model = Record::class;
+
+    public function columns()
+    {
+        return [
+            Column::checkbox(),
+
+            // ...
+
+```
+
 ### Custom column names
 It is still possible to take full control over your table, you can define a ```builder``` method using whatever query you like, using your own joins, groups whatever, and then name your columns using your normal SQL syntax:
 
@@ -283,7 +397,6 @@ public function columns()
 }
 
 ```
-
 
 ### Callbacks
 Callbacks give you the freedom to perform any mutations you like on the data before displaying in the table.
@@ -379,7 +492,7 @@ Just add ```$complex = true``` to your Datatable Class and all filterable column
 
 ![image](https://user-images.githubusercontent.com/7000886/128855344-25035758-ca90-42d2-bd19-518c9de45148.png)
 ---
-**Persisting Queries** (Requires AlpineJS v3 with $perist plugin)
+**Persisting Queries** (Requires AlpineJS v3 with $persist plugin)
 - Add ```$persistComplexQuery = true``` to your class and queries will be stored in browser localstorage.
 - By default the localstorage key will be the class name. You can provide your own by setting the public property ```$persistKey``` or overriding ```getPersistKeyProperty()``` on the Datatable Class
 - eg: for user-specific persistence:
@@ -393,7 +506,7 @@ public function getPersistKeyProperty()
 ---
 **Saving Queries**
 
-If you want to save permanently save queries you must provide 3 methods for adding, deleting and retrieving your saved queries using whatever logic you like:
+If you want to permanently save queries you must provide 3 methods for adding, deleting and retrieving your saved queries using whatever logic you like:
 
 - ```public function saveQuery(String $name, Array $rules)```
 - ```public function deleteQuery(Int $id)```
@@ -437,7 +550,7 @@ class ComplexQuery extends BaseModel
 
 /* Datatable Class */
 
-class TableWithSaving extends Livewire Datatable
+class TableWithSaving extends LivewireDatatable
 {
     ...
 

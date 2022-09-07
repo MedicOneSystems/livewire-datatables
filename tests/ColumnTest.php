@@ -81,6 +81,7 @@ class ColumnTest extends TestCase
             'sort' => null,
             'defaultSort' => null,
             'searchable' => null,
+            'sortable' => null,
             'params' => [],
             'additionalSelects' => [],
             'scope' => null,
@@ -89,15 +90,17 @@ class ColumnTest extends TestCase
             'select' => null,
             'joins' => null,
             'aggregate' => 'group_concat',
-            'align' => 'left',
+            'headerAlign' => 'left',
             'preventExport' => null,
             'width' => null,
-            'unsortable' => null,
             'exportCallback' => function () {
             },
             'filterOn' => null,
             'group' => null,
             'hideable' => null,
+            'index' => 0,
+            'minWidth' => null,
+            'maxWidth' => null,
         ], $subject);
     }
 
@@ -123,6 +126,7 @@ class ColumnTest extends TestCase
             'sort' => 'SELECT column FROM table',
             'defaultSort' => 'asc',
             'searchable' => null,
+            'sortable' => null,
             'params' => [],
             'additionalSelects' => [],
             'scope' => null,
@@ -130,14 +134,16 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => DB::raw('SELECT column FROM table'),
             'joins' => null,
-            'align' => 'left',
+            'headerAlign' => 'left',
             'preventExport' => null,
             'width' => null,
-            'unsortable' => null,
             'exportCallback' => null,
             'filterOn' => null,
             'group' => null,
             'hideable' => null,
+            'index' => 0,
+            'minWidth' => null,
+            'maxWidth' => null,
         ], $subject);
     }
 
@@ -161,6 +167,7 @@ class ColumnTest extends TestCase
             'sort' => null,
             'defaultSort' => null,
             'searchable' => null,
+            'sortable' => null,
             'params' => [],
             'additionalSelects' => [],
             'scope' => null,
@@ -168,16 +175,17 @@ class ColumnTest extends TestCase
             'filterView' => null,
             'select' => null,
             'joins' => null,
-
             'aggregate' => 'group_concat',
-            'align' => 'left',
+            'headerAlign' => 'left',
             'preventExport' => null,
             'width' => '1em',
-            'unsortable' => null,
             'exportCallback' => null,
             'filterOn' => null,
             'group' => null,
             'hideable' => null,
+            'index' => 0,
+            'minWidth' => null,
+            'maxWidth' => null,
         ], $subject);
     }
 
@@ -208,7 +216,7 @@ class ColumnTest extends TestCase
             'select' => null,
             'joins' => null,
             'aggregate' => 'group_concat',
-            'align' => 'left',
+            'headerAlign' => 'left',
             'preventExport' => null,
             'width' => null,
         ], $subject);
@@ -241,7 +249,7 @@ class ColumnTest extends TestCase
             'select' => null,
             'joins' => null,
             'aggregate' => 'group_concat',
-            'align' => 'left',
+            'headerAlign' => 'left',
             'preventExport' => null,
             'width' => '5px',
         ], $subject);
