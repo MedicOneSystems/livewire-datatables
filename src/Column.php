@@ -221,9 +221,9 @@ class Column
         return $this;
     }
 
-    public function hideable()
+    public function hideable($hideable = true)
     {
-        $this->hideable = true;
+        $this->hideable = $hideable;
 
         return $this;
     }
