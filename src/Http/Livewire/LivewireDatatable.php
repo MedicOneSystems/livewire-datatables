@@ -436,15 +436,15 @@ class LivewireDatatable extends Component
         while (count($relations) > 0) {
             $relation = array_shift($relations);
 
-            $useThrough = collect($this->query->getQuery()->joins)
-                ->pluck('table')
-                ->contains($relatedQuery->getRelation($relation)->getRelated()->getTable());
-
             if ($relatedQuery->getRelation($relation) instanceof HasMany || $relatedQuery->getRelation($relation) instanceof HasManyThrough || $relatedQuery->getRelation($relation) instanceof BelongsToMany) {
                 $this->query->customWithAggregate($aggregateName, $column->aggregate ?? 'count', $columnName, $column->name);
 
                 return null;
             }
+
+            $useThrough = collect($this->query->getQuery()->joins)
+                ->pluck('table')
+                ->contains($relatedQuery->getRelation($relation)->getRelated()->getTable());
 
             $relatedQuery = $this->query->joinRelation($relation, null, 'left', $useThrough, $relatedQuery);
         }
