@@ -95,7 +95,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
                 $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
                     ? $relation->getRelationCountHashWithoutIncrementing()
-                    : $relation->getRelated()->getTable();
+                    : ($this->query->getConnection()->getTablePrefix() ?? '') . $relation->getRelated()->getTable();
 
                 $query = $relation->getRelationExistenceAggregatesQuery(
                     $relation->getRelated()->newQuery(),
@@ -125,7 +125,7 @@ class LivewireDatatablesServiceProvider extends ServiceProvider
 
             $table = $relation->getRelated()->newQuery()->getQuery()->from === $this->getQuery()->from
                 ? $relation->getRelationCountHashWithoutIncrementing()
-                : $relation->getRelated()->getTable();
+                : ($this->query->getConnection()->getTablePrefix() ?? '') . $relation->getRelated()->getTable();
 
             $hasQuery = $relation->getRelationExistenceAggregatesQuery(
                 $relation->getRelated()->newQueryWithoutRelationships(),
