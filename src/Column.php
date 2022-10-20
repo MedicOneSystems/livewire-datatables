@@ -115,10 +115,10 @@ class Column
      *                                      Leave empty to let livewire autogenerate a distinct value.
      */
     public static function callback(
-        array|string $columns,
-        Closure|string $callback,
-        array $params = [],
-        ?string $callbackName = null
+        $columns,
+        $callback,
+        $params = [],
+        $callbackName = null
     ) {
         $column = new static;
 
