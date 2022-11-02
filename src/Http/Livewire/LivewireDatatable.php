@@ -351,7 +351,7 @@ class LivewireDatatable extends Component
         if (DB::connection() instanceof \Illuminate\Database\SQLiteConnection) {
             // SQLite dialect.
             return $selects->count() > 1
-                ? new Expression("(" .
+                ? new Expression('(' .
                 collect($selects)->map(function ($select) {
                     return 'COALESCE(' . $this->tablePrefix . $select . ', \'\')';
                 })->join(" || '" . static::SEPARATOR . "' || ") . ')')
