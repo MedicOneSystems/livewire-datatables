@@ -109,7 +109,7 @@
                                     @unless($column['hidden'])
                                         <div class="flex justify-center table-cell w-32 h-12 px-6 py-4 overflow-hidden text-xs font-medium tracking-wider text-left text-gray-500 uppercase align-top border-b border-gray-200 bg-gray-50 leading-4 focus:outline-none">
                                             <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
-                                                {{ count($selected) }}
+                                                {{ count($visibleSelected) }}
                                             </div>
                                         </div>
                                     @endunless
