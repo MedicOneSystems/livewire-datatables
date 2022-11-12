@@ -1,8 +1,10 @@
 {
-    "name": "shaneburrell/livewire-datatables",
-    "description": "Fork of the livewire-datatables package. This has several modifications and additions.",
+    "name": "mediconesystems/livewire-datatables",
+    "description": "Advanced datatables using Laravel, Livewire, Tailwind CSS and Alpine JS",
     "keywords": [
-        "livewire-datatables-fork"
+        "php",
+        "laravel",
+        "livewire"
     ],
     "homepage": "https://github.com/mediconesystems/livewire-datatables",
     "license": "MIT",
@@ -16,6 +18,11 @@
         {
             "name": "Shane Burrell",
             "email": "shane@shaneburrell.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Herbert Maschke",
+            "email": "thyseus@pm.me",
             "role": "Developer"
         }
     ],
