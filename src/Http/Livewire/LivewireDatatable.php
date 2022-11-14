@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -25,11 +26,12 @@ class LivewireDatatable extends Component
     use WithPagination, WithCallbacks, WithPresetDateFilters, WithPresetTimeFilters;
 
     const SEPARATOR = '|**lwdt**|';
+    const DEFAULT_DIRECTION = 'desc';
+    const ORDER_BY_DIRECTION_STATES = [self::DEFAULT_DIRECTION, 'asc', null];
     public $model;
     public $columns;
     public $search;
     public $sort;
-    public $direction;
     public $activeDateFilters = [];
     public $activeTimeFilters = [];
     public $activeSelectFilters = [];
@@ -64,6 +66,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
+    public $multisort;
     public $row = 1;
 
     public $tablePrefix = '';
@@ -228,6 +231,7 @@ class LivewireDatatable extends Component
         $times = [],
         $searchable = [],
         $sort = null,
+        $multisort = false,
         $hideHeader = null,
         $hidePagination = null,
         $perPage = null,
@@ -247,7 +251,7 @@ class LivewireDatatable extends Component
             'times',
             'searchable',
             'sort',
-            'hideHeader',
+            'multisort', 'hideHeader',
             'hidePagination',
             'exportable',
             'hideable',
@@ -478,8 +482,13 @@ class LivewireDatatable extends Component
             return;
         }
 
-        $this->sort = session()->get($this->sessionStorageKey() . '_sort', $this->sort);
-        $this->direction = session()->get($this->sessionStorageKey() . '_direction', $this->direction);
+        if (! $this->multisort) {
+            $this->sort = session()->get($this->sessionStorageKey() . '_sort', $this->sort);
+
+            return;
+        }
+
+        $this->sort = session()->get($this->sessionStorageKey() . '_multisort', $this->sort) ?? [];
     }
 
     public function getSessionStoredPerPage()
@@ -497,10 +506,13 @@ class LivewireDatatable extends Component
             return;
         }
 
-        session()->put([
-            $this->sessionStorageKey() . '_sort' => $this->sort,
-            $this->sessionStorageKey() . '_direction' => $this->direction,
-        ]);
+        if (! $this->multisort) {
+            session()->put([$this->sessionStorageKey() . $this->name . '_sort' => $this->sort]);
+
+            return;
+        }
+
+        session()->put([$this->sessionStorageKey() . $this->name . '_multisort' => implode(',', $this->sort)]);
     }
 
     public function setSessionStoredFilters()
@@ -544,13 +556,28 @@ class LivewireDatatable extends Component
 
     public function initialiseSort()
     {
-        $this->sort = $this->defaultSort()
-        ? $this->defaultSort()['key']
-        : collect($this->freshColumns)->reject(function ($column) {
-            return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
-        })->keys()->first();
+        $default = $this->defaultSort();
+        $direction = self::DEFAULT_DIRECTION;
 
-        $this->direction = $this->defaultSort() && $this->defaultSort()['direction'] === 'asc';
+        if ($default->isNotEmpty()) {
+            $this->sort = $default->transform(function ($column) {
+                return $column['key'] . '|' . $column['direction'];
+            })->values()->toArray();
+            $this->getSessionStoredSort();
+
+            return;
+        }
+
+        if (is_int($this->sort) || is_string($this->sort)) {
+            $columnIndex = $this->getIndexFromValue($this->sort);
+            $direction = $this->getColumnDirection($this->sort);
+        } else {
+            $columnIndex = collect($this->freshColumns)->reject(function ($column) {
+                return in_array($column['type'], Column::UNSORTABLE_TYPES) || $column['hidden'];
+            })->keys()->first();
+        }
+
+        $this->sort = [$columnIndex . '|' . $direction];
         $this->getSessionStoredSort();
     }
 
@@ -609,52 +636,53 @@ class LivewireDatatable extends Component
 
     public function defaultSort()
     {
-        $columnIndex = collect($this->freshColumns)->search(function ($column) {
+        $columns = collect($this->freshColumns)->filter(function ($column) {
             return is_string($column['defaultSort']);
         });
 
-        return is_numeric($columnIndex) ? [
-            'key' => $columnIndex,
-            'direction' => $this->freshColumns[$columnIndex]['defaultSort'],
-        ] : null;
+        return $columns->map(function ($column, $index) {
+            return is_numeric($index) ? [
+                'key' => $index,
+                'direction' => $this->freshColumns[$index]['defaultSort'],
+            ] : null;
+        });
     }
 
-    public function getSortString($dbtable)
+    public function getSortString(int $index, string $dbTable)
     {
-        $column = $this->freshColumns[$this->sort];
+        $column = $this->freshColumns[$index];
 
         switch (true) {
             case $column['sort']:
                 return $column['sort'];
-                break;
 
             case $column['base']:
                 return $column['base'];
-                break;
 
             case is_array($column['select']):
                 return Str::before($column['select'][0], ' AS ');
-                break;
 
             case $column['select']:
                 return Str::before($column['select'], ' AS ');
-                break;
 
              default:
+                return $dbTable == 'pgsql' || $dbTable == 'sqlsrv'
+                    ? new Expression('"' . $column['name'] . '"')
+                    : new Expression('`' . $column['name'] . '`');
+        }
+    }
 
-                 switch ($dbtable) {
-                     case 'mysql':
-                         return new Expression('`' . $column['name'] . '`');
-                         break;
-                     case 'pgsql':
-                         return new Expression('"' . $column['name'] . '"');
-                         break;
-                     case 'sqlsrv':
-                         return new Expression("'" . $column['name'] . "'");
-                         break;
-                     default:
-                         return new Expression("'" . $column['name'] . "'");
-                 }
+    /**
+     * Attempt so summarize each data cell of the given column.
+     * In case we have a string or any other value that is not summarizable,
+     * we return a empty string.
+     */
+    public function summarize($column)
+    {
+        try {
+            return $this->results->sum($column);
+        } catch (\TypeError $e) {
+            return '';
         }
     }
 
@@ -672,20 +700,6 @@ class LivewireDatatable extends Component
         return false;
     }
 
-    /**
-     * Attempt so summarize each data cell of the given column.
-     * In case we have a string or any other value that is not summarizable,
-     * we return a empty string.
-     */
-    public function summarize($column)
-    {
-        try {
-            return $this->results->sum($column);
-        } catch (\TypeError $e) {
-            return '';
-        }
-    }
-
     public function updatingPerPage()
     {
         $this->refreshLivewireDatatable();
@@ -694,6 +708,19 @@ class LivewireDatatable extends Component
     public function refreshLivewireDatatable()
     {
         $this->setPage(1);
+    }
+
+    public function getColumnDirection(string $sortString): string
+    {
+        $direction = self::DEFAULT_DIRECTION;
+        if (Str::contains($sortString, '|')) {
+            $direction = Str::after($sortString, '|');
+            if (! in_array($direction, self::ORDER_BY_DIRECTION_STATES)) {
+                throw new \Exception("Invalid direction $direction given in getColumnDirection() method. Allowed values: asc, desc.");
+            }
+        }
+
+        return $direction;
     }
 
     /**
@@ -705,33 +732,62 @@ class LivewireDatatable extends Component
      */
     public function sort($index, $direction = null)
     {
-        if (! in_array($direction, [null, 'asc', 'desc'])) {
+        if (! in_array($direction, self::ORDER_BY_DIRECTION_STATES)) {
             throw new \Exception("Invalid direction $direction given in sort() method. Allowed values: asc, desc.");
         }
+        $key = Str::snake(Str::afterLast(get_called_class(), '\\'));
 
-        if ($this->sort === (int) $index) {
-            if ($direction === null) { // toggle direction
-                $this->direction = ! $this->direction;
+        if ($this->multisort) {
+            if (($columnsWithDirection = $this->getColumnsFromSort($this->sort, $index))->isEmpty()) {
+                if ($direction === null) {
+                    $sort = $index . '|' . $this->getColumnDirection($index);
+                } else {
+                    $sort = $index . '|' . $direction;
+                }
+                $this->sort[] = $sort;
             } else {
-                $this->direction = $direction === 'asc' ? true : false;
+                $sortIndex = $columnsWithDirection->keys()->first();
+                if ($direction === null) {
+                    $toggledDirection = $this->toggleMultisortDirection($this->getColumnDirection($this->sort[$sortIndex]));
+                    unset($this->sort[$sortIndex]);
+                    $this->sort = array_values($this->sort);
+                    $sort = $index . '|' . $toggledDirection;
+                    if ($toggledDirection === null) {
+                        return;
+                    }
+                    $this->sort[] = $sort;
+                } else {
+                    $this->sort[$sortIndex] =
+                        $index . '|' . $direction;
+                }
+            }
+
+            $this->page = 1;
+            session()->put([$key . $this->name . '_multisort' => $this->sort]);
+
+            return;
+        }
+
+        if (in_array($index . '|' . $this->getColumnDirection($index), $this->sort)) {
+            if ($direction === null) {
+                $sort = [$index . '|' . $this->toggleSortDirection($this->getColumnDirection($index))];
+            } else {
+                $sort = [$index . '|' . $direction];
             }
         } else {
-            $this->sort = (int) $index;
+            $direction = $direction ?? self::DEFAULT_DIRECTION;
+            $sort = [$index . '|' . $direction];
         }
-        if ($direction !== null) {
-            $this->direction = $direction === 'asc' ? true : false;
-        }
-        $this->setPage(1);
 
-        session()->put([
-            $this->sessionStorageKey() . '_sort' => $this->sort,
-            $this->sessionStorageKey() . '_direction' => $this->direction,
-        ]);
+        $this->sort = $sort;
+        $this->page = 1;
+
+        session()->put([$key . $this->name . '_sort' => $this->sort, $key . $this->name . '_direction' => Str::after($this->sort[0], '|')]);
     }
 
     public function toggle($index)
     {
-        if ($this->sort == $index) {
+        if (in_array($index, $this->sort)) {
             $this->initialiseSort();
         }
 
@@ -1446,11 +1502,23 @@ class LivewireDatatable extends Component
      */
     public function addSort()
     {
-        if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
-            if (isset($this->pinnedRecords) && $this->pinnedRecords) {
-                $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
+        if (! empty($this->sort)) {
+            $dbTable = $this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME);
+            foreach ($this->sort as $sort) {
+                $index = Str::before($sort, '|');
+                if (! is_numeric($index)
+                    && ! is_null(($index = optional(collect($this->freshColumns)->where('name', $index))->keys()->first()))) {
+                    $columnName = Str::after($this->getSortString($index, $dbTable), '.');
+                } else {
+                    $columnName = $this->getSortString($index, $dbTable);
+                }
+
+                if (isset($this->pinnedRecords) && $this->pinnedRecords) {
+                    $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
+                }
+
+                $this->query->orderByRaw($columnName . ' ' . ($direction = Str::after($sort, '|') == $index ? self::DEFAULT_DIRECTION : Str::after($sort, '|')));
             }
-            $this->query->orderBy(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
         }
 
         return $this;
@@ -1665,12 +1733,55 @@ class LivewireDatatable extends Component
                 return config('livewire-datatables.default_classes.row.odd', 'divide-x divide-gray-100 text-sm text-gray-900 bg-gray-50');
             }
         }
+
+        $this->setSessionStoredHidden();
     }
 
     public function cellClasses($row, $column)
     {
         // Override this method with your own method for adding classes to a cell
         return config('livewire-datatables.default_classes.cell', 'text-sm text-gray-900');
+    }
+
+    public function toggleSortDirection(string $direction): string
+    {
+        if (! in_array($direction, self::ORDER_BY_DIRECTION_STATES)) {
+            throw new \Exception("Invalid direction $direction given in toggleSortDirection() method. Allowed values: asc, desc.");
+        }
+
+        switch ($direction) {
+            case self::DEFAULT_DIRECTION:
+                return 'asc';
+            default:
+                return self::DEFAULT_DIRECTION;
+        }
+    }
+
+    public function toggleMultisortDirection(string $direction): ?string
+    {
+        $directionState = array_search($direction, ($directions = self::ORDER_BY_DIRECTION_STATES));
+        if ($directionState === false) {
+            throw new Exception('Undefined direction index in togglemultisortDirection()');
+        }
+        return $directions[$directionState + 1];
+    }
+
+    public function getColumnsFromSort(array $sort, $index): Collection
+    {
+        return collect($sort)->filter(function ($value) use ($index) {
+            return $this->getIndexFromValue($value) == $index;
+        });
+    }
+
+    public function getIndexFromValue($q): ?int
+    {
+        return (int) Str::before($q, '|');
+    }
+
+    public function forgetSortSession()
+    {
+        session()->forget($this->sessionStorageKey() . $this->name . '_multisort');
+        $this->sort = [];
     }
 
     public function getMassActions()

@@ -2,6 +2,14 @@
     @includeIf($beforeTableSlot)
     <div class="relative">
         <div class="flex items-center justify-between mb-1">
+            @if(isset($this->multisort) && $this->multisort === true && count($this->sort) > 1)
+                <button wire:loading.class="opacity-50" wire:click="forgetSortSession"
+                        class="px-3 py-2 border border-blue-400 rounded-md bg-white text-blue-500 text-xs leading-4 font-medium uppercase tracking-wider hover:bg-blue-200 focus:outline-none">
+                    <div class="flex items-center h-2">
+                        {{ __('Reset Columns Sort')}}
+                    </div>
+                </button>
+            @endif
             <div class="flex items-center h-10">
                 @if($this->searchableColumns()->count())
                     <div class="flex rounded-lg w-96 shadow-sm">
@@ -33,6 +41,32 @@
                     <button wire:click="clearAllFilters" class="flex items-center px-3 text-xs font-medium tracking-wider text-red-500 uppercase bg-white border border-red-400 space-x-2 rounded-md leading-4 hover:bg-red-200 focus:outline-none"><span>{{ __('Reset') }}</span>
                         <x-icons.x-circle class="m-2" />
                     </button>
+                @endif
+
+                @if(count($this->massActionsOptions))
+                    <div class="flex items-center justify-center space-x-1">
+                        <label for="datatables_mass_actions">{{ __('With selected') }}:</label>
+                        <select wire:model="massActionOption" class="px-3 text-xs font-medium tracking-wider uppercase bg-white border border-green-400 space-x-2 rounded-md leading-4 focus:outline-none" id="datatables_mass_actions">
+                            <option value="">{{ __('Choose...') }}</option>
+                            @foreach($this->massActionsOptions as $group => $items)
+                                @if(!$group)
+                                    @foreach($items as $item)
+                                        <option value="{{$item['value']}}">{{$item['label']}}</option>
+                                    @endforeach
+                                @else
+                                    <optgroup label="{{$group}}">
+                                        @foreach($items as $item)
+                                            <option value="{{$item['value']}}">{{$item['label']}}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                            @endforeach
+                        </select>
+                        <button
+                            wire:click="massActionOptionHandler"
+                            class="flex items-center px-4 py-2 text-xs font-medium tracking-wider text-green-500 uppercase bg-white border border-green-400 rounded-md leading-4 hover:bg-green-200 focus:outline-none" type="submit" title="Submit"
+                        >Go</button>
+                    </div>
                 @endif
 
                 @if(count($this->massActionsOptions))
