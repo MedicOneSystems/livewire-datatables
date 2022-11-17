@@ -1654,7 +1654,7 @@ class LivewireDatatable extends Component
             }
             $this->visibleSelected = $this->selected;
         }
-        
+
         $this->forgetComputed();
     }
 
@@ -1780,7 +1780,7 @@ class LivewireDatatable extends Component
 
     private function searchOrFilterActive()
     {
-        return (!empty($this->search) || $this->getActiveFiltersProperty());
+        return ! empty($this->search) || $this->getActiveFiltersProperty();
     }
 
     private function setVisibleSelected()
