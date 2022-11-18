@@ -1635,16 +1635,16 @@ class LivewireDatatable extends Component
 
     public function toggleSelectAll()
     {
-        $visible_chekboxes = $this->getQuery()->get()->pluck('checkbox_attribute')->toArray();
-        $visible_chekboxes = array_map('strval', $visible_chekboxes);
+        $visible_checkboxes = $this->getQuery()->get()->pluck('checkbox_attribute')->toArray();
+        $visible_checkboxes = array_map('strval', $visible_checkboxes);
         if ($this->searchOrFilterActive()) {
-            if (count($this->visibleSelected) === count($visible_chekboxes)) {
-                $this->selected = array_values(array_diff($this->selected, $visible_chekboxes));
+            if (count($this->visibleSelected) === count($visible_checkboxes)) {
+                $this->selected = array_values(array_diff($this->selected, $visible_checkboxes));
                 $this->visibleSelected = [];
             } else {
-                $this->selected = array_unique(array_merge($this->selected, $visible_chekboxes));
+                $this->selected = array_unique(array_merge($this->selected, $visible_checkboxes));
                 sort($this->selected);
-                $this->visibleSelected = $visible_chekboxes;
+                $this->visibleSelected = $visible_checkboxes;
             }
         } else {
             if (count($this->selected) === $this->getQuery()->getCountForPagination()) {
