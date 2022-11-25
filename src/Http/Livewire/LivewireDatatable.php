@@ -36,6 +36,7 @@ class LivewireDatatable extends Component
     public $activeBooleanFilters = [];
     public $activeTextFilters = [];
     public $activeNumberFilters = [];
+    public $defaultFilters = [];
     public $hideHeader;
     public $hidePagination;
     public $perPage;
@@ -265,6 +266,7 @@ class LivewireDatatable extends Component
         $this->initialiseSearch();
         $this->initialiseSort();
         $this->initialiseHiddenColumns();
+        $this->initialiseDefaultFilters();
         $this->initialiseFilters();
         $this->initialisePerPage();
         $this->initialiseColumnGroups();
@@ -587,6 +589,52 @@ class LivewireDatatable extends Component
         }, $this->columns);
     }
 
+    public function initialiseDefaultFilters()
+    {
+        if(! $this->defaultFilters || ! is_array($this->defaultFilters) || count($this->defaultFilters) === 0) {
+            return;
+        }
+
+        $columns = collect($this->columns);
+
+
+        foreach ($this->defaultFilters as $columnName => $value) {
+            $columnIndex = $columns->search(function ($column) use ($columnName) {
+                return $column['name'] === $columnName;
+            });
+
+            if ($columnIndex === false) {
+                continue;
+            }
+
+            $column = $columns[$columnIndex];
+
+            if ($column['type'] === 'string') {
+                $this->activeTextFilters[$columnIndex] = $value;
+            }
+
+            if ($column['type'] === 'boolean') {
+                $this->activeBooleanFilters[$columnIndex] = $value;
+            }
+
+            if ($column['type'] === 'select') {
+                $this->activeSelectFilters[$columnIndex] = $value;
+            }
+
+            if ($column['type'] === 'date') {
+                $this->activeDateFilters[$columnIndex] = $value;
+            }
+
+            if ($column['type'] === 'time') {
+                $this->activeTimeFilters[$columnIndex] = $value;
+            }
+
+            if ($column['type'] === 'number') {
+                $this->activeNumberFilters[$columnIndex] = $value;
+            }
+        }
+    }
+
     public function initialiseFilters()
     {
         if (! $this->persistFilters) {
@@ -595,12 +643,29 @@ class LivewireDatatable extends Component
 
         $filters = session()->get($this->sessionStorageKey() . '_filter');
 
-        $this->activeBooleanFilters = $filters['boolean'] ?? [];
-        $this->activeSelectFilters = $filters['select'] ?? [];
-        $this->activeTextFilters = $filters['text'] ?? [];
-        $this->activeDateFilters = $filters['date'] ?? [];
-        $this->activeTimeFilters = $filters['time'] ?? [];
-        $this->activeNumberFilters = $filters['number'] ?? [];
+        if(!empty($filters['text'])) {
+            $this->activeTextFilters = $filters['text'];
+        }
+
+        if(!empty($filters['boolean'])) {
+            $this->activeBooleanFilters = $filters['boolean'];
+        }
+
+        if(!empty($filters['select'])) {
+            $this->activeSelectFilters = $filters['select'];
+        }
+
+        if(!empty($filters['date'])) {
+            $this->activeDateFilters = $filters['date'];
+        }
+
+        if(!empty($filters['time'])) {
+            $this->activeTimeFilters = $filters['time'];
+        }
+
+        if(!empty($filters['number'])) {
+            $this->activeNumberFilters = $filters['number'];
+        }
 
         if (isset($filters['search'])) {
             $this->search = $filters['search'];
