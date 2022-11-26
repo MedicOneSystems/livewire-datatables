@@ -413,6 +413,34 @@ class CallbackDemoTable extends LivewireDatatable
 }
 ```
 
+### Default Filters
+
+If you want to have a default filter applied to your table, you can use the `defaultFilters` property. The `defaultFilter` should be an Array of column names and the default filter value to use for. When a persisted filter (`$this->persistFilters` is true and session values are available) is available, it will override the default filters.
+
+In the example below, the table will by default be filtered by rows where the _deleted_at_ column is false. If the user has a persisted filter for the _deleted_at_ column, the default filter will be ignored.
+
+```php
+class CallbackDemoTable extends LivewireDatatable
+{
+    public $defaultFilters = [
+        'deleted_at' => '0',
+    ];
+
+    public function builder()
+    {
+        return User::query()->withTrashed();
+    }
+
+    public function columns()
+    {
+        return [
+            Column::name('id'),
+            BooleanColumn::name('deleted_at')->filterable(),
+        ];
+    }
+}
+```
+
 ### Views
 You can specify that a column's output is piped directly into a separate blade view template.
 - Template is specified using ususal laravel view helper syntax
