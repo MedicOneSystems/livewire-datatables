@@ -654,7 +654,7 @@ class LivewireDatatable extends Component
             $this->activeSelectFilters = $filters['select'];
         }
 
-        if(! empty($filters['date'])) {
+        if (! empty($filters['date'])) {
             $this->activeDateFilters = $filters['date'];
         }
 
