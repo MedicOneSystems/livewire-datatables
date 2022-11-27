@@ -7,7 +7,7 @@
         type="checkbox"
         wire:click="toggleSelectAll"
         class="w-4 h-4 mt-1 text-blue-600 form-checkbox transition duration-150 ease-in-out"
-        @if(count($selected) === $this->results->total()) checked @endif
+        @if($this->results->total() === count($visibleSelected)) checked @endif
         />
     </div>
 </div>
