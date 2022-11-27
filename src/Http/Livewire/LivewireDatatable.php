@@ -352,12 +352,23 @@ class LivewireDatatable extends Component
                 : $this->query->getModel()->getTable() . '.' . $select;
         });
 
-        return $selects->count() > 1
-            ? new Expression("CONCAT_WS('" . static::SEPARATOR . "' ," .
-            collect($selects)->map(function ($select) {
-                return 'COALESCE(' . $this->tablePrefix . $select . ', \'\')';
-            })->join(', ') . ')')
-            : $selects->first();
+        if (DB::connection() instanceof \Illuminate\Database\SQLiteConnection) {
+            // SQLite dialect.
+            return $selects->count() > 1
+                ? new Expression('(' .
+                collect($selects)->map(function ($select) {
+                    return 'COALESCE(' . $this->tablePrefix . $select . ', \'\')';
+                })->join(" || '" . static::SEPARATOR . "' || ") . ')')
+                : $selects->first();
+        } else {
+            // Default to MySql dialect.
+            return $selects->count() > 1
+                ? new Expression("CONCAT_WS('" . static::SEPARATOR . "' ," .
+                collect($selects)->map(function ($select) {
+                    return 'COALESCE(' . $this->tablePrefix . $select . ', \'\')';
+                })->join(', ') . ')')
+                : $selects->first();
+        }
     }
 
     public function resolveEditableColumnName($column)
