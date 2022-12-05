@@ -1220,6 +1220,7 @@ class LivewireDatatable extends Component
     public function complexQuery($rules)
     {
         $this->complexQuery = $rules;
+        $this->setPage(1);
     }
 
     public function addComplexQuery()
@@ -1231,8 +1232,6 @@ class LivewireDatatable extends Component
         $this->query->where(function ($query) {
             $this->processNested($this->complexQuery, $query);
         });
-
-        $this->setPage(1);
 
         return $this;
     }
