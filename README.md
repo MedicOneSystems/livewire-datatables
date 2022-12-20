@@ -34,7 +34,7 @@ composer require mediconesystems/livewire-datatables
 ```
 If you use laravel 9 first execute
 ```bash
-composer require psr/simple-cache:^1.0 maatwebsite/excel
+composer require psr/simple-cache:^1.0
 ```
 
 ### Optional

@@ -19,6 +19,7 @@ use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
+use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class LivewireDatatable extends Component
 {
@@ -1677,10 +1678,10 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        $export = new DatatableExport($this->getExportResultsSet());
-        $export->setFilename($filename);
+        $writer = SimpleExcelWriter::create(storage_path($filename))
+            ->addRows($this->getExportResultsSet());
 
-        return $export->download();
+        return response()->download($writer->getPath())->deleteFileAfterSend();
     }
 
     public function getExportResultsSet()
