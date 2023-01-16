@@ -92,6 +92,7 @@ class LivewireDatatable extends Component
         'applyToTable',
         'resetTable',
         'doTextFilter',
+        'toggleGroup',
     ];
 
     protected $operators = [
