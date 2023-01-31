@@ -1134,6 +1134,7 @@ class LivewireDatatable extends Component
             $paginatedQuery->total() < $total ? $paginatedQuery->total() : $total,
             $this->perPage
         );
+        
         return $this->mapCallbacks(
             $paginatedQuery
         );
