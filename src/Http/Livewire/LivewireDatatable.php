@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,7 +20,6 @@ use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class LivewireDatatable extends Component
 {
