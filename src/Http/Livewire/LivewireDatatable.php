@@ -19,6 +19,7 @@ use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Traits\WithCallbacks;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetDateFilters;
 use Mediconesystems\LivewireDatatables\Traits\WithPresetTimeFilters;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class LivewireDatatable extends Component
 {
@@ -1126,8 +1127,15 @@ class LivewireDatatable extends Component
     {
         $this->row = 1;
 
+        $paginatedQuery = $this->getQuery()->paginate($this->perPage);
+        $total = ($this->getQuery()->limit) ?: $paginatedQuery->total();
+        $paginatedQuery = new LengthAwarePaginator(
+            $paginatedQuery->toArray()['data'],
+            $paginatedQuery->total() < $total ? $paginatedQuery->total() : $total,
+            $this->perPage
+        );
         return $this->mapCallbacks(
-            $this->getQuery()->paginate($this->perPage)
+            $paginatedQuery
         );
     }
 
