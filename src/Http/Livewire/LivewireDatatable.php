@@ -1127,7 +1127,8 @@ class LivewireDatatable extends Component
     {
         $this->row = 1;
 
-        $paginatedQuery = $this->getQuery()->paginate($this->perPage);
+        $perPage = ($this->getQuery()->limit && ($this->getQuery()->limit < $this->perPage)) ? $this->getQuery()->limit : $this->perPage;
+        $paginatedQuery = $this->getQuery()->paginate($perPage);
         $total = ($this->getQuery()->limit) ?: $paginatedQuery->total();
         $paginatedQuery = new LengthAwarePaginator(
             $paginatedQuery->toArray()['data'],
