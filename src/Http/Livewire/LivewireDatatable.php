@@ -1131,9 +1131,11 @@ class LivewireDatatable extends Component
         $paginatedQuery = $this->getQuery()->paginate($perPage);
         $total = ($this->getQuery()->limit) ?: $paginatedQuery->total();
         $paginatedQuery = new LengthAwarePaginator(
-            $paginatedQuery->toArray()['data'],
+            $paginatedQuery->items(),
             $paginatedQuery->total() < $total ? $paginatedQuery->total() : $total,
-            $this->perPage
+            $this->perPage,
+            $paginatedQuery->currentPage(),
+            $paginatedQuery->getOptions()
         );
 
         return $this->mapCallbacks(
@@ -1714,7 +1716,7 @@ class LivewireDatatable extends Component
 
     public function checkboxQuery()
     {
-        return $this->query->reorder()->get()->map(function ($row) {
+        return $this->query->get()->map(function ($row) {
             return (string) $row->checkbox_attribute;
         });
     }
@@ -1733,7 +1735,7 @@ class LivewireDatatable extends Component
                 $this->visibleSelected = $visible_checkboxes;
             }
         } else {
-            if (count($this->selected) === $this->getQuery()->getCountForPagination()) {
+            if (count($this->selected) === ($this->getQuery()->limit ?: $this->getQuery()->getCountForPagination())) {
                 $this->selected = [];
             } else {
                 $this->selected = $this->checkboxQuery()->values()->toArray();
