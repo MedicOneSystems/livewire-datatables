@@ -31,6 +31,7 @@ class LivewireDatatable extends Component
     public $sort;
     public $direction;
     public $activeDateFilters = [];
+    public $activeDatetimeFilters = [];
     public $activeTimeFilters = [];
     public $activeSelectFilters = [];
     public $activeBooleanFilters = [];
@@ -170,6 +171,7 @@ class LivewireDatatable extends Component
             'search',
             'activeSelectFilters',
             'activeDateFilters',
+            'activeDatetimeFilters',
             'activeTimeFilters',
             'activeBooleanFilters',
             'activeTextFilters',
@@ -197,6 +199,7 @@ class LivewireDatatable extends Component
         $this->setPage(1);
         $this->activeSelectFilters = [];
         $this->activeDateFilters = [];
+        $this->activeDatetimeFilters = [];
         $this->activeTimeFilters = [];
         $this->activeTextFilters = [];
         $this->activeBooleanFilters = [];
@@ -531,6 +534,7 @@ class LivewireDatatable extends Component
                 'boolean' => $this->activeBooleanFilters,
                 'select' => $this->activeSelectFilters,
                 'date' => $this->activeDateFilters,
+                'datetime' => $this->activeDatetimeFilters,
                 'time' => $this->activeTimeFilters,
                 'number' => $this->activeNumberFilters,
                 'search' => $this->search,
@@ -638,6 +642,10 @@ class LivewireDatatable extends Component
                 $this->activeDateFilters[$columnIndex] = $value;
             }
 
+            if ($column['type'] === 'datetime') {
+                $this->activeDatetimeFilters[$columnIndex] = $value;
+            }
+
             if ($column['type'] === 'time') {
                 $this->activeTimeFilters[$columnIndex] = $value;
             }
@@ -670,6 +678,10 @@ class LivewireDatatable extends Component
 
         if (! empty($filters['date'])) {
             $this->activeDateFilters = $filters['date'];
+        }
+
+        if (! empty($filters['datetime'])) {
+            $this->activeDatetimeFilters = $filters['datetime'];
         }
 
         if (! empty($filters['time'])) {
@@ -923,6 +935,22 @@ class LivewireDatatable extends Component
         $this->setSessionStoredFilters();
     }
 
+    public function doDatetimeFilterStart($index, $start)
+    {
+        $this->activeDatetimeFilters[$index]['start'] = $start;
+        $this->setVisibleSelected();
+        $this->setPage(1);
+        $this->setSessionStoredFilters();
+    }
+
+    public function doDatetimeFilterEnd($index, $end)
+    {
+        $this->activeDatetimeFilters[$index]['end'] = $end;
+        $this->setVisibleSelected();
+        $this->setPage(1);
+        $this->setSessionStoredFilters();
+    }
+
     public function doTimeFilterStart($index, $start)
     {
         $this->activeTimeFilters[$index]['start'] = $start;
@@ -980,6 +1008,7 @@ class LivewireDatatable extends Component
     public function clearAllFilters()
     {
         $this->activeDateFilters = [];
+        $this->activeDatetimeFilters = [];
         $this->activeTimeFilters = [];
         $this->activeSelectFilters = [];
         $this->activeBooleanFilters = [];
@@ -1154,6 +1183,7 @@ class LivewireDatatable extends Component
     public function getActiveFiltersProperty()
     {
         return count($this->activeDateFilters)
+            || count($this->activeDatetimeFilters)
             || count($this->activeTimeFilters)
             || count($this->activeSelectFilters)
             || count($this->activeBooleanFilters)
@@ -1209,6 +1239,7 @@ class LivewireDatatable extends Component
             ->addTextFilters()
             ->addNumberFilters()
             ->addDateRangeFilter()
+            ->addDatetimeRangeFilter()
             ->addTimeRangeFilter()
             ->addComplexQuery()
             ->addSort();
@@ -1497,6 +1528,27 @@ class LivewireDatatable extends Component
                 $query->whereBetween($this->getColumnFilterStatement($index)[0], [
                     isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : config('livewire-datatables.default_time_start', '0000-00-00'),
                     isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : config('livewire-datatables.default_time_end', '9999-12-31'),
+                ]);
+            }
+        });
+
+        return $this;
+    }
+
+    public function addDatetimeRangeFilter()
+    {
+        if (! count($this->activeDatetimeFilters)) {
+            return $this;
+        }
+
+        $this->query->where(function ($query) {
+            foreach ($this->activeDatetimeFilters as $index => $filter) {
+                if (! ((isset($filter['start']) && $filter['start'] != '') || (isset($filter['end']) && $filter['end'] != ''))) {
+                    break;
+                }
+                $query->whereBetween($this->getColumnFilterStatement($index)[0], [
+                    isset($filter['start']) && $filter['start'] != '' ? $filter['start'] : config('livewire-datatables.default_time_start', '0000-00-00 00:00'),
+                    isset($filter['end']) && $filter['end'] != '' ? $filter['end'] : config('livewire-datatables.default_time_end', '9999-12-31 23:59'),
                 ]);
             }
         });
