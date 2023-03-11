@@ -69,6 +69,9 @@ class LivewireDatatable extends Component
     public $visibleSelected = [];
     public $row = 1;
 
+    //custom variable
+    public $export_condition = 'sample';
+
     public $tablePrefix = '';
 
     public $actions;
@@ -261,6 +264,7 @@ class LivewireDatatable extends Component
             'beforeTableSlot',
             'buttonsSlot',
             'afterTableSlot',
+            'export_condition',
         ] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
@@ -269,6 +273,9 @@ class LivewireDatatable extends Component
 
         $this->columns = $this->getViewColumns();
         $this->actions = $this->getMassActions();
+        if ($this->exportable) {
+            $this->exportable = auth()->user()->can($this->export_condition) ? true : false;
+        }
         $this->initialiseSearch();
         $this->initialiseSort();
         $this->initialiseHiddenColumns();
