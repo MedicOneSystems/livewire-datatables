@@ -6,7 +6,7 @@
             />
         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
             <button x-on:click="$refs.start.value=''" wire:click="doDatetimeFilterStart('{{ $index }}', '')" class="-mb-0.5 pr-1 flex text-gray-400 hover:text-red-600 focus:outline-none" tabindex="-1">
-                <x-datatables.icons.x-circle class="h-5 w-5 stroke-current" />
+                <x-icons.x-circle class="h-5 w-5 stroke-current" />
             </button>
         </div>
     </div>
@@ -17,7 +17,7 @@
             />
         <div class="absolute inset-y-0 right-0 pr-2 flex items-center">
             <button x-on:click="$refs.end.value=''" wire:click="doDatetimeFilterEnd('{{ $index }}', '')" class="-mb-0.5 pr-1 flex text-gray-400 hover:text-red-600 focus:outline-none" tabindex="-1">
-                <x-datatables.icons.x-circle class="h-5 w-5 stroke-current" />
+                <x-icons.x-circle class="h-5 w-5 stroke-current" />
             </button>
         </div>
     </div>
