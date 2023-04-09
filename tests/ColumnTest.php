@@ -38,6 +38,7 @@ class ColumnTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider settersDataProvider
      */
     public function it_sets_properties_and_parameters($method, $value, $attribute)

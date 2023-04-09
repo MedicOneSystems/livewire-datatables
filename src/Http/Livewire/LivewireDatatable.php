@@ -437,8 +437,8 @@ class LivewireDatatable extends Component
             return $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
         }
 
-        $relations = explode('.', Str::before(($additional ?: $column->name), ':'));
-        $aggregate = Str::after(($additional ?: $column->name), ':');
+        $relations = explode('.', Str::before($additional ?: $column->name, ':'));
+        $aggregate = Str::after($additional ?: $column->name, ':');
 
         if (! method_exists($this->query->getModel(), $relations[0])) {
             return $additional ?: $column->name;
