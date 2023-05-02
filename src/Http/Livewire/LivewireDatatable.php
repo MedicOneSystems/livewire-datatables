@@ -1279,7 +1279,7 @@ class LivewireDatatable extends Component
                                     if ($rule['content']['value'] === 'true') {
                                         $query->where(function ($query) use ($column) {
                                             $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column)
-                                            ->where($column, '<>', 0);
+                                            ->where(Str::contains($column, '(') ? DB::raw($column) : $column, '<>', 0);
                                         });
                                     } else {
                                         $query->where(function ($query) use ($column) {
