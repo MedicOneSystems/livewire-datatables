@@ -398,6 +398,20 @@ class Column
         return $this;
     }
 
+    public function hideIf($boolean)
+    {
+        $this->hidden = $boolean;
+
+        return $this;
+    }
+
+    public function hideUnless($boolean)
+    {
+        $this->hidden = ! $boolean;
+
+        return $this;
+    }
+
     public function alignRight()
     {
         $this->headerAlign = 'right';
