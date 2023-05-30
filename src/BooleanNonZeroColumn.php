@@ -2,7 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-class BooleanColumn extends Column
+class BooleanNonZeroColumn extends Column
 {
     public $type = 'boolean-non-zero';
     public $callback;
