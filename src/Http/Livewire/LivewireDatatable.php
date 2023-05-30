@@ -1287,6 +1287,12 @@ class LivewireDatatable extends Component
                                                 ->orWhere(Str::contains($column, '(') ? DB::raw($column) : $column, 0);
                                         });
                                     }
+                                } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean-non-zero') {
+                                    if ($rule['content']['value'] === 'true') {
+                                        $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                    } else {
+                                        $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                    }
                                 } else {
                                     $col = (isset($this->freshColumns[$rule['content']['column']]['round']) && $this->freshColumns[$rule['content']['column']]['round'] !== null)
                                         ? DB::raw('ROUND(' . $column . ', ' . $this->freshColumns[$rule['content']['column']]['round'] . ')')
@@ -1416,6 +1422,12 @@ class LivewireDatatable extends Component
                             $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]))
                                 ->orWhere(DB::raw($this->getColumnFilterStatement($index)[0]), '');
                         });
+                    }
+                } elseif ($this->freshColumns[$index]['type'] === 'boolean-non-zero') {
+                    if ($value == 1) {
+                        $query->whereNotNull($this->getColumnFilterStatement($index)[0]);
+                    } elseif (strlen($value)) {
+                        $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]));
                     }
                 } elseif ($value == 1) {
                     $query->where(DB::raw($this->getColumnFilterStatement($index)[0]), '>', 0);
