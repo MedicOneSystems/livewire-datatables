@@ -31,7 +31,7 @@
         "illuminate/support": "^7.0|^8.0|^9.0|^10.0",
         "livewire/livewire": "^2.4.4",
         "maatwebsite/excel": "^3.1",
-        "reedware/laravel-relation-joins": "^2.4|^3.0|dev-l10-compatibility"
+        "reedware/laravel-relation-joins": "^2.4|^3.0|^4.0"
     },
     "require-dev": {
         "laravel/legacy-factories": "^1.0.4",
