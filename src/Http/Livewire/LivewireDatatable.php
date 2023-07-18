@@ -66,7 +66,7 @@ class LivewireDatatable extends Component
     public $persistSort = true;
     public $persistPerPage = true;
     public $persistFilters = true;
-    public $visibleSelected = [];
+    // public $visibleSelected = [];
     public $row = 1;
 
     public $tablePrefix = '';
@@ -219,7 +219,7 @@ class LivewireDatatable extends Component
 
     public function updatedSearch()
     {
-        $this->visibleSelected = ($this->search) ? array_intersect($this->getQuery()->get()->pluck('checkbox_attribute')->toArray(), $this->selected) : $this->selected;
+        // $this->visibleSelected = ($this->search) ? array_intersect($this->getQuery()->get()->pluck('checkbox_attribute')->toArray(), $this->selected) : $this->selected;
         $this->setPage(1);
     }
 
@@ -504,7 +504,7 @@ class LivewireDatatable extends Component
             return;
         }
 
-        $this->perPage = session()->get($this->sessionStorageKey() . $this->name . '_perpage', $this->perPage);
+        $this->perPage = session()->get($this->sessionStorageKey() . '_perpage', $this->perPage);
     }
 
     public function setSessionStoredSort()
@@ -546,7 +546,7 @@ class LivewireDatatable extends Component
 
         $hidden = collect($this->columns)->filter->hidden->keys()->toArray();
 
-        session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
+        session()->put([$this->sessionStorageKey() . '_hidden_columns' => $hidden]);
     }
 
     public function initialiseSearch()
@@ -884,7 +884,7 @@ class LivewireDatatable extends Component
     public function doBooleanFilter($index, $value)
     {
         $this->activeBooleanFilters[$index] = $value;
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -892,7 +892,7 @@ class LivewireDatatable extends Component
     public function doSelectFilter($index, $value)
     {
         $this->activeSelectFilters[$index][] = $value;
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -902,7 +902,7 @@ class LivewireDatatable extends Component
         foreach (explode(' ', $value) as $val) {
             $this->activeTextFilters[$index][] = $val;
         }
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -910,7 +910,7 @@ class LivewireDatatable extends Component
     public function doDateFilterStart($index, $start)
     {
         $this->activeDateFilters[$index]['start'] = $start;
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -918,7 +918,7 @@ class LivewireDatatable extends Component
     public function doDateFilterEnd($index, $end)
     {
         $this->activeDateFilters[$index]['end'] = $end;
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -926,7 +926,7 @@ class LivewireDatatable extends Component
     public function doTimeFilterStart($index, $start)
     {
         $this->activeTimeFilters[$index]['start'] = $start;
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -934,7 +934,7 @@ class LivewireDatatable extends Component
     public function doTimeFilterEnd($index, $end)
     {
         $this->activeTimeFilters[$index]['end'] = $end;
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -943,7 +943,7 @@ class LivewireDatatable extends Component
     {
         $this->activeNumberFilters[$index]['start'] = ($start != '') ? (int) $start : null;
         $this->clearEmptyNumberFilter($index);
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -952,7 +952,7 @@ class LivewireDatatable extends Component
     {
         $this->activeNumberFilters[$index]['end'] = ($end != '') ? (int) $end : null;
         $this->clearEmptyNumberFilter($index);
-        $this->setVisibleSelected();
+        // $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
     }
@@ -969,7 +969,7 @@ class LivewireDatatable extends Component
     public function removeSelectFilter($column, $key = null)
     {
         unset($this->activeSelectFilters[$column][$key]);
-        $this->visibleSelected = $this->selected;
+        // $this->visibleSelected = $this->selected;
         if (count($this->activeSelectFilters[$column]) < 1) {
             unset($this->activeSelectFilters[$column]);
         }
@@ -987,7 +987,7 @@ class LivewireDatatable extends Component
         $this->activeNumberFilters = [];
         $this->complexQuery = null;
         $this->userFilter = null;
-        $this->visibleSelected = $this->selected;
+        // $this->visibleSelected = $this->selected;
         $this->setPage(1);
         $this->setSessionStoredFilters();
 
@@ -997,7 +997,7 @@ class LivewireDatatable extends Component
     public function removeBooleanFilter($column)
     {
         unset($this->activeBooleanFilters[$column]);
-        $this->visibleSelected = $this->selected;
+        // $this->visibleSelected = $this->selected;
         $this->setSessionStoredFilters();
     }
 
@@ -1011,14 +1011,14 @@ class LivewireDatatable extends Component
         } else {
             unset($this->activeTextFilters[$column]);
         }
-        $this->visibleSelected = $this->selected;
+        // $this->visibleSelected = $this->selected;
         $this->setSessionStoredFilters();
     }
 
     public function removeNumberFilter($column)
     {
         unset($this->activeNumberFilters[$column]);
-        $this->visibleSelected = $this->selected;
+        // $this->visibleSelected = $this->selected;
         $this->setSessionStoredFilters();
     }
 
@@ -1279,13 +1279,19 @@ class LivewireDatatable extends Component
                                     if ($rule['content']['value'] === 'true') {
                                         $query->where(function ($query) use ($column) {
                                             $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column)
-                                            ->where($column, '<>', 0);
+                                            ->where(Str::contains($column, '(') ? DB::raw($column) : $column, '<>', 0);
                                         });
                                     } else {
                                         $query->where(function ($query) use ($column) {
                                             $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column)
                                                 ->orWhere(Str::contains($column, '(') ? DB::raw($column) : $column, 0);
                                         });
+                                    }
+                                } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean-non-zero') {
+                                    if ($rule['content']['value'] === 'true') {
+                                        $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                    } else {
+                                        $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column);
                                     }
                                 } else {
                                     $col = (isset($this->freshColumns[$rule['content']['column']]['round']) && $this->freshColumns[$rule['content']['column']]['round'] !== null)
@@ -1416,6 +1422,12 @@ class LivewireDatatable extends Component
                             $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]))
                                 ->orWhere(DB::raw($this->getColumnFilterStatement($index)[0]), '');
                         });
+                    }
+                } elseif ($this->freshColumns[$index]['type'] === 'boolean-non-zero') {
+                    if ($value == 1) {
+                        $query->whereNotNull($this->getColumnFilterStatement($index)[0]);
+                    } elseif (strlen($value)) {
+                        $query->whereNull(DB::raw($this->getColumnFilterStatement($index)[0]));
                     }
                 } elseif ($value == 1) {
                     $query->where(DB::raw($this->getColumnFilterStatement($index)[0]), '>', 0);
@@ -1716,37 +1728,37 @@ class LivewireDatatable extends Component
 
     public function toggleSelectAll()
     {
-        $visible_checkboxes = $this->getQuery()->get()->pluck('checkbox_attribute')->toArray();
-        $visible_checkboxes = array_map('strval', $visible_checkboxes);
-        if ($this->searchOrFilterActive()) {
-            if (count($this->visibleSelected) === count($visible_checkboxes)) {
-                $this->selected = array_values(array_diff($this->selected, $visible_checkboxes));
-                $this->visibleSelected = [];
-            } else {
-                $this->selected = array_unique(array_merge($this->selected, $visible_checkboxes));
-                sort($this->selected);
-                $this->visibleSelected = $visible_checkboxes;
-            }
+        // $visible_checkboxes = $this->getQuery()->get()->pluck('checkbox_attribute')->toArray();
+        // $visible_checkboxes = array_map('strval', $visible_checkboxes);
+        // if ($this->searchOrFilterActive()) {
+        //     if (count($this->visibleSelected) === count($visible_checkboxes)) {
+        //         $this->selected = array_values(array_diff($this->selected, $visible_checkboxes));
+        //         $this->visibleSelected = [];
+        //     } else {
+        //         $this->selected = array_unique(array_merge($this->selected, $visible_checkboxes));
+        //         sort($this->selected);
+        //         $this->visibleSelected = $visible_checkboxes;
+        //     }
+        // } else {
+        if (count($this->selected) === $this->getQuery()->getCountForPagination()) {
+            $this->selected = [];
         } else {
-            if (count($this->selected) === $this->getQuery()->getCountForPagination()) {
-                $this->selected = [];
-            } else {
-                $this->selected = $this->checkboxQuery()->values()->toArray();
-            }
-            $this->visibleSelected = $this->selected;
+            $this->selected = $this->checkboxQuery()->values()->toArray();
         }
+        // $this->visibleSelected = $this->selected;
+        // }
 
         $this->forgetComputed();
     }
 
-    public function updatedSelected()
-    {
-        if ($this->searchOrFilterActive()) {
-            $this->setVisibleSelected();
-        } else {
-            $this->visibleSelected = $this->selected;
-        }
-    }
+    // public function updatedSelected()
+    // {
+    //     if ($this->searchOrFilterActive()) {
+    //         $this->setVisibleSelected();
+    //     } else {
+    //         $this->visibleSelected = $this->selected;
+    //     }
+    // }
 
     public function rowIsSelected($row)
     {
@@ -1864,9 +1876,9 @@ class LivewireDatatable extends Component
         return ! empty($this->search) || $this->getActiveFiltersProperty();
     }
 
-    private function setVisibleSelected()
-    {
-        $this->visibleSelected = array_intersect($this->getQuery()->get()->pluck('checkbox_attribute')->toArray(), $this->selected);
-        $this->visibleSelected = array_map('strval', $this->visibleSelected);
-    }
+    // private function setVisibleSelected()
+    // {
+    //     $this->visibleSelected = array_intersect($this->getQuery()->get()->pluck('checkbox_attribute')->toArray(), $this->selected);
+    //     $this->visibleSelected = array_map('strval', $this->visibleSelected);
+    // }
 }

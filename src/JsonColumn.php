@@ -4,8 +4,9 @@ namespace Mediconesystems\LivewireDatatables;
 
 class JsonColumn extends Column
 {
-    public $type = 'json';
     public $callback;
+    public $type = 'json';
+    public $filterView = 'string';
 
     public function __construct()
     {
