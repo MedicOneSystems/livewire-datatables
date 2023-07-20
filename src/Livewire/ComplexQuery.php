@@ -1,6 +1,6 @@
 <?php
 
-namespace Mediconesystems\LivewireDatatables\Http\Livewire;
+namespace Mediconesystems\LivewireDatatables\Livewire;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
@@ -64,12 +64,12 @@ class ComplexQuery extends Component
     {
         $this->validateRules();
 
-        $this->emit('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
+        $this->dispatch('complexQuery', count($this->rules[0]['content']) ? $this->rules : null);
     }
 
     public function saveQuery($name)
     {
-        $this->emitUp('saveQuery', $name, $this->rules);
+        $this->dispatch('saveQuery', $name, $this->rules);
     }
 
     public function loadRules($rules)
@@ -80,7 +80,7 @@ class ComplexQuery extends Component
 
     public function deleteRules($id)
     {
-        $this->emitUp('deleteQuery', $id);
+        $this->dispatch('deleteQuery', $id);
     }
 
     public function resetQuery()

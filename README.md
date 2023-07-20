@@ -573,14 +573,14 @@ class TableWithSaving extends LivewireDatatable
             'rules' => $rules
         ]);
 
-        $this->emit('updateSavedQueries', $this->getSavedQueries());
+        $this->dispatch('updateSavedQueries', $this->getSavedQueries());
     }
 
     public function deleteQuery($id)
     {
         ComplexQuery::destroy($id);
 
-        $this->emit('updateSavedQueries', $this->getSavedQueries());
+        $this->dispatch('updateSavedQueries', $this->getSavedQueries());
     }
 
     public function getSavedQueries()
