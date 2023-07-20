@@ -2,7 +2,7 @@
 
 namespace Mediconesystems\LivewireDatatables\Tests;
 
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyBelongsToManyModel;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasManyModel;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyHasOneModel;
