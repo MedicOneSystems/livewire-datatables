@@ -130,7 +130,6 @@ ___
 ```php
 class ComplexDemoTable extends LivewireDatatable
 {
-
     public function builder()
     {
         return User::query();
@@ -245,20 +244,20 @@ You can human readable labels and translations of your groups via the `groupLabe
 class GroupDemoTable extends LivewireDatatable
 {
     public $groupLabels = [
-         'group1' => 'app.translation_for_group_1'
+         'group1' => 'app.translation_for_group_1',
          'group2' => 'app.translation_for_group_2'
     ];
 
-public function columns()
-{
-    return [
-        Column::name('planets.name')
-            ->group('group1')
-            ->label('Planet'),
+    public function columns()
+    {
+        return [
+            Column::name('planets.name')
+                ->group('group1')
+                ->label('Planet'),
 
-        Column::name('planets.name')
-            ->group('group2')
-            ->label('Planet'),
+            Column::name('planets.name')
+                ->group('group2')
+                ->label('Planet'),
 ```
 
 ### Summary row
@@ -390,7 +389,7 @@ Callbacks give you the freedom to perform any mutations you like on the data bef
 ```php
 class CallbackDemoTable extends LivewireDatatable
 {
-    public model = User::class
+    public $model = User::class
 
     public function columns()
     {
@@ -448,7 +447,7 @@ You can specify that a column's output is piped directly into a separate blade v
 ```php
 class CallbackDemoTable extends LivewireDatatable
 {
-    public model = User::class
+    public $model = User::class
 
     public function columns()
     {
@@ -475,7 +474,6 @@ This uses the ```view()``` method above to pass the data into an Alpine/Livewire
 ```php
 class EditableTable extends LivewireDatatable
 {
-
     public $model = User::class;
 
     public function columns()
