@@ -415,7 +415,7 @@ class LivewireDatatable extends Component
                         $sep_string = config('database.default') === 'pgsql' ? '"' : '`';
 
                         if (version_compare("10.0.0", app()->version()) == -1) {
-                            return new Expression($column->select->getQuery(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
+                            return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
                         } else {
                             return new Expression($column->select->getQuery() . ' AS ' . $sep_string . $column->name . $sep_string);
                         }
