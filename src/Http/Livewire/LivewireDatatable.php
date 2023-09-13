@@ -987,7 +987,7 @@ class LivewireDatatable extends Component
         $this->activeNumberFilters = [];
         $this->complexQuery = null;
         $this->userFilter = null;
-        // $this->visibleSelected = $this->selected;
+
         $this->setPage(1);
         $this->setSessionStoredFilters();
 
@@ -997,7 +997,7 @@ class LivewireDatatable extends Component
     public function removeBooleanFilter($column)
     {
         unset($this->activeBooleanFilters[$column]);
-        // $this->visibleSelected = $this->selected;
+
         $this->setSessionStoredFilters();
     }
 
@@ -1011,7 +1011,21 @@ class LivewireDatatable extends Component
         } else {
             unset($this->activeTextFilters[$column]);
         }
-        // $this->visibleSelected = $this->selected;
+
+        $this->setSessionStoredFilters();
+    }
+
+    public function removeDateFilter($column, $key = null)
+    {
+        if (isset($key)) {
+            unset($this->activeDateFilters[$column][$key]);
+            if (count($this->activeDateFilters[$column]) < 1) {
+                unset($this->activeDateFilters[$column]);
+            }
+        } else {
+            unset($this->activeDateFilters[$column]);
+        }
+
         $this->setSessionStoredFilters();
     }
 
