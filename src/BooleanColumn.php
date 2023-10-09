@@ -9,6 +9,8 @@ class BooleanColumn extends Column
 
     public function __construct()
     {
+        parent::__construct();
+
         $this->callback = function ($value) {
             return view('datatables::boolean', ['value' => $value]);
         };
