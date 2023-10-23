@@ -414,7 +414,11 @@ class LivewireDatatable extends Component
                     if ($column->select instanceof Expression) {
                         $sep_string = config('database.default') === 'pgsql' ? '"' : '`';
 
-                        return new Expression($column->select->getValue() . ' AS ' . $sep_string . $column->name . $sep_string);
+                        if (version_compare('10.0.0', app()->version()) == -1) {
+                            return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
+                        } else {
+                            return new Expression($column->select->getValue() . ' AS ' . $sep_string . $column->name . $sep_string);
+                        }
                     }
 
                     if (is_array($column->select)) {
@@ -440,8 +444,8 @@ class LivewireDatatable extends Component
             return $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
         }
 
-        $relations = explode('.', Str::before(($additional ?: $column->name), ':'));
-        $aggregate = Str::after(($additional ?: $column->name), ':');
+        $relations = explode('.', Str::before($additional ?: $column->name, ':'));
+        $aggregate = Str::after($additional ?: $column->name, ':');
 
         if (! method_exists($this->query->getModel(), $relations[0])) {
             return $additional ?: $column->name;
