@@ -11,7 +11,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <input wire:model.debounce.500ms="search" class="block w-full py-3 pl-10 text-sm border-gray-300 leading-4 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 focus:outline-none" placeholder="{{__('Search in')}} {{ $this->searchableColumns()->map->label->join(', ') }}" type="text" />
+                            <input wire:model.lazy="search" class="block w-full py-3 pl-10 text-sm border-gray-300 leading-4 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 focus:outline-none placeholder:text-ellipsis" placeholder="{{__('Search')}}" type="text" />
                             <div class="absolute inset-y-0 right-0 flex items-center pr-2">
                                 <button wire:click="$set('search', null)" class="text-gray-300 hover:text-red-600 focus:outline-none">
                                     <x-icons.x-circle class="w-5 h-5 stroke-current" />
@@ -97,17 +97,17 @@
             </div>
         @endif
 
-        <div wire:loading.class="opacity-50" class="rounded-lg @unless($complex || $this->hidePagination) rounded-b-none @endunless shadow-lg bg-white max-w-screen overflow-x-scroll border-2 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) rounded-b-none border-b-0 @endif">
+        <div wire:loading.class="opacity-50" class="rounded-md @unless($complex || $this->hidePagination) rounded-b-none @endunless shadow-md bg-white max-w-screen overflow-x-scroll @if($complex) rounded-b-none border-b-0 @endif">
             <div>
                 <div class="table min-w-full align-middle">
                     @unless($this->hideHeader)
-                        <div class="table-row divide-x divide-gray-200">
+                        <div class="table-row">
                             @foreach($this->columns as $index => $column)
                                 @if($hideable === 'inline')
                                     @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
                                 @elseif($column['type'] === 'checkbox')
                                     @unless($column['hidden'])
-                                        <div class="flex justify-center table-cell w-32 h-12 px-6 py-4 overflow-hidden text-xs font-medium tracking-wider text-left text-gray-500 uppercase align-top border-b border-gray-200 bg-gray-50 leading-4 focus:outline-none">
+                                        <div class="flex justify-center table-cell w-32 h-12 px-6 py-4 overflow-hidden text-sm font-medium tracking-wider text-left text-gray-600 uppercase align-top border-b border-gray-200 bg-gray-50 leading-4 focus:outline-none">
                                             <div class="px-3 py-1 rounded @if(count($selected)) bg-orange-400 @else bg-gray-200 @endif text-white text-center">
                                                 {{ count($visibleSelected) }}
                                             </div>
@@ -119,7 +119,7 @@
                             @endforeach
                         </div>
                     @endunless
-                    <div class="table-row bg-blue-100 divide-x divide-blue-200">
+                    <div class="table-row">
                         @foreach($this->columns as $index => $column)
                             @if($column['hidden'])
                                 @if($hideable === 'inline')
@@ -132,7 +132,7 @@
                                     {{ $column['label'] ?? '' }}
                                 </div>
                             @else
-                                <div class="table-cell overflow-hidden align-top">
+                                <div class="table-cell overflow-hidden align-top py-1 bg-gray-50">
                                     @isset($column['filterable'])
                                         @if( is_iterable($column['filterable']) )
                                             <div wire:key="{{ $index }}">
@@ -149,19 +149,18 @@
                         @endforeach
                     </div>
                     @foreach($this->results as $row)
-                        <div class="table-row p-1 {{ $this->rowClasses($row, $loop) }}">
+                        <div class="table-row text-gray-800 font-medium {{($loop->even ? 'bg-gray-50' : 'bg-white')}}">
                             @foreach($this->columns as $column)
                                 @if($column['hidden'])
                                     @if($hideable === 'inline')
-                                        <div class="table-cell w-5 @unless($column['wrappable']) whitespace-nowrap truncate @endunless overflow-hidden align-top"></div>
+                                        <div class="table-cell px-6 py-4 whitespace-nowrap truncate w-5 overflow-hidden align-top"></div>
                                     @endif
                                 @elseif($column['type'] === 'checkbox')
                                     @include('datatables::checkbox', ['value' => $row->checkbox_attribute])
                                 @elseif($column['type'] === 'label')
                                     @include('datatables::label')
                                 @else
-
-                                    <div class="table-cell px-6 py-2 @unless($column['wrappable']) whitespace-nowrap truncate @endunless @if($column['contentAlign'] === 'right') text-right @elseif($column['contentAlign'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
+                                    <div class="table-cell px-6 py-4 whitespace-nowrap truncate @if($column['contentAlign'] === 'right') text-right @elseif($column['contentAlign'] === 'center') text-center @else text-left @endif {{ $this->cellClasses($row, $column) }}">
                                         {!! $row->{$column['name']} !!}
                                     </div>
                                 @endif
@@ -193,39 +192,40 @@
             @endif
         </div>
 
-        @unless($this->hidePagination)
-            <div class="max-w-screen bg-white @unless($complex) rounded-b-lg @endunless border-4 border-t-0 border-b-0 @if($this->activeFilters) border-blue-500 @else border-transparent @endif">
-                <div class="items-center justify-between p-2 sm:flex">
-                    {{-- check if there is any data --}}
-                    @if(count($this->results))
-                        <div class="flex items-center my-2 sm:my-0">
-                            <select name="perPage" class="block w-full py-2 pl-3 pr-10 mt-1 text-base border-gray-300 form-select leading-6 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5" wire:model="perPage">
-                                @foreach(config('livewire-datatables.per_page_options', [ 10, 25, 50, 100 ]) as $per_page_option)
-                                    <option value="{{ $per_page_option }}">{{ $per_page_option }}</option>
-                                @endforeach
-                                <option value="99999999">{{__('All')}}</option>
-                            </select>
-                        </div>
+    </div>
+    @unless($this->hidePagination)
+    <div class="max-w-screen  @unless($complex) rounded-b-lg @endunless pt-4">
+        <div class="items-center justify-between p-2 sm:flex">
+            {{-- check if there is any data --}}
+            @if(count($this->results))
+            <div class="flex items-center my-2 sm:my-0">
+                <select name="perPage"
+                    class="block w-full py-2 pl-3 pr-10 mt-1 text-base border-gray-300 form-select leading-6 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5"
+                    wire:model="perPage">
+                    @foreach(config('livewire-datatables.per_page_options', [ 10, 25 ]) as $per_page_option)
+                    <option value="{{ $per_page_option }}">{{ $per_page_option }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-                        <div class="my-4 sm:my-0">
-                            <div class="lg:hidden">
-                                <span class="space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
-                            </div>
+            <div class="my-4 sm:my-0">
+                <div class="lg:hidden">
+                    <span class="space-x-2">{{ $this->results->links('datatables::tailwind-simple-pagination') }}</span>
+                </div>
 
-                            <div class="justify-center hidden lg:flex">
-                                <span>{{ $this->results->links('datatables::tailwind-pagination') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end text-gray-600">
-                            {{__('Results')}} {{ $this->results->firstItem() }} - {{ $this->results->lastItem() }} {{__('of')}}
-                            {{ $this->results->total() }}
-                        </div>
-                    @endif
+                <div class="justify-center hidden lg:flex">
+                    <span>{{ $this->results->links('datatables::tailwind-pagination') }}</span>
                 </div>
             </div>
-        @endif
+
+            <div class="flex justify-end text-gray-600">
+                {{__('Results')}} {{ $this->results->firstItem() }} - {{ $this->results->lastItem() }} {{__('of')}}
+                {{ $this->results->total() }}
+            </div>
+            @endif
+        </div>
     </div>
+    @endif
 
     @if($complex)
         <div class="bg-gray-50 px-4 py-4 rounded-b-lg rounded-t-none shadow-lg border-2 @if($this->activeFilters) border-blue-500 @else border-transparent @endif @if($complex) border-t-0 @endif">
