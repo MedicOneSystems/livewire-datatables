@@ -918,9 +918,7 @@ class LivewireDatatable extends Component
 
     public function doTextFilter($index, $value)
     {
-        foreach (explode(' ', $value) as $val) {
-            $this->activeTextFilters[$index][] = $val;
-        }
+        $this->activeTextFilters[$index][] = $value;
         $this->setVisibleSelected();
         $this->setPage(1);
         $this->setSessionStoredFilters();
