@@ -1736,10 +1736,14 @@ class LivewireDatatable extends Component
     {
         $this->forgetComputed();
 
-        $export = new DatatableExport($this->getExportResultsSet());
+        $export = new DatatableExport($this->getExportResultsSetFromQuery());
         $export->setFilename($filename);
 
         return $export->download();
+    }
+
+    public function getExportResultsSetFromQuery(){
+        return $this->getQuery(true)->get();
     }
 
     public function getExportResultsSet()
