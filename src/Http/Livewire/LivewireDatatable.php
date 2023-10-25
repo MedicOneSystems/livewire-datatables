@@ -71,6 +71,7 @@ class LivewireDatatable extends Component
 
     //custom variable
     public $export_condition = 'sample';
+    public $showComplexButton = false;
 
     public $tablePrefix = '';
 
@@ -265,6 +266,7 @@ class LivewireDatatable extends Component
             'buttonsSlot',
             'afterTableSlot',
             'export_condition',
+            'showComplexButton',
         ] as $property) {
             $this->$property = $this->$property ?? $$property;
         }
