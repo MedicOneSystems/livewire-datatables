@@ -554,7 +554,7 @@ class LivewireDatatable extends Component
 
         $hidden = collect($this->columns)->filter->hidden->keys()->toArray();
 
-        session()->put([$this->sessionStorageKey() . $this->name . '_hidden_columns' => $hidden]);
+        session()->put([$this->sessionStorageKey() . '_hidden_columns' => $hidden]);
     }
 
     public function initialiseSearch()
