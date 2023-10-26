@@ -511,7 +511,7 @@ class LivewireDatatable extends Component
             return;
         }
 
-        $this->perPage = session()->get($this->sessionStorageKey() . $this->name . '_perpage', $this->perPage);
+        $this->perPage = session()->get($this->sessionStorageKey() . '_perpage', $this->perPage);
     }
 
     public function setSessionStoredSort()
