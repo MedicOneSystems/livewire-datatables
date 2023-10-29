@@ -164,10 +164,10 @@
                                     {{ $column['label'] ?? '' }}
                                 </div>
                             @else
-                                <div class="table-cell overflow-hidden align-top py-1 bg-gray-50">
+                                <div class="table-cell overflow-hidden align-top bg-gray-50">
                                     @isset($column['filterable'])
                                         @if (is_iterable($column['filterable']))
-                                            <div wire:key="{{ $index }}">
+                                            <div wire:key="{{ $index }}" class="py-1">
                                                 @include('datatables::filters.select', [
                                                     'index' => $index,
                                                     'name' => $column['label'],
@@ -175,7 +175,7 @@
                                                 ])
                                             </div>
                                         @else
-                                            <div wire:key="{{ $index }}">
+                                            <div wire:key="{{ $index }}" class="py-1">
                                                 @include(
                                                     'datatables::filters.' .
                                                         ($column['filterView'] ?? $column['type']),
@@ -271,8 +271,8 @@
                 @endif
             </div>
         </div>
-        @endif
-        @includeIf($afterTableSlot)
-        <span
-            class="hidden text-sm text-left text-center text-right text-gray-900 bg-gray-100 bg-yellow-100 leading-5 bg-gray-50"></span>
-    </div>
+    @endunless
+    @includeIf($afterTableSlot)
+    <span
+        class="hidden text-sm text-left text-center text-right text-gray-900 bg-gray-100 bg-yellow-100 leading-5 bg-gray-50"></span>
+</div>
