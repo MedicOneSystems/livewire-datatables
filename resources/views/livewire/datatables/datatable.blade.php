@@ -74,7 +74,7 @@
                 @endif
 
                 @if ($showComplexButton)
-                    <button wire:click="toggleAdvancedSearch"
+                    <button wire:click="toggleComplexQuery"
                         class="flex items-center px-3 text-xs font-medium tracking-wider text-gray-500 uppercase bg-white border border-gray-400 space-x-2 rounded-md leading-4 hover:bg-gray-200 focus:outline-none"><span>{{ __('Advanced Search') }}</span>
                         <x-icons.cog class="m-2" /></button>
                 @endif

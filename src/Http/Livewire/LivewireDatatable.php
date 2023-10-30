@@ -392,6 +392,11 @@ class LivewireDatatable extends Component
         ];
     }
 
+    public function toggleComplexQuery()
+    {
+        $this->complex = ! $this->complex;
+    }
+
     public function getSelectStatements($withAlias = false, $export = false)
     {
         return $this->processedColumns->columns
