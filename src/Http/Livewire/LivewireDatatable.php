@@ -1283,8 +1283,6 @@ class LivewireDatatable extends Component
             $this->processNested($this->complexQuery, $query);
         });
 
-        $this->setPage(1);
-
         return $this;
     }
 
