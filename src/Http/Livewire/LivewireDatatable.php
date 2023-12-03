@@ -549,6 +549,17 @@ class LivewireDatatable extends Component
         session()->put([$this->sessionStorageKey() . '_hidden_columns' => $hidden]);
     }
 
+    public function resetSessionStoredHidden()
+    {
+        if (! $this->persistHiddenColumns) {
+            return;
+        }
+
+        session()->forget($this->sessionStorageKey() . '_hidden_columns');
+
+        $this->columns = $this->getViewColumns();
+    }
+
     public function initialiseSearch()
     {
         if (! $this->persistSearch) {
