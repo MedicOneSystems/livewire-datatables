@@ -209,6 +209,7 @@ class ComplexQuery extends Component
             'date' => ['=', '<>', '<', '<=', '>', '>='],
             'time' => ['=', '<>', '<', '<=', '>', '>='],
             'boolean' => [],
+            'boolean-non-zero' => [],
             'scope' => ['includes'],
         ];
 
