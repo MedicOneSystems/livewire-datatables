@@ -1296,6 +1296,7 @@ class LivewireDatatable extends Component
                             $query = $this->addAggregateFilter($query, $rule['content']['column'], $this->complexValue($rule), $this->complexOperator($rule['content']['operand']));
                         } else {
                             foreach ($this->getColumnFilterStatement($rule['content']['column']) as $column) {
+                                $column = $column instanceof Expression ? $column->getValue(DB::getQueryGrammar()) : $column;
                                 if ($rule['content']['operand'] === 'is empty') {
                                     $query->whereNull($column);
                                 } elseif ($rule['content']['operand'] === 'is not empty') {
@@ -1409,7 +1410,9 @@ class LivewireDatatable extends Component
                                 } else {
                                     $query->orWhere(function ($query) use ($value, $index) {
                                         foreach ($this->getColumnFilterStatement($index) as $column) {
-                                            if (Str::contains(mb_strtolower($column), 'concat')) {
+                                            $column = $column instanceof Expression ? $column->getValue(DB::getQueryGrammar()) : $column;
+
+                                            if (Str::contains(mb_strtolower((string) $column), 'concat')) {
                                                 $query->orWhereRaw('LOWER(' . $this->tablePrefix . $column . ') like ?', [mb_strtolower("%$value%")]);
                                             } else {
                                                 $query->orWhereRaw($column . ' = ?', $value);
