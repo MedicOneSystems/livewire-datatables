@@ -13,8 +13,6 @@
 - Column groups
 - Mass Action (Bulk) Support
 
-## [Live Demo App](https://livewire-datatables.com)
-
 ## [Demo App Repo](https://github.com/MedicOneSystems/demo-livewire-datatables)
 
 ![screenshot](resources/images/screenshot.png "Screenshot")
