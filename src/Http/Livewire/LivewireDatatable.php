@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -1162,8 +1163,19 @@ class LivewireDatatable extends Component
     {
         $this->row = 1;
 
+        $perPage = ($this->getQuery()->limit && ($this->getQuery()->limit < $this->perPage)) ? $this->getQuery()->limit : $this->perPage;
+        $paginatedQuery = $this->getQuery()->paginate($perPage);
+        $total = ($this->getQuery()->limit) ?: $paginatedQuery->total();
+        $paginatedQuery = new LengthAwarePaginator(
+            $paginatedQuery->items(),
+            $paginatedQuery->total() < $total ? $paginatedQuery->total() : $total,
+            $this->perPage,
+            $paginatedQuery->currentPage(),
+            $paginatedQuery->getOptions()
+        );
+
         return $this->mapCallbacks(
-            $this->getQuery()->paginate($this->perPage)
+            $paginatedQuery
         );
     }
 
@@ -1769,7 +1781,7 @@ class LivewireDatatable extends Component
 
     public function checkboxQuery()
     {
-        return $this->query->reorder()->get()->map(function ($row) {
+        return $this->query->get()->map(function ($row) {
             return (string) $row->checkbox_attribute;
         });
     }
@@ -1788,7 +1800,7 @@ class LivewireDatatable extends Component
                 $this->visibleSelected = $visible_checkboxes;
             }
         } else {
-            if (count($this->selected) === $this->getQuery()->getCountForPagination()) {
+            if (count($this->selected) === ($this->getQuery()->limit ?: $this->getQuery()->getCountForPagination())) {
                 $this->selected = [];
             } else {
                 $this->selected = $this->checkboxQuery()->values()->toArray();
