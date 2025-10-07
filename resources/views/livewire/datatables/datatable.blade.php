@@ -104,7 +104,7 @@
                         <div class="table-row divide-x divide-gray-200">
                             @foreach($this->columns as $index => $column)
                                 @if($hideable === 'inline')
-                                    @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $sort])
+                                    @include('datatables::header-inline-hide', ['column' => $column, 'sort' => $currentSort])
                                 @elseif($column['type'] === 'checkbox')
                                     @unless($column['hidden'])
                                         <div class="flex justify-center table-cell w-32 h-12 px-6 py-4 overflow-hidden text-xs font-medium tracking-wider text-left text-gray-500 uppercase align-top border-b border-gray-200 bg-gray-50 leading-4 focus:outline-none">
@@ -114,7 +114,7 @@
                                         </div>
                                     @endunless
                                 @else
-                                    @include('datatables::header-no-hide', ['column' => $column, 'sort' => $sort])
+                                    @include('datatables::header-no-hide', ['column' => $column, 'sort' => $currentSort])
                                 @endif
                             @endforeach
                         </div>

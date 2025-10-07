@@ -20,7 +20,7 @@
                 class="w-full h-full px-6 py-3 border-b border-gray-200 bg-gray-50 text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider flex justify-between items-center focus:outline-none">
             <span class="inline flex-grow @if($column['headerAlign'] === 'right') text-right @elseif($column['headerAlign'] === 'center') text-center @endif"">{{ str_replace('_', ' ', $column['label']) }}</span>
             <span class="inline text-xs text-blue-400">
-            @if($sort === $index)
+            @if($currentSort === $index)
                 @if($direction)
                     <x-icons.chevron-up class="h-6 w-6 text-green-600 stroke-current" />
                 @else
