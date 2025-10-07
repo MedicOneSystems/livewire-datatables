@@ -3,7 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Livewire\Livewire;
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class LivewireDatatableTemplateTest extends TestCase
@@ -157,8 +157,8 @@ class LivewireDatatableTemplateTest extends TestCase
         factory(DummyModel::class)->create();
 
         $subject = Livewire::test(LivewireDatatable::class, [
-            'model' => DummyModel::class,
-            'sort' => 'subject|asc',
+            'model'       => DummyModel::class,
+            'currentSort' => 'subject|asc',
         ]);
 
         $this->assertEquals('Mediconesystems\LivewireDatatables\Tests\Models\DummyModel', $subject->model);

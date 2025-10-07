@@ -3,7 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Commands;
 
 use Illuminate\Support\Facades\File;
-use Livewire\Commands\FileManipulationCommand;
+use Livewire\Features\SupportConsoleCommands\Commands\FileManipulationCommand;
 use Livewire\LivewireComponentsFinder;
 
 class MakeDatatableCommand extends FileManipulationCommand

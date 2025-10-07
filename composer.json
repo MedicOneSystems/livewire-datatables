@@ -27,16 +27,16 @@
         }
     ],
     "require": {
-        "php": "^8.0",
-        "illuminate/support": "^7.0|^8.0|^9.0|^10.0",
-        "livewire/livewire": "^2.4.4",
-        "maatwebsite/excel": "^3.1",
-        "reedware/laravel-relation-joins": "^2.4|^3.0|^4.0"
+        "php": "^8.4",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "livewire/livewire": "^3.6",
+        "reedware/laravel-relation-joins": "^8.0",
+        "spatie/simple-excel": "^3.0|^4.0"
     },
     "require-dev": {
         "laravel/legacy-factories": "^1.0.4",
-        "orchestra/testbench": "^4.0|5.0|6.0|^7.0|^8.0",
-        "phpunit/phpunit": "^8.0|9.0|^9.5.10"
+        "orchestra/testbench": "^4.0|5.0|6.0|^7.0|^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0"
     },
     "autoload": {
         "psr-4": {

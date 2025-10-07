@@ -32,7 +32,7 @@ composer require mediconesystems/livewire-datatables
 ```
 If you use laravel 9 first execute
 ```bash
-composer require psr/simple-cache:^1.0 maatwebsite/excel
+composer require psr/simple-cache:^1.0
 ```
 
 ### Optional
@@ -571,14 +571,14 @@ class TableWithSaving extends LivewireDatatable
             'rules' => $rules
         ]);
 
-        $this->emit('updateSavedQueries', $this->getSavedQueries());
+        $this->dispatch('updateSavedQueries', $this->getSavedQueries());
     }
 
     public function deleteQuery($id)
     {
         ComplexQuery::destroy($id);
 
-        $this->emit('updateSavedQueries', $this->getSavedQueries());
+        $this->dispatch('updateSavedQueries', $this->getSavedQueries());
     }
 
     public function getSavedQueries()

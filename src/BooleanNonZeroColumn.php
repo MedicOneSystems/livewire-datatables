@@ -2,21 +2,19 @@
 
 namespace Mediconesystems\LivewireDatatables;
 
-class BooleanColumn extends Column
+class BooleanNonZeroColumn extends Column
 {
-    public $type = 'boolean';
+    public $type = 'boolean-non-zero';
     public $callback;
 
     public function __construct()
     {
-        parent::__construct();
-
         $this->callback = function ($value) {
-            return view('datatables::boolean', ['value' => $value]);
+            return view('datatables::boolean-non-zero', ['value' => $value]);
         };
 
         $this->exportCallback = function ($value) {
-            return $value ? 1 : 0;
+            return filled($value) ? 1 : 0;
         };
     }
 }
