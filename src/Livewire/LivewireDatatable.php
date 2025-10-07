@@ -1,6 +1,6 @@
 <?php
 
-namespace Mediconesystems\LivewireDatatables\Http\Livewire;
+namespace Mediconesystems\LivewireDatatables\Livewire;
 
 use Exception;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -145,7 +145,7 @@ class LivewireDatatable extends Component
      * This events allows to control the options of the datatable from foreign livewire components
      * by using $emit.
      *
-     * @example $this->emit('applyToTable', ['perPage' => 25]); // in any other livewire component on the same page
+     * @example $this->dispatch('applyToTable', ['perPage' => 25]); // in any other livewire component on the same page
      */
     public function applyToTable($options)
     {
@@ -354,7 +354,7 @@ class LivewireDatatable extends Component
         $selects = collect($column->additionalSelects)->map(function ($select) use ($column) {
             return Str::contains($select, '.')
                 ? $this->resolveColumnName($column, $select)
-                : $this->query->getModel()->getTable().'Livewire'.$select;
+                : $this->query->getModel()->getTable() . '.' . $select;
         });
 
         if (DB::connection() instanceof \Illuminate\Database\SQLiteConnection) {
@@ -380,7 +380,7 @@ class LivewireDatatable extends Component
     {
         return [
             $column->select,
-            $this->query->getModel()->getTable().'Livewire'.$this->query->getModel()->getKeyName().' AS '.$column->name.'_edit_id',
+            $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName() . ' AS ' . $column->name . '_edit_id',
         ];
     }
 
@@ -415,11 +415,7 @@ class LivewireDatatable extends Component
                     if ($column->select instanceof Expression) {
                         $sep_string = config('database.default') === 'pgsql' ? '"' : '`';
 
-                        if (version_compare('10.0.0', app()->version()) == -1) {
-                            return new Expression($column->select->getValue(DB::getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
-                        } else {
-                            return new Expression($column->select->getValue() . ' AS ' . $sep_string . $column->name . $sep_string);
-                        }
+                        return new Expression($column->select->getValue(DB::connection()->getQueryGrammar()) . ' AS ' . $sep_string . $column->name . $sep_string);
                     }
 
                     if (is_array($column->select)) {
@@ -442,7 +438,7 @@ class LivewireDatatable extends Component
     protected function resolveColumnName($column, $additional = null)
     {
         if ($column->isBaseColumn()) {
-            return $this->query->getModel()->getTable().'Livewire'.($column->base ?? Str::before($column->name, ':'));
+            return $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
         }
 
         $relations = explode('.', Str::before($additional ?: $column->name, ':'));
@@ -493,7 +489,7 @@ class LivewireDatatable extends Component
 
     public function sessionStorageKey()
     {
-        return LivewireDatatable.phpStr::snake(Str::afterLast(get_called_class(), '\\')).$this->name;
+        return Str::snake(Str::afterLast(get_called_class(), '\\')) . $this->name;
     }
 
     public function getSessionStoredSort()
@@ -1772,7 +1768,7 @@ class LivewireDatatable extends Component
 
     public function render()
     {
-        $this->emit('refreshDynamic');
+        $this->dispatch('refreshDynamic');
 
         if ($this->persistPerPage) {
             session()->put([$this->sessionStorageKey() . '_perpage' => $this->perPage]);

@@ -3,7 +3,7 @@
 namespace Mediconesystems\LivewireDatatables\Tests;
 
 use Livewire\Livewire;
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Tests\Models\DummyModel;
 
 class LivewireDatatableTemplateTest extends TestCase

@@ -14,8 +14,8 @@ use Livewire\Livewire;
 use Mediconesystems\LivewireDatatables\Commands\DatatableMakeCommand;
 use Mediconesystems\LivewireDatatables\Commands\MakeDatatableCommand;
 use Mediconesystems\LivewireDatatables\Http\Controllers\FileExportController;
-use Mediconesystems\LivewireDatatables\Http\Livewire\ComplexQuery;
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Livewire\ComplexQuery;
+use Mediconesystems\LivewireDatatables\Livewire\LivewireDatatable;
 
 class LivewireDatatablesServiceProvider extends ServiceProvider
 {

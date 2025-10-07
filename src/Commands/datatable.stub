@@ -2,7 +2,7 @@
 
 namespace [namespace];
 
-use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Mediconesystems\LivewireDatatables\Livewire\LivewireDatatable;
 
 class [class] extends LivewireDatatable
 {
