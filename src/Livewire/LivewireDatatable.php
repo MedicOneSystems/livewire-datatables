@@ -291,7 +291,7 @@ class LivewireDatatable extends Component
             session()->put($this->sessionStorageKey() . '_search', $this->search);
         }
 
-        return parent::dehydrate(); // @phpstan-ignore-line
+//        return parent::dehydrate(); // @phpstan-ignore-line
     }
 
     public function columns()
