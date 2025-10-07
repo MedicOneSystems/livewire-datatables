@@ -354,7 +354,7 @@ class LivewireDatatable extends Component
         $selects = collect($column->additionalSelects)->map(function ($select) use ($column) {
             return Str::contains($select, '.')
                 ? $this->resolveColumnName($column, $select)
-                : $this->query->getModel()->getTable() . '.' . $select;
+                : $this->query->getModel()->getTable().'Livewire'.$select;
         });
 
         if (DB::connection() instanceof \Illuminate\Database\SQLiteConnection) {
@@ -380,7 +380,7 @@ class LivewireDatatable extends Component
     {
         return [
             $column->select,
-            $this->query->getModel()->getTable() . '.' . $this->query->getModel()->getKeyName() . ' AS ' . $column->name . '_edit_id',
+            $this->query->getModel()->getTable().'Livewire'.$this->query->getModel()->getKeyName().' AS '.$column->name.'_edit_id',
         ];
     }
 
@@ -442,7 +442,7 @@ class LivewireDatatable extends Component
     protected function resolveColumnName($column, $additional = null)
     {
         if ($column->isBaseColumn()) {
-            return $this->query->getModel()->getTable() . '.' . ($column->base ?? Str::before($column->name, ':'));
+            return $this->query->getModel()->getTable().'Livewire'.($column->base ?? Str::before($column->name, ':'));
         }
 
         $relations = explode('.', Str::before($additional ?: $column->name, ':'));
@@ -493,7 +493,7 @@ class LivewireDatatable extends Component
 
     public function sessionStorageKey()
     {
-        return Str::snake(Str::afterLast(get_called_class(), '\\')) . $this->name;
+        return LivewireDatatable.phpStr::snake(Str::afterLast(get_called_class(), '\\')).$this->name;
     }
 
     public function getSessionStoredSort()
