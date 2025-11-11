@@ -24,6 +24,7 @@ class ColumnSetTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider fieldDataProvider
      */
     public function it_can_correctly_populate_the_columns_from_the_model($name, $index, $column)
