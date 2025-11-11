@@ -13,8 +13,6 @@
 - Column groups
 - Mass Action (Bulk) Support
 
-## [Live Demo App](https://livewire-datatables.com)
-
 ## [Demo App Repo](https://github.com/MedicOneSystems/demo-livewire-datatables)
 
 ![screenshot](resources/images/screenshot.png "Screenshot")
@@ -573,14 +571,14 @@ class TableWithSaving extends LivewireDatatable
             'rules' => $rules
         ]);
 
-        $this->emit('updateSavedQueries', $this->getSavedQueries());
+        $this->dispatch('updateSavedQueries', $this->getSavedQueries());
     }
 
     public function deleteQuery($id)
     {
         ComplexQuery::destroy($id);
 
-        $this->emit('updateSavedQueries', $this->getSavedQueries());
+        $this->dispatch('updateSavedQueries', $this->getSavedQueries());
     }
 
     public function getSavedQueries()
