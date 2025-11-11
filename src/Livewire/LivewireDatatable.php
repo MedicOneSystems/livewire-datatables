@@ -498,7 +498,7 @@ class LivewireDatatable extends Component
             return;
         }
 
-        $this->currentSort = session()->get($this->sessionStorageKey().'_sort', $this->currentSort);
+        $this->currentSort = session()->get($this->sessionStorageKey() . '_sort', $this->currentSort);
         $this->direction = session()->get($this->sessionStorageKey() . '_direction', $this->direction);
     }
 
