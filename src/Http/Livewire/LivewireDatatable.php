@@ -402,7 +402,7 @@ class LivewireDatatable extends Component
             ->reject(function ($column) use ($export) {
                 return $column->scope || $column->type === 'label' || ($export && $column->preventExport);
             })->map(function ($column) {
-                if ($column->select) {
+                if ($column->select && !Str::contains($column->name, '.')) {
                     return $column;
                 }
 
