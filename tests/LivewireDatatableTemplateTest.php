@@ -157,7 +157,7 @@ class LivewireDatatableTemplateTest extends TestCase
         factory(DummyModel::class)->create();
 
         $subject = Livewire::test(LivewireDatatable::class, [
-            'model'       => DummyModel::class,
+            'model' => DummyModel::class,
             'currentSort' => 'subject|asc',
         ]);
 
