@@ -3,6 +3,15 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mediconesystems/livewire-datatables.svg?style=flat-square)](https://packagist.org/packages/mediconesystems/livewire-datatables)
 [![Total Downloads](https://img.shields.io/packagist/dt/mediconesystems/livewire-datatables.svg?style=flat-square)](https://packagist.org/packages/mediconesystems/livewire-datatables)
 
+⚠️ Project Status: Unmaintained
+
+Thank you to everyone who has used, contributed to, or supported this project. Unfortunately, I’m no longer able to actively maintain it.
+I wanted to be transparent so that you can make informed decisions about using or forking the code.
+
+If you rely on this project and would like to take over maintenance or ownership, feel free to open an issue to discuss it. Otherwise, please treat this repository as archived and read-only.
+
+Thanks again for your understanding and for being part of the project.
+
 ### Features
 - Use a model or query builder to supply data
 - Mutate and format columns using preset or custom callbacks
