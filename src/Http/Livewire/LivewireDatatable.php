@@ -1283,6 +1283,7 @@ class LivewireDatatable extends Component
     public function complexQuery($rules)
     {
         $this->complexQuery = $rules;
+        $this->setPage(1);
     }
 
     public function addComplexQuery()
@@ -1294,8 +1295,6 @@ class LivewireDatatable extends Component
         $this->query->where(function ($query) {
             $this->processNested($this->complexQuery, $query);
         });
-
-        $this->setPage(1);
 
         return $this;
     }
@@ -1340,9 +1339,15 @@ class LivewireDatatable extends Component
                                     $query->whereNotNull($column);
                                 } elseif ($this->columns[$rule['content']['column']]['type'] === 'boolean') {
                                     if ($rule['content']['value'] === 'true') {
-                                        $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                        $query->where(function ($query) use ($column) {
+                                            $query->whereNotNull(Str::contains($column, '(') ? DB::raw($column) : $column)
+                                            ->where($column, '<>', 0);
+                                        });
                                     } else {
-                                        $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column);
+                                        $query->where(function ($query) use ($column) {
+                                            $query->whereNull(Str::contains($column, '(') ? DB::raw($column) : $column)
+                                                ->orWhere(Str::contains($column, '(') ? DB::raw($column) : $column, 0);
+                                        });
                                     }
                                 } else {
                                     $col = (isset($this->freshColumns[$rule['content']['column']]['round']) && $this->freshColumns[$rule['content']['column']]['round'] !== null)
@@ -1776,10 +1781,10 @@ class LivewireDatatable extends Component
             })->get(),
             true
         )->map(function ($item) {
-            return collect($this->columns())->reject(function ($value, $key) {
-                return $value->preventExport == true || $value->hidden == true;
-            })->mapWithKeys(function ($value, $key) use ($item) {
-                return [$value->label ?? $value->name => $item->{$value->name}];
+            return collect($this->columns)->reject(function ($value) {
+                return $value['preventExport'] == true || $value['hidden'] == true;
+            })->mapWithKeys(function ($value) use ($item) {
+                return [$value['label'] ?? $value['name'] => $item->{$value['name']}];
             })->all();
         });
     }
